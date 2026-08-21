@@ -209,12 +209,10 @@ Call for contributors!
 **Release on steam as early access**
 
 ## Financial
-If it gets good reviews, some stuff will be added to support the project financially ( earnings will be spread over the contributors. please make sure your tools have the correct licensing. Some free tools require a license if you use them for profit. )
-### What will be avoided at all costs:
- - Loot boxes
- - Currency from real money, Things like Gems.
+If it gets good reviews, some stuff will be added to support the project financially, in the form of steam extensions ( earnings will be spread over the contributors. please make sure your tools have the correct licensing. Some free tools require a license if you use them for profit. )
 
-### Paid steam extensions:
- - Access to join a large dedicated server full of other players.
- - A home. You can build/buy a home in a M.E.G. Base. **only once!**. It will leave a permanent mark on the map ( if there is room ). Destroying your home will allow you to build it elsewhere.
+### extensions:
+- Access to join a large dedicated server full of other players.
+- A home. You can build/buy a home in a M.E.G. Base. **only once!**. It will leave a permanent mark on the map ( if there is room ). Destroying your home will allow you to build it elsewhere.
+
  
