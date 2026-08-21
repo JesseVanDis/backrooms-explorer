@@ -30,6 +30,7 @@ Things to keep in mind when working on this game.
 ## Contributing
 This is a collaborative project. If you're interested in contributing, feel free to dive into the code, models or sound, and join the effort!
 Please keep your contribution true to the [Backrooms Wiki](https://backrooms-wiki.wikidot.com). 
+The roadmap is below. But if you want to make any other level not listed in the roadmap, feel free to do so!
 
 # Technical
 It depends on the following: 
@@ -215,4 +216,12 @@ If it gets good reviews, some stuff will be added to support the project financi
 - Access to join a large dedicated server full of other players.
 - A home. You can build/buy a home in a M.E.G. Base. **only once!**. It will leave a permanent mark on the map ( if there is room ). Destroying your home will allow you to build it elsewhere.
 
- 
+## V0.6
+| Subject                              | progress |
+|--------------------------------------|----------|
+| **Mechanics**                        | -        |
+| - Large dedicated server extension ? | 0        |
+| - M.E.G. Base how extension ?        | 0        |
+| **Scenes**                           | -        |
+| - lvl 21                             | 0        |
+| - lvl 22                             | 0        |
