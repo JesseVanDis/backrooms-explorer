@@ -44,81 +44,130 @@ Please those any editor to your liking. Prefer free software, as other contribut
 
 
 # Design
-The game will follow the wiki as close as possible. Sometimes creativity is needed as the wiki sometimes goes on about rumors or unknowns. 
-
-When you enter a level, you will be presented with a brief description of the level, shown on a rugged mobile device. The M.E.G. Explorer Device.
-It will look something like this:
-![docs/readme/1.png](docs/readme/1.png)
-A link to the official wiki page will be presented as well. When clicking on it, the player will be redirected to the official wiki page inside the same phone (if possible). There may be a disclaimer somewhere that is only X% accurate with what is currently in the game due to uncertainties / unfinished work.
-
-While the phone is active, the game is in a paused state, unless you are in an online session. This seems fair as in some levels require you to run IMMEDIATELY whenever you get into the level.
+ - The game will follow the wiki as close as possible. Sometimes creativity is needed as the wiki sometimes goes on about rumors or unknowns.
+ - It will be a first person (not shooter per-se) game.
+ - When you enter a level, you will be presented with a brief description of the level, shown on a rugged mobile device. The M.E.G. Explorer Device. It will look something like this: ![docs/readme/1.png](docs/readme/1.png)
+ - A link to the official wiki page will be presented as well. When clicking on it, the player will be redirected to the official wiki page inside the same phone (if possible). There may be a disclaimer somewhere that this game-level is only X% accurate due to uncertainties / unfinished work.
+ - While the phone is active, the game is in a paused state, unless you are in an online session. This seems fair as in some levels require you to run IMMEDIATELY whenever you get into the level.
+ - There will be M.E.G. bases, and you can trade stuff like almond water for armor and weapons.
 
 
 # Roadmap
 
-## V0.1
+## V0.0.1
 | Subject                    | progress (%) |
 |----------------------------|--------------|
-| **Mechanics**              |              |
+| **Mechanics**              | -            |
 | - Running                  | 0            |
 | - Jumping                  | 0            |
 | - Moving in between levels | 0            |
-| **Scenes**                 |              |
+| **Scenes**                 | -            |
 | - lvl 0                    | 0            |
 | - lvl 1                    | 0            |
 
-## V0.2
+## V0.0.2
 | Subject                                                    | progress |
 |------------------------------------------------------------|----------|
-| **Multiplayer**                                            |         |
+| **Multiplayer**                                            | -        |
 | - Basic server                                             | 0        |
 | - Players can see eachother move ( as placeholder models ) | 0        |
 
-## V0.3
+## V0.0.3
 | Subject                                    | progress |
-|--------------------------------------------|--------|
-| **Main menu**                              |        |
-| - Play offline                             | 0      |
-| - Play online                              | 0      |
-| - Player model                             | 0      |
-| - Quit                                     | 0      |
-| **Ingame menu**                            |        |
-| - Savegames                                | 0      |
-| **Pause/Resume**                           | 0      |
-| **Multiplayer**                            |        |
-| - Players can see eachothers player models | 0      |
+|--------------------------------------------|----------|
+| **Main menu**                              | -        |
+| - Play offline                             | 0        |
+| - Play online                              | 0        |
+| - Player model                             | 0        |
+| - Quit                                     | 0        |
+| **Ingame menu**                            | -        |
+| - Savegames                                | 0        |
+| **Pause/Resume**                           | 0        |
+| **Multiplayer**                            | -        |
+| - Players can see eachothers player models | 0        |
 
-## V0.4
+## V0.0.4
 | Subject                     | progress |
 |-----------------------------|----------|
-| **Inventory system**        |          |
+| **Inventory system**        | -        |
+| - Health system             | 0        |
 | - Put thing in inventory    | 0        |
 | - Drop thing from inventory | 0        |
-| **Items**                   |          |
+| **Items**                   | -        |
 | - Almond water              | 0        |
-| **Scenes**                  |          |
+| **Scenes**                  | -        |
 | - lvl 2                     | 0        |
 | - lvl 3                     | 0        |
 
-## V0.5
+## V0.0.5
 | Subject                                          | progress |
 |--------------------------------------------------|----------|
-| **Mechanics**                                    |          |
+| **Mechanics**                                    | -        |
 | - Mobile phone with level description upon entry | 0        |
-| **Entities**                                     |          |
+| **Entities**                                     | -        |
 | - Clumps                                         | 0        |
 | - Haunds                                         | 0        |
-| **Scenes**                                       |          |
+| **Scenes**                                       | -        |
 | - lvl 4                                          | 0        |
 
 
-## V0.6
-| Subject                             | progress |
-|-------------------------------------|----------|
-| **Mechanics**                       |          |
-| - non-Euclidean properties of lvl 0 | 0        |
-| **Entities**                        |          |
-| - Smilers                           | 0        |
-| - Crawlers                          | 0        |
-| **Scenes**                          |          |
-| - lvl 5                             | 0        |
+## V0.0.6
+| Subject                              | progress |
+|--------------------------------------|---------|
+| **Mechanics**                        | -       |
+| - non-Euclidean properties in scenes | 0       |
+| **Entities**                         | -       |
+| - Smilers                            | 0       |
+| - Crawlers                           | 0       |
+| **Scenes**                           | -       |
+| - lvl 5                              | 0       |
+| - lvl 6                              | 0       |
+
+## V0.0.7
+| Subject                                          | progress |
+|--------------------------------------------------|----------|
+| **Mechanics**                                    | -        |
+| - Block+Message when going into unfinished level | 0        |
+| - Swimming                                       | 0        |
+| - Gravity changes                                | 0        |
+| **Entities**                                     | -        |
+| - Skin-Stealers                                  | 0        |
+| **Scenes**                                       | -        |
+| - lvl 7                                          | 0        |
+
+## V0.0.8
+| Subject                  | progress |
+|--------------------------|----------|
+| **Mechanics**            | -        |
+| - Attack / kill entities | 0        |
+| **Items**                | -        |
+| - Knife                  | 0        |
+| - Headlight              | 0        |
+
+## V0.0.9 
+| Subject             | progress |
+|---------------------|----------|
+| **Mechanics**       | -        |
+| - M.E.G. Bases      | 0        |
+| - M.E.G. Tradepost  | 0        |
+| - Friendly humans   | 0        |
+
+## V0.0.10
+| Subject     | progress |
+|-------------|----------|
+| **Items**   | -        |
+| - 'GPS' Map | 0        |
+
+## V0.1.0 ( alpha )
+| Subject           | progress |
+|-------------------|----------|
+| **Items**         | -        |
+| - Royal rations   | 0        |
+| - Swimming        | 0        |
+| - Gravity changes | 0        |
+| **Entities**      | -        |
+| - Skin-Stealers   | 0        |
+| **Scenes**        | -        |
+| - lvl 8           | 0        |
+
+
