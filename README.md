@@ -209,7 +209,7 @@ Call for contributors!
 **Release on steam as early access**
 
 ## Financial
-If it gets good reviews, some stuff will be added to support the project financially ( earnings will be spread over the contributors. please make sure your tools have the correct licensing. Some free tools require a license if you use them for profit. ):
+If it gets good reviews, some stuff will be added to support the project financially ( earnings will be spread over the contributors. please make sure your tools have the correct licensing. Some free tools require a license if you use them for profit. )
 ### What will be avoided at all costs:
  - Loot boxes
  - Currency from real money, Things like Gems.
