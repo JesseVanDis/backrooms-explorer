@@ -1,2 +1,124 @@
 # backrooms-explorer
-The opensource videogame about exploring the backrooms.
+
+An open-source, sandbox-style game focused on the exploration of the Backrooms.
+
+## Project Vision
+_backrooms-explorer_ (Working title) is a sandbox-like videogame about capturing the scale and mystery of the Backrooms as documented in the wiki. 
+
+Unlike many Backgroom games and videos, It is not solely focussed on the horror aspect.
+Players can freely walk around and explore different levels, encountering both enemies and friendly entities.
+
+## Goal
+The primary goal of _backrooms-explorer_ is to provide an immersive and accurate exploration experience of the Backrooms, based on the extensive documentation from the [Backrooms Wiki](https://backrooms-wiki.wikidot.com).
+A way for 'finish' the game would be to escape the Backrooms. However it is not going to be the focus of this game.
+
+## Features
+Things to keep in mind when working on this game. 
+- **Non euclidian spaces**. Plenty of level have them
+- **M.E.G. Bases**. With humans living in them.
+- **Filters** There are levels that lets you view the world in a different vision. Such as CRT Black & White.
+- **Under water** some levels require you to dive to exit, such as level 7.
+- **Vehicles** In level 69 you must drive a car until you reach a tunnel, or get killed by a giant spiders leg if you step out before that.
+- **Gravity changes** In Level 7 the gravity changes depending on where you are.
+- **Online**: <span style="color:#ff0000">Todo Discuss</span>: _( Massive scale - aka dedicated server, or local host ?. Lets at least target instances where 64 players can be in the system. We may have to deal with cheaters! )_
+- **Entity 7 ( Jerry )** can occur in any level. Touching jerry will make you see him as king, or alternatively just give him sunflower seeds and he will never appear again
+- **Entity 71 ( The red knight )** can occur in any level, and sometimes helps lost travelers. Specifically travelers who just entered the back rooms.
+- **Level 24** You are on the moon. But there is a giant entity many many times bigger than the sun.
+- **Level 75** is a cave system made out of gallium. The stuff that melts at body temperature. Tunnels will melt around you and ambient temperatures are occelating, including above melting point.
+- **Fail safe** Some levels don't have exists. (documented at least) <span style="color:#ff0000">What should happen then ?</span> 
+
+## Contributing
+This is a collaborative project. If you're interested in contributing, feel free to dive into the code, models or sound, and join the effort!
+Please keep your contribution true to the [Backrooms Wiki](https://backrooms-wiki.wikidot.com). 
+
+# Technical
+It depends on the following: 
+- **Engine**: [Godot Engine](https://godotengine.org/)
+- **Language**: GDScript
+
+Server mode is starting with the argument `--server`
+When playing in offline mode, the server is started automatically, but nobody but the player can join.
+
+## Artwork
+Please those any editor to your liking. Prefer free software, as other contributors can then also open the save file and edit it if needed. The saves go into the 'assets' folder
+
+
+# Design
+The game will follow the wiki as close as possible. Sometimes creativity is needed as the wiki sometimes goes on about rumors or unknowns. 
+
+When you enter a level, you will be presented with a brief description of the level, shown on a rugged mobile device. The M.E.G. Explorer Device.
+It will look something like this:
+![docs/readme/1.png](docs/readme/1.png)
+A link to the official wiki page will be presented as well. When clicking on it, the player will be redirected to the official wiki page inside the same phone (if possible). There may be a disclaimer somewhere that is only X% accurate with what is currently in the game due to uncertainties / unfinished work.
+
+While the phone is active, the game is in a paused state, unless you are in an online session. This seems fair as in some levels require you to run IMMEDIATELY whenever you get into the level.
+
+
+# Roadmap
+
+## V0.1
+| Subject                    | progress (%) |
+|----------------------------|--------------|
+| **Mechanics**              |              |
+| - Running                  | 0            |
+| - Jumping                  | 0            |
+| - Moving in between levels | 0            |
+| **Scenes**                 |              |
+| - lvl 0                    | 0            |
+| - lvl 1                    | 0            |
+
+## V0.2
+| Subject                                                    | progress |
+|------------------------------------------------------------|----------|
+| **Multiplayer**                                            |         |
+| - Basic server                                             | 0        |
+| - Players can see eachother move ( as placeholder models ) | 0        |
+
+## V0.3
+| Subject                                    | progress |
+|--------------------------------------------|--------|
+| **Main menu**                              |        |
+| - Play offline                             | 0      |
+| - Play online                              | 0      |
+| - Player model                             | 0      |
+| - Quit                                     | 0      |
+| **Ingame menu**                            |        |
+| - Savegames                                | 0      |
+| **Pause/Resume**                           | 0      |
+| **Multiplayer**                            |        |
+| - Players can see eachothers player models | 0      |
+
+## V0.4
+| Subject                     | progress |
+|-----------------------------|----------|
+| **Inventory system**        |          |
+| - Put thing in inventory    | 0        |
+| - Drop thing from inventory | 0        |
+| **Items**                   |          |
+| - Almond water              | 0        |
+| **Scenes**                  |          |
+| - lvl 2                     | 0        |
+| - lvl 3                     | 0        |
+
+## V0.5
+| Subject                                          | progress |
+|--------------------------------------------------|----------|
+| **Mechanics**                                    |          |
+| - Mobile phone with level description upon entry | 0        |
+| **Entities**                                     |          |
+| - Clumps                                         | 0        |
+| - Haunds                                         | 0        |
+| **Scenes**                                       |          |
+| - lvl 4                                          | 0        |
+
+
+## V0.6
+| Subject                             | progress |
+|-------------------------------------|----------|
+| **Mechanics**                       |          |
+| - non-Euclidean properties of lvl 0 | 0        |
+| **Entities**                        |          |
+| - Smilers                           | 0        |
+| - Crawlers                          | 0        |
+| **Scenes**                          |          |
+| - lvl 5                             | 0        |
