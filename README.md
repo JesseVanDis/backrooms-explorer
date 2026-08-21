@@ -158,7 +158,7 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | **Items**   | -        |
 | - 'GPS' Map | 0        |
 
-## V0.1.0 ( alpha )
+## V0.1 ( entering alpha )
 | Subject         | progress |
 |-----------------|----------|
 | **Items**       | -        |
@@ -169,4 +169,52 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | **Scenes**      | -        |
 | - lvl 8         | 0        |
 
+## V0.2
+| Subject                                  | progress |
+|------------------------------------------|----------|
+| **Mechanics**                            | -        |
+| - Completion rate of level on phone      | 0        |
+| - 'Mobile' Chat window ( map and local ) | 0        |
 
+**Announcement to Reddit happens when V0.2 is done**
+Call for contributors!
+
+## V0.3
+| Subject    | progress |
+|------------|----------|
+| **Scenes** | -        |
+| - lvl 9    | 0        |
+| - lvl 10   | 0        |
+| - lvl 11   | 0        |
+| - lvl 12   | 0        |
+
+## V0.4
+| Subject    | progress |
+|------------|----------|
+| **Scenes** | -        |
+| - lvl 13   | 0        |
+| - lvl 14   | 0        |
+| - lvl 15   | 0        |
+
+## V0.5
+| Subject    | progress |
+|------------|----------|
+| **Scenes** | -        |
+| - lvl 16   | 0        |
+| - lvl 17   | 0        |
+| - lvl 18   | 0        |
+| - lvl 19   | 0        |
+| - lvl 20   | 0        |
+
+**Release on steam as early access**
+
+## Financial
+If it gets good reviews, some stuff will be added to support the project financially ( earnings will be spread over the contributors. please make sure your tools have the correct licensing. Some free tools require a license if you use them for profit. ):
+### What will be avoided at all costs:
+ - Loot boxes
+ - Currency from real money, Things like Gems.
+
+### Paid steam extensions:
+ - Access to join a large dedicated server full of other players.
+ - A home. You can build/buy a home in a M.E.G. Base. **only once!**. It will leave a permanent mark on the map ( if there is room ). Destroying your home will allow you to build it elsewhere.
+ 
