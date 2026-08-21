@@ -159,15 +159,14 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | - 'GPS' Map | 0        |
 
 ## V0.1.0 ( alpha )
-| Subject           | progress |
-|-------------------|----------|
-| **Items**         | -        |
-| - Royal rations   | 0        |
-| - Swimming        | 0        |
-| - Gravity changes | 0        |
-| **Entities**      | -        |
-| - Skin-Stealers   | 0        |
-| **Scenes**        | -        |
-| - lvl 8           | 0        |
+| Subject         | progress |
+|-----------------|----------|
+| **Items**       | -        |
+| - Royal rations | 0        |
+| - Firesalt      | 0        |
+| **Entities**    | -        |
+| - Smilers       | 0        |
+| **Scenes**      | -        |
+| - lvl 8         | 0        |
 
 
