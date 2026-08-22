@@ -1,85 +1,103 @@
 extends Node
 
+class_name MapGenerator
+
+class MapSettings:
+	var room_iterations: int = 50
+	var room_min_size: int = 3
+	var room_max_size: int = 7
+	var hallway_min_width: int = 1
+	var hallway_max_width: int = 1
+	var room_margin: int = 1
+
+	func _init(_room_iterations: int = 50, _room_min_size: int = 3, _room_max_size: int = 7, _hallway_min_width: int = 1, _hallway_max_width: int = 1, _room_margin: int = 1):
+		room_iterations = _room_iterations
+		room_min_size = _room_min_size
+		room_max_size = _room_max_size
+		hallway_min_width = _hallway_min_width
+		hallway_max_width = _hallway_max_width
+		room_margin = _room_margin
+
 ## Generates a black & white maze PNG.
 ## white background (1.0), black pixels = walls (0.0)
-func generate_map(width: int, height: int, map_seed: int, debug_png_filename: String) -> void:
+func generate_map(width: int, height: int, map_seed: int, debug_png_filename: String, settings: MapSettings = MapSettings.new()) -> void:
 	seed(map_seed)
-	
+
 	# Create image
 	var image := Image.create(width, height, false, Image.FORMAT_L8)
-	image.fill(Color.WHITE) # Background is white
-	
-	# Maze generation (Recursive Backtracking on a grid)
-	# We'll use a grid where each cell is 2x2 pixels to ensure walls are 1 pixel thick.
-	# Or better, we just use a standard grid and draw walls.
-	# Actually, to fit 512x512 exactly, let's just do a pixel-based approach.
-	
-	# Simple randomized DFS for maze generation.
-	# We will treat the image as a grid of "cells" and "walls".
-	# For simplicity in a 512x512 image, let's use a cell size of 2.
-	# Cells at (odd, odd), walls at (even, any) and (any, even).
-	
-	# Fill with black first (all walls), then carve out white paths.
-	image.fill(Color.BLACK)
-	
-	var grid_width := width / 2
-	var grid_height := height / 2
-	
-	var stack := []
-	var visited := []
-	for i in range(grid_width):
-		var row := []
-		for j in range(grid_height):
-			row.append(false)
-		visited.append(row)
-	
-	var start_x := 0
-	var start_y := 0
-	visited[start_x][start_y] = true
-	stack.push_back(Vector2i(start_x, start_y))
-	
-	# Carve the start point
-	image.set_pixel(start_x * 2 + 1, start_y * 2 + 1, Color.WHITE)
-	
-	while stack.size() > 0:
-		var current = stack[stack.size() - 1]
-		var neighbors := []
-		
-		# Check neighbors (Up, Down, Left, Right)
-		var directions = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]
-		for dir in directions:
-			var nx = current.x + dir.x
-			var ny = current.y + dir.y
-			if nx >= 0 and nx < grid_width and ny >= 0 and ny < grid_height:
-				if not visited[nx][ny]:
-					neighbors.append(dir)
-		
-		if neighbors.size() > 0:
-			var dir = neighbors[randi() % neighbors.size()]
-			var next = current + dir
-			
-			visited[next.x][next.y] = true
-			
-			# Carve the path in the image
-			# Cell is at (x*2+1, y*2+1)
-			# Wall between current and next is at current*2+1 + dir
-			var nx_pixel: int = next.x * 2 + 1
-			var ny_pixel: int = next.y * 2 + 1
-			var wx_pixel: int = current.x * 2 + 1 + dir.x
-			var wy_pixel: int = current.y * 2 + 1 + dir.y
-			
-			if nx_pixel < width and ny_pixel < height:
-				image.set_pixel(nx_pixel, ny_pixel, Color.WHITE)
-			if wx_pixel < width and wy_pixel < height:
-				image.set_pixel(wx_pixel, wy_pixel, Color.WHITE)
-			
-			stack.push_back(next)
-		else:
-			stack.pop_back()
-			
-	# Ensure borders are black (walls) - though they should be by default
-	
+	image.fill(Color.BLACK) # Start with all walls
+
+	# We use a grid system. Cell size is 2 pixels (1 for floor, 1 for wall)
+	# To support wider hallways and rooms, we can either:
+	# 1. Increase cell size.
+	# 2. Use a 1px = 1 unit grid and handle wall thickness differently.
+
+	# Let's go with 1px = 1 unit for more flexibility with room sizes and hallway widths.
+	# But the user said "black pixels = walls".
+
+	var rooms: Array[Rect2i] = []
+
+	# 1. Place rooms
+	for i in range(settings.room_iterations):
+		var w = (randi() % (settings.room_max_size - settings.room_min_size + 1)) + settings.room_min_size
+		var h = (randi() % (settings.room_max_size - settings.room_min_size + 1)) + settings.room_min_size
+		var x = randi() % (width - w - 2) + 1
+		var y = randi() % (height - h - 2) + 1
+
+		var new_room = Rect2i(x, y, w, h)
+
+		var intersects = false
+		for other_room in rooms:
+			if new_room.grow(settings.room_margin).intersects(other_room):
+				intersects = true
+				break
+
+		if not intersects:
+			rooms.append(new_room)
+			# Carve room
+			for rx in range(new_room.position.x, new_room.end.x):
+				for ry in range(new_room.position.y, new_room.end.y):
+					image.set_pixel(rx, ry, Color.WHITE)
+
+	# 2. Connect rooms
+	for i in range(rooms.size() - 1):
+		var r1 = rooms[i]
+		var r2 = rooms[i+1]
+
+		var p1 = r1.get_center()
+		var p2 = r2.get_center()
+
+		var h_width = settings.hallway_min_width
+		if settings.hallway_max_width > settings.hallway_min_width:
+			h_width = (randi() % (settings.hallway_max_width - settings.hallway_min_width + 1)) + settings.hallway_min_width
+
+		_carve_hallway(image, p1, p2, h_width)
+
 	# Save image
 	var err := image.save_png(debug_png_filename)
 	if err != OK:
 		push_error("Failed to save maze image: " + str(err))
+
+func _carve_hallway(image: Image, p1: Vector2i, p2: Vector2i, width: int) -> void:
+	var current = p1
+
+	# Horizontal then vertical or vice versa
+	if randi() % 2 == 0:
+		_carve_line(image, Vector2i(p1.x, p1.y), Vector2i(p2.x, p1.y), width)
+		_carve_line(image, Vector2i(p2.x, p1.y), Vector2i(p2.x, p2.y), width)
+	else:
+		_carve_line(image, Vector2i(p1.x, p1.y), Vector2i(p1.x, p2.y), width)
+		_carve_line(image, Vector2i(p1.x, p2.y), Vector2i(p2.x, p2.y), width)
+
+func _carve_line(image: Image, start: Vector2i, end: Vector2i, line_width: int) -> void:
+	var x_start = min(start.x, end.x)
+	var x_end = max(start.x, end.x)
+	var y_start = min(start.y, end.y)
+	var y_end = max(start.y, end.y)
+
+	var offset = line_width / 2
+
+	for x in range(x_start - offset, x_end + (line_width - offset)):
+		for y in range(y_start - offset, y_end + (line_width - offset)):
+			if x >= 0 and x < image.get_width() and y >= 0 and y < image.get_height():
+				image.set_pixel(x, y, Color.WHITE)
