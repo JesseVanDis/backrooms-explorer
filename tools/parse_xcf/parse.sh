@@ -2,23 +2,39 @@
 
 # Export .xcf files to .png's
 # Change to the directory where this script is located
-cd "$(dirname "$0")" || exit 1
-
-# Create resources directory if it doesn't exist
-mkdir -p "./resources"
+cd "/app/assets"
 
 # Export every .xcf file in ./assets to ./resources/<name>.png
 
+echo "gimp version:"
+gimp --version
+
 echo "Starting parse... "
-xvfb-run -a gimp -idf -n -b "
-(let* ((file-list (cadr (file-glob \"assets/*.xcf\" 1))))
-  (while (not (null? file-list))
-    (let* ((filename (car file-list))
-           (image (car (gimp-file-load RUN-NONINTERACTIVE filename filename)))
-           (drawable (car (gimp-image-merge-visible-layers image CLIP-TO-IMAGE)))
-           (output-path (string-append \"resources/\" (substring filename 7 (- (string-length filename) 4)) \".png\")))
-      (gimp-message (string-append \"Exporting: \" filename \" -> \" output-path))
-      (file-png-save RUN-NONINTERACTIVE image drawable output-path output-path 0 9 0 0 0 0 0)
-      (gimp-image-delete image)
-      (set! file-list (cdr file-list)))))
-(gimp-quit 0)"
+
+
+{
+cat <<EOF
+(define (convert-xcf-png filename outpath)
+    (let* (
+            (image (car (gimp-xcf-load RUN-NONINTERACTIVE filename filename )))
+            (drawable (car (gimp-image-merge-visible-layers image CLIP-TO-IMAGE)))
+            )
+        (begin (display "Exporting ")(display filename)(display " -> ")(display outpath)(newline))
+        (file-png-save2 RUN-NONINTERACTIVE image drawable outpath outpath 0 9 0 0 0 0 0 0 0)
+        (gimp-image-delete image)
+    )
+)
+
+(gimp-message-set-handler 1) ; Messages to standard output
+EOF
+
+for i in *.xcf; do
+  echo "(convert-xcf-png \"$i\" \"/app/resources/${i%%.xcf}.png\")"
+done
+
+echo "(gimp-quit 0)"
+
+} | xvfb-run -a gimp -i -b -
+
+# xvfb-run -a gimp -idf --batch-interpreter python-fu-eval -b "import sys;sys.path=['.']+sys.path;import convertXCF;convertXCF.run('/app/resources')" -b "pdb.gimp_quit(1)"
+
