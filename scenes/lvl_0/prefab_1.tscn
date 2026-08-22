@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://dd4wr6nvp1gwp"]
+
+[ext_resource type="PackedScene" uid="uid://d4h462qt3f2if" path="res://assets/lvl_0_prefab_1.blend" id="1_fhm0q"]
+[ext_resource type="Shader" uid="uid://dfimsucyo0ajn" path="res://lvl_0_wallpaper.gdshader" id="2_7dhr2"]
+[ext_resource type="Texture2D" uid="uid://cq1uu1i8u8toc" path="res://resources/lvl_0_wallpaper_pattern.png" id="3_7dhr2"]
+[ext_resource type="Texture2D" uid="uid://b0867soaqgrqp" path="res://resources/generic_noise.png" id="3_62upq"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_y8adl"]
+render_priority = 0
+shader = ExtResource("2_7dhr2")
+shader_parameter/base_color = Color(1, 0.85490197, 0.22745098, 1)
+shader_parameter/noise_texture = ExtResource("3_62upq")
+shader_parameter/pattern_texture = ExtResource("3_7dhr2")
+shader_parameter/noise_strength = 0.3950000187625
+shader_parameter/noise_scale = 0.76800003648
+
+[node name="lvl_0_prefab_1" unique_id=368004296 instance=ExtResource("1_fhm0q")]
+
+[node name="Cube_001" parent="." index="1" unique_id=1836450829]
+surface_material_override/0 = SubResource("ShaderMaterial_y8adl")

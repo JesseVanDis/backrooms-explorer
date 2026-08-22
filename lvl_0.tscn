@@ -1,3 +1,11 @@
 [gd_scene format=3 uid="uid://ctkngyu5rcixj"]
 
+[ext_resource type="PackedScene" uid="uid://d4h462qt3f2if" path="res://assets/lvl_0_prefab_1.blend" id="1_hulxl"]
+
 [node name="Node3D" type="Node3D" unique_id=1577277307]
+
+[node name="lvl_0_prefab_1" parent="." unique_id=755728096 instance=ExtResource("1_hulxl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.011640489, -0.004418373, 0.08443642)
+
+[node name="OmniLight3D" type="OmniLight3D" parent="lvl_0_prefab_1" unique_id=1553250901]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2775257, 1.8059883, 0)
