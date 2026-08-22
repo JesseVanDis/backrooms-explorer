@@ -4,7 +4,6 @@ extends CharacterBody3D
 const SPEED: float = 5.0
 const JUMP_VELOCITY: float = 4.5
 
-@onready var neck_node : Node3D = $Neck
 @onready var camera_node : Node3D = $Neck/Camera3D
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -14,9 +13,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		if event is InputEventMouseMotion:
-			neck_node.rotate_y(-event.relative.x * 0.01)
+			rotate_y(-event.relative.x * 0.01)
 			camera_node.rotate_x(-event.relative.y * 0.01)
-			camera_node.rotation.x = clamp(camera_node.rotation.x, deg_to_rad(-30), deg_to_rad(60))
+			camera_node.rotation.x = clamp(camera_node.rotation.x, deg_to_rad(-90), deg_to_rad(90))
 
 func _physics_process(delta: float) -> void:
 	# Add the gravity.
