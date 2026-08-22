@@ -23,6 +23,10 @@ func _init():
 	settings.hallway_min_width = 1
 	settings.hallway_max_width = 6
 	settings.room_margin = 2
+	settings.dead_end_ratio = 0.0
+	settings.fill_ratio = 0.2
+	settings.connection_distance = 3
+	settings.connection_chance = 0.5
 
 	gen.generate_map(512, 512, 5678, "res://scenes/lvl_0/tests/test_maze_custom.png", settings)
 
