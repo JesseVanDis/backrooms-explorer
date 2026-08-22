@@ -1,3 +1,77 @@
 [gd_scene format=3 uid="uid://ctkngyu5rcixj"]
 
+[ext_resource type="PackedScene" uid="uid://dd4wr6nvp1gwp" path="res://scenes/lvl_0/prefab_1.tscn" id="1_q4tyq"]
+[ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://generic_assets/scenes/player.tscn" id="1_rj2d8"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_smeuj"]
+sky_material = SubResource("ProceduralSkyMaterial_rj2d8")
+
+[sub_resource type="Environment" id="Environment_j6thp"]
+background_mode = 2
+sky = SubResource("Sky_smeuj")
+glow_enabled = true
+
 [node name="Node3D" type="Node3D" unique_id=1577277307]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=538118835]
+environment = SubResource("Environment_j6thp")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=169863447]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Player" parent="." unique_id=1091834531 instance=ExtResource("1_rj2d8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.411394, 0, 1.8429631)
+
+[node name="Map" type="Node3D" parent="." unique_id=1437659456]
+
+[node name="lvl_0_prefab_1_1" parent="Map" unique_id=368004296 instance=ExtResource("1_q4tyq")]
+
+[node name="lvl_0_prefab_1_2" parent="Map" unique_id=688314384 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+
+[node name="lvl_0_prefab_1_3" parent="Map" unique_id=245680361 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+
+[node name="lvl_0_prefab_1_4" parent="Map" unique_id=1940192221 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 4)
+
+[node name="lvl_0_prefab_1_5" parent="Map" unique_id=728698834 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0)
+
+[node name="lvl_0_prefab_1_6" parent="Map" unique_id=1975291890 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 0)
+
+[node name="lvl_0_prefab_1_7" parent="Map" unique_id=402569859 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 4)
+
+[node name="lvl_0_prefab_1_8" parent="Map" unique_id=649088462 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 4)
+
+[node name="lvl_0_prefab_1_9" parent="Map" unique_id=803477344 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+
+[node name="lvl_0_prefab_1_10" parent="Map" unique_id=1365718221 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 8)
+
+[node name="lvl_0_prefab_1_11" parent="Map" unique_id=428028024 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12)
+
+[node name="lvl_0_prefab_1_12" parent="Map" unique_id=1892111734 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 12)
+
+[node name="lvl_0_prefab_1_13" parent="Map" unique_id=1395640809 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 8)
+
+[node name="lvl_0_prefab_1_14" parent="Map" unique_id=1941117936 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 8)
+
+[node name="lvl_0_prefab_1_15" parent="Map" unique_id=6315518 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 12)
+
+[node name="lvl_0_prefab_1_16" parent="Map" unique_id=426443641 instance=ExtResource("1_q4tyq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 12)
