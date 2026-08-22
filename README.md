@@ -52,10 +52,13 @@ Please choose any editor to your liking. Prefer free software, as other contribu
  - While the phone is active, the game is in a paused state, unless you are in an online session. This seems fair as in some levels require you to run IMMEDIATELY whenever you get into the level.
  - There will be M.E.G. bases, and you can trade stuff like almond water for armor and weapons.
 
+# Financial
+It will be sold on Steam for a yet to be discussed price to support the project. The earnings will be spread over the contributors, depending on an estimate on their effort or based on their hours if they provide any. please make sure your tools have the correct licensing. Some free tools require a license if you use them for profit.
+
 
 # Roadmap
 
-## V0.0.1
+### V0.0.1
 | Subject                    | progress (%) |
 |----------------------------|--------------|
 | **Mechanics**              | -            |
@@ -66,14 +69,14 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | - lvl 0                    | 0            |
 | - lvl 1                    | 0            |
 
-## V0.0.2
+### V0.0.2
 | Subject                                                    | progress |
 |------------------------------------------------------------|----------|
 | **Multiplayer**                                            | -        |
 | - Basic server                                             | 0        |
 | - Players can see eachother move ( as placeholder models ) | 0        |
 
-## V0.0.3
+### V0.0.3
 | Subject                                    | progress |
 |--------------------------------------------|----------|
 | **Main menu**                              | -        |
@@ -87,7 +90,7 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | **Multiplayer**                            | -        |
 | - Players can see eachothers player models | 0        |
 
-## V0.0.4
+### V0.0.4
 | Subject                     | progress |
 |-----------------------------|----------|
 | **Inventory system**        | -        |
@@ -100,7 +103,7 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | - lvl 2                     | 0        |
 | - lvl 3                     | 0        |
 
-## V0.0.5
+### V0.0.5
 | Subject                                          | progress |
 |--------------------------------------------------|----------|
 | **Mechanics**                                    | -        |
@@ -112,7 +115,7 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | - lvl 4                                          | 0        |
 
 
-## V0.0.6
+### V0.0.6
 | Subject                              | progress |
 |--------------------------------------|---------|
 | **Mechanics**                        | -       |
@@ -124,7 +127,7 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | - lvl 5                              | 0       |
 | - lvl 6                              | 0       |
 
-## V0.0.7
+### V0.0.7
 | Subject                                          | progress |
 |--------------------------------------------------|----------|
 | **Mechanics**                                    | -        |
@@ -136,7 +139,7 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | **Scenes**                                       | -        |
 | - lvl 7                                          | 0        |
 
-## V0.0.8
+### V0.0.8
 | Subject                  | progress |
 |--------------------------|----------|
 | **Mechanics**            | -        |
@@ -145,7 +148,7 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | - Knife                  | 0        |
 | - Headlight              | 0        |
 
-## V0.0.9 
+### V0.0.9 
 | Subject             | progress |
 |---------------------|----------|
 | **Mechanics**       | -        |
@@ -153,13 +156,13 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | - M.E.G. Tradepost  | 0        |
 | - Friendly humans   | 0        |
 
-## V0.0.10
+### V0.0.10
 | Subject     | progress |
 |-------------|----------|
 | **Items**   | -        |
 | - 'GPS' Map | 0        |
 
-## V0.1 ( entering alpha )
+### V0.1 ( entering alpha )
 | Subject         | progress |
 |-----------------|----------|
 | **Items**       | -        |
@@ -170,9 +173,12 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | **Scenes**      | -        |
 | - lvl 8         | 0        |
 
-## V0.2
+### V0.2
 | Subject                                  | progress |
 |------------------------------------------|----------|
+| **Marketing**                            | -        |
+| - Basic website                          | 0        |
+| - Project subreddit                      | 0        |
 | **Mechanics**                            | -        |
 | - Completion rate of level on phone      | 0        |
 | - 'Mobile' Chat window ( map and local ) | 0        |
@@ -180,7 +186,7 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 **Announcement to Reddit happens when V0.2 is done**
 Call for contributors!
 
-## V0.3
+### V0.3
 | Subject    | progress |
 |------------|----------|
 | **Scenes** | -        |
@@ -189,15 +195,15 @@ Call for contributors!
 | - lvl 11   | 0        |
 | - lvl 12   | 0        |
 
-## V0.4
-| Subject    | progress |
-|------------|----------|
-| **Scenes** | -        |
-| - lvl 13   | 0        |
-| - lvl 14   | 0        |
-| - lvl 15   | 0        |
+### V0.4
+| Subject         | progress |
+|-----------------|----------|
+| **Scenes**      | -        |
+| - lvl 13        | 0        |
+| - lvl 14        | 0        |
+| - lvl 15        | 0        |
 
-## V0.5
+### V0.5
 | Subject    | progress |
 |------------|----------|
 | **Scenes** | -        |
@@ -209,14 +215,7 @@ Call for contributors!
 
 **Release on steam as early access**
 
-## Financial
-If it gets good reviews, some stuff will be added to support the project financially, in the form of steam extensions ( earnings will be spread over the contributors. please make sure your tools have the correct licensing. Some free tools require a license if you use them for profit. )
-
-### extensions:
-- Access to join a large dedicated server full of other players.
-- A home. You can build/buy a home in a M.E.G. Base. **only once!**. It will leave a permanent mark on the map ( if there is room ). Destroying your home will allow you to build it elsewhere.
-
-## V0.6
+### V0.6
 | Subject                              | progress |
 |--------------------------------------|----------|
 | **Mechanics**                        | -        |
@@ -225,3 +224,9 @@ If it gets good reviews, some stuff will be added to support the project financi
 | **Scenes**                           | -        |
 | - lvl 21                             | 0        |
 | - lvl 22                             | 0        |
+
+
+
+# extensions ?
+- Access to join a large dedicated server full of other players.
+- A home. You can build/buy a home in a M.E.G. Base. **only once!**. It will leave a permanent mark on the map ( if there is room ). Destroying your home will allow you to build it elsewhere.
