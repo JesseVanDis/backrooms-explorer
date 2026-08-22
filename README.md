@@ -12,6 +12,15 @@ Players can freely walk around and explore different levels, encountering both e
 The primary goal of _backrooms-explorer_ is to provide an immersive and accurate exploration experience of the Backrooms, based on the extensive documentation from the [Backrooms Wiki](https://backrooms-wiki.wikidot.com).
 A way for 'finish' the game would be to escape the Backrooms. However it is not going to be the focus of this game.
 
+## Design
+- The game will follow the wiki as close as possible. Sometimes creativity is needed as the wiki sometimes goes on about rumors or unknowns.
+- It will be a first person (not shooter per-se) game.
+- When you enter a level, you will be presented with a brief description of the level, shown on a rugged mobile device. The M.E.G. Explorer Device. It will look something like this: ![docs/readme/1.png](docs/readme/1.png)
+- A link to the official wiki page will be presented as well. When clicking on it, the player will be redirected to the official wiki page inside the same phone (if possible). There may be a disclaimer somewhere that this game-level is only X% accurate due to uncertainties / unfinished work.
+- While the phone is active, the game is in a paused state, unless you are in an online session. This seems fair as in some levels require you to run IMMEDIATELY whenever you get into the level.
+- There will be M.E.G. bases, and you can trade stuff like almond water for armor and weapons.
+- There will be a narator, that will talk about some parts of the level whenever you enter it. Thinks like: "Bob is feeling watched..." ( or whatever the main characted name is... ).
+
 ## Features
 Things to keep in mind when working on this game. 
 - **Non euclidian spaces**. Plenty of level have them
@@ -32,7 +41,7 @@ This is a collaborative project. If you're interested in contributing, feel free
 Please keep your contribution true to the [Backrooms Wiki](https://backrooms-wiki.wikidot.com). 
 The roadmap is below. But if you want to make any other level not listed in the roadmap, feel free to do so!
 
-# Technical
+## Technical
 It depends on the following: 
 - **Engine**: [Godot Engine](https://godotengine.org/)
 - **Language**: GDScript
@@ -43,20 +52,11 @@ When playing in offline mode, the server is started automatically, but nobody bu
 ## Artwork
 Please choose any editor to your liking. Prefer free software, as other contributors can then also open the save file and edit it if needed. The saves go into the 'assets' folder
 
-
-# Design
- - The game will follow the wiki as close as possible. Sometimes creativity is needed as the wiki sometimes goes on about rumors or unknowns.
- - It will be a first person (not shooter per-se) game.
- - When you enter a level, you will be presented with a brief description of the level, shown on a rugged mobile device. The M.E.G. Explorer Device. It will look something like this: ![docs/readme/1.png](docs/readme/1.png)
- - A link to the official wiki page will be presented as well. When clicking on it, the player will be redirected to the official wiki page inside the same phone (if possible). There may be a disclaimer somewhere that this game-level is only X% accurate due to uncertainties / unfinished work.
- - While the phone is active, the game is in a paused state, unless you are in an online session. This seems fair as in some levels require you to run IMMEDIATELY whenever you get into the level.
- - There will be M.E.G. bases, and you can trade stuff like almond water for armor and weapons.
-
-# Financial
+## Financial
 It will be sold on Steam for a yet to be discussed price to support the project. The earnings will be spread over the contributors, depending on an estimate on their effort or based on their hours if they provide any. please make sure your tools have the correct licensing. Some free tools require a license if you use them for profit.
 
 
-# Roadmap
+## Roadmap
 
 ### V0.0.1
 | Subject                    | progress (%) |
