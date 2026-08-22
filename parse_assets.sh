@@ -9,11 +9,9 @@ if ! command -v docker >/dev/null 2>&1; then
     exit 1
 fi
 
-# Build the docker image if it doesn't exist locally
-#if [[ "$(docker images -q backrooms-explorer-gimp 2> /dev/null)" == "" ]]; then
-    echo "Building Docker image backrooms-explorer-gimp..."
-    docker build -t backrooms-explorer-gimp tools/parse_xcf
-#fi
+# Build the docker image
+echo "Building Docker image backrooms-explorer-gimp..."
+docker build -t backrooms-explorer-gimp tools/parse_xcf
 
 # Create resources directory if it doesn't exist
 mkdir -p "./resources"
