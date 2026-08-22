@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://dd4wr6nvp1gwp" path="res://scenes/lvl_0/prefab_1.tscn" id="1_q4tyq"]
 [ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://generic_assets/scenes/player.tscn" id="1_rj2d8"]
+[ext_resource type="PackedScene" uid="uid://bap2c7g38eg2l" path="res://scenes/lvl_0/prefab_ceiling_light.tscn" id="3_smeuj"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -11,7 +12,8 @@ ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
 sky_material = SubResource("ProceduralSkyMaterial_rj2d8")
 
 [sub_resource type="Environment" id="Environment_j6thp"]
-background_mode = 2
+background_mode = 1
+background_color = Color(0.017732397, 0.01773239, 0.01773239, 1)
 sky = SubResource("Sky_smeuj")
 glow_enabled = true
 
@@ -19,10 +21,6 @@ glow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=538118835]
 environment = SubResource("Environment_j6thp")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=169863447]
-transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
-shadow_enabled = true
 
 [node name="Player" parent="." unique_id=1091834531 instance=ExtResource("1_rj2d8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.411394, 0, 1.8429631)
@@ -75,3 +73,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 12)
 
 [node name="lvl_0_prefab_1_16" parent="Map" unique_id=426443641 instance=ExtResource("1_q4tyq")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 12)
+
+[node name="prefab_ceiling_light" parent="Map" unique_id=1868134297 instance=ExtResource("3_smeuj")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.337176, 0, 6.6731386)
