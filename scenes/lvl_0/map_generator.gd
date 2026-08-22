@@ -112,6 +112,14 @@ func generate_map(width: int, height: int, map_seed: int, debug_png_filename: St
 							for dy in range(1, dist):
 								image.set_pixel(x, y + dy, Color.BLACK)
 
+	# 3. Add black edge around the map
+	for x in range(width):
+		image.set_pixel(x, 0, Color.BLACK)
+		image.set_pixel(x, height - 1, Color.BLACK)
+	for y in range(height):
+		image.set_pixel(0, y, Color.BLACK)
+		image.set_pixel(width - 1, y, Color.BLACK)
+
 	# Save image
 	var err := image.save_png(debug_png_filename)
 	if err != OK:
