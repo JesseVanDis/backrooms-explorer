@@ -22,6 +22,7 @@ A way for 'finish' the game would be to escape the Backrooms. However it is not 
 - There will be a narator, that will talk about some parts of the level whenever you enter it. Things like: "Bob is feeling watched..." ( or whatever the main character name is... ).
 
 ## Features
+
 Things to keep in mind when working on this game. 
 - **Non euclidian spaces**. Plenty of level have them
 - **M.E.G. Bases**. With humans living in them.
@@ -29,12 +30,12 @@ Things to keep in mind when working on this game.
 - **Under water** some levels require you to dive to exit, such as level 7.
 - **Vehicles** In level 69 you must drive a car until you reach a tunnel, or get killed by a giant spiders leg if you step out before that.
 - **Gravity changes** In Level 7 the gravity changes depending on where you are.
-- **Online**: <span style="color:#ff0000">Todo Discuss</span>: _( Massive scale - aka dedicated server, or local host ?. Lets at least target instances where 64 players can be in the system. We may have to deal with cheaters! )_
+- **Online**: `Todo Discuss`: _( Massive scale - aka dedicated server, or local host ?. Lets at least target instances where 64 players can be in the system. We may have to deal with cheaters! )_
 - **Entity 7 ( Jerry )** can occur in any level. Touching jerry will make you see him as king, or alternatively just give him sunflower seeds and he will never appear again
 - **Entity 71 ( The red knight )** can occur in any level, and sometimes helps lost travelers. Specifically travelers who just entered the back rooms.
 - **Level 24** You are on the moon. But there is a giant entity many many times bigger than the sun.
 - **Level 75** is a cave system made out of gallium. The stuff that melts at body temperature. Tunnels will melt around you and ambient temperatures are occelating, including above melting point.
-- **Fail safe** Some levels don't have exists. (documented at least) <span style="color:#ff0000">What should happen then ?</span> 
+- **Fail safe** Some levels don't have exists. (documented at least) `What should happen then ?` 
 
 ## Contributing
 This is a collaborative project. If you're interested in contributing, feel free to dive into the code, models or sound, and join the effort!

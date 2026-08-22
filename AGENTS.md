@@ -1,4 +1,4 @@
-# AI Guidelines for RCCar Project
+# AI Guidelines for Backrooms-explorer Project
 This document provides context and instructions for AI agents working on the `backrooms-explorer` project.
 
 ## Project Overview
@@ -23,4 +23,5 @@ godot --path . --export-release "Windows Desktop" ./build/debug/windows/backgroo
 # Rules
 - do **NOT** change any third party assets / libraries.
 - Always ask for permission when you change something in any .md file.
+- When changing the parsing tools, only invoke 'parse_assets.sh' to verify the changes.
 
