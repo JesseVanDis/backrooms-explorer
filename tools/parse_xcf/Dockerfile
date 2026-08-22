@@ -13,7 +13,6 @@ WORKDIR /app
 
 # Copy the script
 COPY parse.sh /app/parse.sh
-COPY convertXCF.py /app/convertXCF.py
 
 # Ensure the script is executable
 RUN chmod +x /app/parse.sh

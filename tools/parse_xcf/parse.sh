@@ -11,7 +11,6 @@ gimp --version
 
 echo "Starting parse... "
 
-
 {
 cat <<EOF
 (define (convert-xcf-png filename outpath)
