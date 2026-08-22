@@ -19,7 +19,7 @@ A way for 'finish' the game would be to escape the Backrooms. However it is not 
 - A link to the official wiki page will be presented as well. When clicking on it, the player will be redirected to the official wiki page inside the same phone (if possible). There may be a disclaimer somewhere that this game-level is only X% accurate due to uncertainties / unfinished work.
 - While the phone is active, the game is in a paused state, unless you are in an online session. This seems fair as in some levels require you to run IMMEDIATELY whenever you get into the level.
 - There will be M.E.G. bases, and you can trade stuff like almond water for armor and weapons.
-- There will be a narator, that will talk about some parts of the level whenever you enter it. Thinks like: "Bob is feeling watched..." ( or whatever the main characted name is... ).
+- There will be a narator, that will talk about some parts of the level whenever you enter it. Thinks like: "Bob is feeling watched..." ( or whatever the main character name is... ).
 
 ## Features
 Things to keep in mind when working on this game. 
