@@ -27,8 +27,13 @@ func _init():
 	settings.fill_ratio = 0.2
 	settings.connection_distance = 3
 	settings.connection_chance = 0.5
+	
+	# Biome settings
+	var aquamarine_biome = gen_script.MapSettings.BiomeSettings.new(Color.AQUAMARINE, 2, 3, 20, 30)
+	var coral_biome      = gen_script.MapSettings.BiomeSettings.new(Color.CORAL,      20, 30, 10, 15)
+	settings.biomes = [aquamarine_biome, coral_biome]
 
-	gen.generate_map(512, 512, 5678, "res://scenes/lvl_0/tests/test_maze_custom.png", settings)
+	gen.generate_map(512, 512, 2134, "res://scenes/lvl_0/tests/test_maze_custom.png", settings)
 
 	print("Tests completed successfully. PNGs saved to scenes/lvl_0/tests/")
 	quit(0)
