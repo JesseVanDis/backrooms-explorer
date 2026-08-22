@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dd4wr6nvp1gwp"]
 
 [ext_resource type="PackedScene" uid="uid://d4h462qt3f2if" path="res://assets/lvl_0_prefab_1.blend" id="1_fhm0q"]
-[ext_resource type="Shader" uid="uid://dfimsucyo0ajn" path="res://lvl_0_wallpaper.gdshader" id="2_7dhr2"]
+[ext_resource type="Shader" uid="uid://dfimsucyo0ajn" path="res://scenes/lvl_0/lvl_0_wallpaper.gdshader" id="2_7dhr2"]
 [ext_resource type="Texture2D" uid="uid://cq1uu1i8u8toc" path="res://resources/lvl_0_wallpaper_pattern.png" id="3_7dhr2"]
 [ext_resource type="Texture2D" uid="uid://b0867soaqgrqp" path="res://resources/generic_noise.png" id="3_62upq"]
 
