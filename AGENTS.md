@@ -23,7 +23,8 @@ godot --path . --export-release "Windows Desktop" ./build/debug/windows/backgroo
 ```
 
 # Rules
-- Use `const` as must as possible. ( so make separate functions if needed )
+- Use `const` as much as possible. ( so make separate functions if needed )
+- Use type hinting even for basic variables look booleans and floats.
 - do **NOT** change any third party assets / libraries.
 - Always ask for permission when you change something in any .md file.
 - When changing the parsing tools, only invoke 'parse_assets.sh' to verify the changes.

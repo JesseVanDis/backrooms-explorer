@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://ctkngyu5rcixj"]
 
 [ext_resource type="Script" uid="uid://rbo2fgyyfpte" path="res://scenes/lvl_0/lvl_0.gd" id="1_j6thp"]
-[ext_resource type="PackedScene" uid="uid://dd4wr6nvp1gwp" path="res://scenes/lvl_0/prefab_1.tscn" id="1_q4tyq"]
 [ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://generic_assets/scenes/player.tscn" id="1_rj2d8"]
 [ext_resource type="PackedScene" uid="uid://bap2c7g38eg2l" path="res://scenes/lvl_0/prefab_ceiling_light.tscn" id="3_smeuj"]
 
@@ -28,8 +27,6 @@ environment = SubResource("Environment_j6thp")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.411394, 0, 1.8429631)
 
 [node name="Map" type="Node3D" parent="." unique_id=1437659456]
-
-[node name="lvl_0_prefab_1_1" parent="Map" unique_id=368004296 instance=ExtResource("1_q4tyq")]
 
 [node name="prefab_ceiling_light" parent="Map" unique_id=1868134297 instance=ExtResource("3_smeuj")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.337176, 0, 6.6731386)
