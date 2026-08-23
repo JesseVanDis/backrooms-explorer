@@ -24,8 +24,8 @@ func _ready() -> void:
 	$Player.rotation = Vector3.ZERO
 
 func generate_level() -> Image:
-	const width = 32
-	const height = 32
+	const width = 64
+	const height = 64
 	
 	var image = MapGenerator.new().generate_map_image(width, height, randi())
 	

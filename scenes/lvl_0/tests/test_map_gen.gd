@@ -24,8 +24,8 @@ func _init():
 	settings.hallway_max_width = 6
 	settings.room_margin = 2
 	settings.dead_end_ratio = 0.0
-	settings.fill_ratio = 0.2
-	settings.connection_distance = 3
+	settings.fill_ratio = 0.1
+	settings.connection_distance = 6
 	settings.connection_chance = 0.5
 	
 	# Biome settings

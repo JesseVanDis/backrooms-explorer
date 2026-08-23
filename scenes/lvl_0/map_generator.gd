@@ -45,16 +45,61 @@ class MapSettings:
 		connection_distance = _connection_distance
 		connection_chance = _connection_chance
 
-## Generates a black & white maze image.
-## White pixels = empty space, Black pixels = walls
-func generate_map_image(width: int, height: int, map_seed: int, settings: MapSettings = MapSettings.new()) -> Image:
-	seed(map_seed)
-	# Create image
-	var image := Image.create(width, height, false, Image.FORMAT_RGB8)
-	image.fill(Color.WHITE) # Start with all white canvas
+func _is_black(image: Image, x: int, y: int):
+	return image.get_pixel(x, y).r < 0.1
 
-	# Draw biomes (circles)
-	for biome in settings.biomes:
+func _mod_plot_random_black_pixels(image: Image, fill_ratio: float):
+	var height: int = image.get_height();
+	var width:  int = image.get_width();
+	for y in range(height):
+		for x in range(width):
+			if randf() < fill_ratio:
+				image.set_pixel(x, y, Color.BLACK)
+
+func _mod_connect_diagonal_black_pixels(image: Image):
+	var height: int = image.get_height();
+	var width:  int = image.get_width();
+	for y in range(1, height-1):
+		for x in range(1, width-1):
+			if ! _is_black(image, x, y):
+				var wall_up:    bool = _is_black(image, x, y+1)
+				var wall_down:  bool = _is_black(image, x, y-1)
+				var wall_left:  bool = _is_black(image, x-1, y)
+				var wall_right: bool = _is_black(image, x+1, y)
+				
+				if (wall_up && wall_left) || (wall_up && wall_right) || (wall_down && wall_left) || (wall_down && wall_right):
+					image.set_pixel(x, y, Color.BLACK)
+
+func _mod_draw_black_border(image: Image):
+	var height: int = image.get_height();
+	var width:  int = image.get_width();
+	for x in range(width):
+		image.set_pixel(x, 0,        Color.BLACK)
+		image.set_pixel(x, height-1, Color.BLACK)
+	for y in range(height):
+		image.set_pixel(0,       y,  Color.BLACK)
+		image.set_pixel(width-1, y,  Color.BLACK)
+
+func _mod_connect_black_pixels(image: Image, connection_distance: int, chance: float):
+	var height: int = image.get_height();
+	var width:  int = image.get_width();
+	if connection_distance > 0:
+		for x in range(width):
+			for y in range(height):
+				if image.get_pixel(x, y).r < 0.1:
+					if x + connection_distance < width and image.get_pixel(x + connection_distance, y).r < 0.1:
+						if randf() < chance:
+							for dx in range(1, connection_distance):
+								image.set_pixel(x + dx, y, Color.BLACK)					
+					if y + connection_distance < height and image.get_pixel(x, y + connection_distance).r < 0.1:
+						if randf() < chance:
+							for dy in range(1, connection_distance):
+								image.set_pixel(x, y + dy, Color.BLACK)
+
+func _mod_draw_biomes(image: Image, biomes):
+	var height: int = image.get_height();
+	var width:  int = image.get_width();
+	for biome in biomes:
 		var count_range = biome.count_max - biome.count_min
 		var num_circles = biome.count_min + (randi() % (count_range + 1) if count_range > 0 else 0)
 		for i in range(num_circles):
@@ -64,49 +109,16 @@ func generate_map_image(width: int, height: int, map_seed: int, settings: MapSet
 			var center_y = randi() % height
 			_draw_filled_circle(image, center_x, center_y, radius, biome.color)
 
-	for x in range(width):
-		for y in range(height):
-			if randf() < settings.fill_ratio:
-				image.set_pixel(x, y, Color.BLACK)
-				
-				if x > 0 and y > 0 and image.get_pixel(x - 1, y - 1).r < 0.1:
-					if randi() % 2 == 0:
-						image.set_pixel(x - 1, y, Color.BLACK)
-					else:
-						image.set_pixel(x, y - 1, Color.BLACK)
-				
-				if x < width - 1 and y > 0 and image.get_pixel(x + 1, y - 1).r < 0.1:
-					if randi() % 2 == 0:
-						image.set_pixel(x + 1, y, Color.BLACK)
-					else:
-						image.set_pixel(x, y - 1, Color.BLACK)
-
-	# 2. Connect pixels distance away
-	var dist = settings.connection_distance
-	if dist > 0:
-		for x in range(width):
-			for y in range(height):
-				if image.get_pixel(x, y).r < 0.1:
-					# Try to connect Right
-					if x + dist < width and image.get_pixel(x + dist, y).r < 0.1:
-						if randf() < settings.connection_chance:
-							for dx in range(1, dist):
-								image.set_pixel(x + dx, y, Color.BLACK)
-					
-					# Try to connect Down
-					if y + dist < height and image.get_pixel(x, y + dist).r < 0.1:
-						if randf() < settings.connection_chance:
-							for dy in range(1, dist):
-								image.set_pixel(x, y + dy, Color.BLACK)
-
-	# 3. Add black edge around the map
-	for x in range(width):
-		image.set_pixel(x, 0, Color.BLACK)
-		image.set_pixel(x, height - 1, Color.BLACK)
-	for y in range(height):
-		image.set_pixel(0, y, Color.BLACK)
-		image.set_pixel(width - 1, y, Color.BLACK)
-
+## Generates a black & white maze image.
+## White pixels = empty space, Black pixels = walls
+func generate_map_image(width: int, height: int, map_seed: int, settings: MapSettings = MapSettings.new()) -> Image:
+	seed(map_seed)
+	var image := Image.create(width, height, false, Image.FORMAT_RGB8)
+	image.fill(Color.WHITE) # Start with all white canvas
+	_mod_plot_random_black_pixels(image, settings.fill_ratio)
+	_mod_connect_diagonal_black_pixels(image)
+	_mod_connect_black_pixels(image, settings.connection_distance, settings.connection_chance)
+	_mod_draw_black_border(image);
 	return image
 
 func generate_map(width: int, height: int, map_seed: int, debug_png_filename: String, settings: MapSettings = MapSettings.new()) -> void:
