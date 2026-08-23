@@ -8,6 +8,8 @@ It is a 3D first person exploration game, based on the backrooms wiki. Please se
 - **Engine**: Godot
 - **Language**: GDScript
 
+For more please see the [TECHNICAL.md](TECHNICAL.md)
+
 ## Building
 ### Linux
 ```bash

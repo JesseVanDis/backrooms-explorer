@@ -50,6 +50,8 @@ It depends on the following:
 Server mode is starting with the argument `--server`
 When playing in offline mode, the server is started automatically, but nobody but the player can join.
 
+For more please see the [TECHNICAL.md](TECHNICAL.md)
+
 ## Artwork
 Please choose any editor to your liking. Prefer free software, as other contributors can then also open the save file and edit it if needed. The saves go into the 'assets' folder
 
