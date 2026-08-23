@@ -14,7 +14,7 @@ sky_material = SubResource("ProceduralSkyMaterial_rj2d8")
 
 [sub_resource type="Environment" id="Environment_j6thp"]
 background_mode = 1
-background_color = Color(0.017732397, 0.01773239, 0.01773239, 1)
+background_color = Color(0.49354547, 0.49354553, 0.49354535, 1)
 sky = SubResource("Sky_smeuj")
 glow_enabled = true
 
@@ -30,51 +30,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.411394, 0, 1.8429631)
 [node name="Map" type="Node3D" parent="." unique_id=1437659456]
 
 [node name="lvl_0_prefab_1_1" parent="Map" unique_id=368004296 instance=ExtResource("1_q4tyq")]
-
-[node name="lvl_0_prefab_1_2" parent="Map" unique_id=688314384 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
-
-[node name="lvl_0_prefab_1_3" parent="Map" unique_id=245680361 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
-
-[node name="lvl_0_prefab_1_4" parent="Map" unique_id=1940192221 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 4)
-
-[node name="lvl_0_prefab_1_5" parent="Map" unique_id=728698834 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0)
-
-[node name="lvl_0_prefab_1_6" parent="Map" unique_id=1975291890 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 0)
-
-[node name="lvl_0_prefab_1_7" parent="Map" unique_id=402569859 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 4)
-
-[node name="lvl_0_prefab_1_8" parent="Map" unique_id=649088462 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 4)
-
-[node name="lvl_0_prefab_1_9" parent="Map" unique_id=803477344 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
-
-[node name="lvl_0_prefab_1_10" parent="Map" unique_id=1365718221 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 8)
-
-[node name="lvl_0_prefab_1_11" parent="Map" unique_id=428028024 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12)
-
-[node name="lvl_0_prefab_1_12" parent="Map" unique_id=1892111734 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 12)
-
-[node name="lvl_0_prefab_1_13" parent="Map" unique_id=1395640809 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 8)
-
-[node name="lvl_0_prefab_1_14" parent="Map" unique_id=1941117936 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 8)
-
-[node name="lvl_0_prefab_1_15" parent="Map" unique_id=6315518 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 12)
-
-[node name="lvl_0_prefab_1_16" parent="Map" unique_id=426443641 instance=ExtResource("1_q4tyq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 12)
 
 [node name="prefab_ceiling_light" parent="Map" unique_id=1868134297 instance=ExtResource("3_smeuj")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.337176, 0, 6.6731386)

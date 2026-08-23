@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://dbac8i5a3v6kp"]
+
+[ext_resource type="PackedScene" uid="uid://bc8mpb2efrqo4" path="res://scenes/lvl_0/saves/part_1x1_floor.blend" id="1_eyx27"]
+[ext_resource type="Material" uid="uid://dpkyn41qpdxao" path="res://scenes/lvl_0/carpet.tres" id="2_l1r05"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_l1r05"]
+size = Vector3(1, 0.001, 1)
+
+[node name="part_1x1_floor" unique_id=84726402 instance=ExtResource("1_eyx27")]
+
+[node name="Cube" parent="." index="0" unique_id=1732452801]
+surface_material_override/0 = ExtResource("2_l1r05")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Cube" index="0" unique_id=1890395578]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5e-06, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Cube/StaticBody3D" index="0" unique_id=329761863]
+shape = SubResource("BoxShape3D_l1r05")

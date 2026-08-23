@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://6tbkpapliiuf"]
+
+[ext_resource type="Shader" uid="uid://dfimsucyo0ajn" path="res://scenes/lvl_0/wallpaper.gdshader" id="1_b0knr"]
+[ext_resource type="Texture2D" uid="uid://drt7mp3al5rgw" path="res://generic_assets/textures/generic_noise.png" id="2_bsust"]
+[ext_resource type="Texture2D" uid="uid://0kporlo5bod2" path="res://scenes/lvl_0/wallpaper_pattern.png" id="3_4fy0f"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_b0knr")
+shader_parameter/base_color = Color(1, 0.9688333, 0.83, 1)
+shader_parameter/noise_texture = ExtResource("2_bsust")
+shader_parameter/pattern_texture = ExtResource("3_4fy0f")
+shader_parameter/noise_strength = 0.3950000187625
+shader_parameter/noise_scale = 0.76800003648

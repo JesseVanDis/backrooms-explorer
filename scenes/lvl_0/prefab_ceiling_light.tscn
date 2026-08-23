@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bap2c7g38eg2l"]
 
-[ext_resource type="PackedScene" uid="uid://b5i1vasuq5dov" path="res://scenes/lvl_0/prefab_ceiling_light.blend" id="1_3urs3"]
+[ext_resource type="PackedScene" uid="uid://be3b17dgoko3l" path="res://scenes/lvl_0/saves/prefab_ceiling_light.blend" id="1_3urs3"]
 
 [node name="prefab_ceiling_light" unique_id=1868134297 instance=ExtResource("1_3urs3")]
 

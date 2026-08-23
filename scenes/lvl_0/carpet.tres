@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dpkyn41qpdxao"]
+
+[ext_resource type="Shader" uid="uid://dh01gj5soknke" path="res://scenes/lvl_0/carpet.gdshader" id="1_q8swi"]
+[ext_resource type="Texture2D" uid="uid://drt7mp3al5rgw" path="res://generic_assets/textures/generic_noise.png" id="2_uvfj5"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_q8swi")
+shader_parameter/base_color = Color(1, 0.923, 0.58000004, 1)
+shader_parameter/noise_texture = ExtResource("2_uvfj5")
+shader_parameter/noise_strength = 0.2000000095
+shader_parameter/noise_scale = 9.4610004493975
+shader_parameter/carpet_bump = 0.8710000413725
+shader_parameter/bump_size = 0.002000000095

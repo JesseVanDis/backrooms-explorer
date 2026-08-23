@@ -45,12 +45,9 @@ class MapSettings:
 		connection_distance = _connection_distance
 		connection_chance = _connection_chance
 
-## Generates a black & white maze PNG.
-## black background (0.0), white pixels = walls (1.0)
-## Wait, the user wants white background and black lines.
-## "i want to see more white than black"
-## So: White background (1.0), Black pixels = walls (0.0)
-func generate_map(width: int, height: int, map_seed: int, debug_png_filename: String, settings: MapSettings = MapSettings.new()) -> void:
+## Generates a black & white maze image.
+## White pixels = empty space, Black pixels = walls
+func generate_map_image(width: int, height: int, map_seed: int, settings: MapSettings = MapSettings.new()) -> Image:
 	seed(map_seed)
 	# Create image
 	var image := Image.create(width, height, false, Image.FORMAT_RGB8)
@@ -70,25 +67,15 @@ func generate_map(width: int, height: int, map_seed: int, debug_png_filename: St
 	for x in range(width):
 		for y in range(height):
 			if randf() < settings.fill_ratio:
-				# Check for diagonal neighbors
-				# Diagonals are (x-1, y-1), (x+1, y-1), (x-1, y+1), (x+1, y+1)
-				# Since we are iterating from (0,0) to (width, height), we only need to check
-				# (x-1, y-1) and (x+1, y-1) because (x-1, y+1) and (x+1, y+1) haven't been processed yet.
-				# If we find a diagonal, we 'merge' them by adding a pixel to any of left, right, up, bottom
-				
 				image.set_pixel(x, y, Color.BLACK)
 				
-				if x > 0 and y > 0 and image.get_pixel(x - 1, y - 1).r < 0.1: # Changed from 0.5 to 0.1 because biomes have colors
-					# Diagonal conflict with (x-1, y-1)
-					# Orthogonal neighbors between (x,y) and (x-1, y-1) are (x-1, y) and (x, y-1)
+				if x > 0 and y > 0 and image.get_pixel(x - 1, y - 1).r < 0.1:
 					if randi() % 2 == 0:
 						image.set_pixel(x - 1, y, Color.BLACK)
 					else:
 						image.set_pixel(x, y - 1, Color.BLACK)
 				
-				if x < width - 1 and y > 0 and image.get_pixel(x + 1, y - 1).r < 0.1: # Changed from 0.5 to 0.1
-					# Diagonal conflict with (x+1, y-1)
-					# Orthogonal neighbors between (x,y) and (x+1, y-1) are (x+1, y) and (x, y-1)
+				if x < width - 1 and y > 0 and image.get_pixel(x + 1, y - 1).r < 0.1:
 					if randi() % 2 == 0:
 						image.set_pixel(x + 1, y, Color.BLACK)
 					else:
@@ -99,15 +86,15 @@ func generate_map(width: int, height: int, map_seed: int, debug_png_filename: St
 	if dist > 0:
 		for x in range(width):
 			for y in range(height):
-				if image.get_pixel(x, y).r < 0.1: # Changed from 0.5
+				if image.get_pixel(x, y).r < 0.1:
 					# Try to connect Right
-					if x + dist < width and image.get_pixel(x + dist, y).r < 0.1: # Changed from 0.5
+					if x + dist < width and image.get_pixel(x + dist, y).r < 0.1:
 						if randf() < settings.connection_chance:
 							for dx in range(1, dist):
 								image.set_pixel(x + dx, y, Color.BLACK)
 					
 					# Try to connect Down
-					if y + dist < height and image.get_pixel(x, y + dist).r < 0.1: # Changed from 0.5
+					if y + dist < height and image.get_pixel(x, y + dist).r < 0.1:
 						if randf() < settings.connection_chance:
 							for dy in range(1, dist):
 								image.set_pixel(x, y + dy, Color.BLACK)
@@ -120,6 +107,10 @@ func generate_map(width: int, height: int, map_seed: int, debug_png_filename: St
 		image.set_pixel(0, y, Color.BLACK)
 		image.set_pixel(width - 1, y, Color.BLACK)
 
+	return image
+
+func generate_map(width: int, height: int, map_seed: int, debug_png_filename: String, settings: MapSettings = MapSettings.new()) -> void:
+	var image = generate_map_image(width, height, map_seed, settings)
 	# Save image
 	var err := image.save_png(debug_png_filename)
 	if err != OK:
@@ -136,8 +127,6 @@ func _connect_rooms(image: Image, r1: Rect2i, r2: Rect2i, settings: MapSettings)
 	_carve_hallway(image, p1, p2, h_width)
 
 func _carve_hallway(image: Image, p1: Vector2i, p2: Vector2i, width: int) -> void:
-	var current = p1
-
 	# Horizontal then vertical or vice versa
 	if randi() % 2 == 0:
 		_carve_line(image, Vector2i(p1.x, p1.y), Vector2i(p2.x, p1.y), width)
@@ -151,7 +140,7 @@ func _carve_line(image: Image, start: Vector2i, end: Vector2i, line_width: int) 
 	var x_end = max(start.x, end.x)
 	var y_start = min(start.y, end.y)
 	var y_end = max(start.y, end.y)
-
+	
 	var offset = line_width / 2
 
 	for x in range(x_start - offset, x_end + (line_width - offset)):

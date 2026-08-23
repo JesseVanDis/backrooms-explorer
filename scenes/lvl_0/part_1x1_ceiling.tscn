@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://dausxfxho355c"]
+
+[ext_resource type="PackedScene" uid="uid://bptq2krxforpc" path="res://scenes/lvl_0/saves/part_1x1_ceiling.blend" id="1_upv8s"]
+[ext_resource type="Material" uid="uid://dsiu2w42psoxk" path="res://scenes/lvl_0/ceiling_tile.tres" id="2_dn215"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_dn215"]
+size = Vector3(1, 0.001, 1)
+
+[node name="part_1x1_ceiling" unique_id=1743678236 instance=ExtResource("1_upv8s")]
+
+[node name="Cube_002" parent="." index="0" unique_id=607844797]
+surface_material_override/0 = ExtResource("2_dn215")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Cube_002" index="0" unique_id=222440755]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.300002, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Cube_002/StaticBody3D" index="0" unique_id=678444045]
+shape = SubResource("BoxShape3D_dn215")

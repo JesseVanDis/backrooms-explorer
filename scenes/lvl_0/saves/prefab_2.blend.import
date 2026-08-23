@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://psy52ekjldn"
-path="res://.godot/imported/part_1x1_wall.blend-f9346858a4d93418dd8434be9a5c78de.scn"
+uid="uid://060kh0kce5ss"
+path="res://.godot/imported/prefab_2.blend-71ec4f5548fac179d5a8e80dba9efad1.scn"
 
 [deps]
 
-source_file="res://scenes/lvl_0/part_1x1_wall.blend"
-dest_files=["res://.godot/imported/part_1x1_wall.blend-f9346858a4d93418dd8434be9a5c78de.scn"]
+source_file="res://scenes/lvl_0/saves/prefab_2.blend"
+dest_files=["res://.godot/imported/prefab_2.blend-71ec4f5548fac179d5a8e80dba9efad1.scn"]
 
 [params]
 

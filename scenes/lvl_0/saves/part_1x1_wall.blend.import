@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://b5i1vasuq5dov"
-path="res://.godot/imported/prefab_ceiling_light.blend-6a9226768ff0c37176a79ee7c9c90166.scn"
+uid="uid://cdowr1ibhfen6"
+path="res://.godot/imported/part_1x1_wall.blend-6afcd0356cd14c9978948611fdd5dcbc.scn"
 
 [deps]
 
-source_file="res://scenes/lvl_0/prefab_ceiling_light.blend"
-dest_files=["res://.godot/imported/prefab_ceiling_light.blend-6a9226768ff0c37176a79ee7c9c90166.scn"]
+source_file="res://scenes/lvl_0/saves/part_1x1_wall.blend"
+dest_files=["res://.godot/imported/part_1x1_wall.blend-6afcd0356cd14c9978948611fdd5dcbc.scn"]
 
 [params]
 
