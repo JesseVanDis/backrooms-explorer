@@ -13,6 +13,9 @@ class MapSettings:
 	var fill_ratio: float = 0.1
 	var connection_distance: int = 4
 	var connection_chance: float = 0.5
+	var lights_grid_size: int = 5
+	var lights_offset_chance: float = 0.1
+	var lights_offsets: Array[int] = [-2, -1, 1, 2]
 
 	class BiomeSettings:
 		var count_min: int = 5
@@ -45,8 +48,11 @@ class MapSettings:
 		connection_distance = _connection_distance
 		connection_chance = _connection_chance
 
-func _is_black(image: Image, x: int, y: int):
-	return image.get_pixel(x, y).r < 0.1
+static func is_wall(image: Image, x: int, y: int):
+	return image.get_pixel(x, y).b < 0.1
+
+static func is_light(image: Image, x: int, y: int):
+	return image.get_pixel(x, y).g > 0.9
 
 func _mod_plot_random_black_pixels(image: Image, fill_ratio: float):
 	var height: int = image.get_height();
@@ -61,11 +67,11 @@ func _mod_connect_diagonal_black_pixels(image: Image):
 	var width:  int = image.get_width();
 	for y in range(1, height-1):
 		for x in range(1, width-1):
-			if ! _is_black(image, x, y):
-				var wall_up:    bool = _is_black(image, x, y+1)
-				var wall_down:  bool = _is_black(image, x, y-1)
-				var wall_left:  bool = _is_black(image, x-1, y)
-				var wall_right: bool = _is_black(image, x+1, y)
+			if ! is_wall(image, x, y):
+				var wall_up:    bool = is_wall(image, x, y+1)
+				var wall_down:  bool = is_wall(image, x, y-1)
+				var wall_left:  bool = is_wall(image, x-1, y)
+				var wall_right: bool = is_wall(image, x+1, y)
 				
 				if (wall_up && wall_left) || (wall_up && wall_right) || (wall_down && wall_left) || (wall_down && wall_right):
 					image.set_pixel(x, y, Color.BLACK)
@@ -86,12 +92,12 @@ func _mod_connect_black_pixels(image: Image, connection_distance: int, chance: f
 	if connection_distance > 0:
 		for x in range(width):
 			for y in range(height):
-				if image.get_pixel(x, y).r < 0.1:
-					if x + connection_distance < width and image.get_pixel(x + connection_distance, y).r < 0.1:
+				if is_wall(image, x, y):
+					if x + connection_distance < width and is_wall(image, x + connection_distance, y):
 						if randf() < chance:
 							for dx in range(1, connection_distance):
 								image.set_pixel(x + dx, y, Color.BLACK)					
-					if y + connection_distance < height and image.get_pixel(x, y + connection_distance).r < 0.1:
+					if y + connection_distance < height and is_wall(image, x, y + connection_distance):
 						if randf() < chance:
 							for dy in range(1, connection_distance):
 								image.set_pixel(x, y + dy, Color.BLACK)
@@ -109,16 +115,80 @@ func _mod_draw_biomes(image: Image, biomes):
 			var center_y = randi() % height
 			_draw_filled_circle(image, center_x, center_y, radius, biome.color)
 
+func _mod_place_lights(image: Image, lights_grid_size: int, lights_offset_chance: float, lights_offsets: Array[int]):
+	var height: int = image.get_height()
+	var width:  int = image.get_width()
+	
+	for y in range(lights_grid_size >> 1, height, lights_grid_size):
+		for x in range(lights_grid_size >> 1, width, lights_grid_size):
+			var lx: int = x
+			var ly: int = y
+			if randf() < lights_offset_chance:
+				lx += lights_offsets[randi() % lights_offsets.size()]
+				ly += lights_offsets[randi() % lights_offsets.size()]
+			lx = clampi(lx, 0, width - 1)
+			ly = clampi(ly, 0, height - 1)
+			if not is_wall(image, lx, ly):
+				image.set_pixel(lx, ly, Color(0,1,1))
+
+
+func _mod_ensure_no_enclaves(image: Image):
+	var width: int = image.get_width()
+	var height: int = image.get_height()
+	var visited: Array = []
+	for x in range(width):
+		var column: Array = []
+		column.resize(height)
+		column.fill(false)
+		visited.append(column)
+	var components: Array = []
+	for y in range(height):
+		for x in range(width):
+			if not is_wall(image, x, y) and not visited[x][y]:
+				var component: Array = []
+				var queue: Array = [Vector2i(x, y)]
+				visited[x][y] = true
+				while queue.size() > 0:
+					var p: Vector2i = queue.pop_front()
+					component.append(p)
+					for dir in [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]:
+						var nx: int = p.x + dir.x
+						var ny: int = p.y + dir.y
+						if nx >= 0 and nx < width and ny >= 0 and ny < height:
+							if not is_wall(image, nx, ny) and not visited[nx][ny]:
+								visited[nx][ny] = true
+								queue.push_back(Vector2i(nx, ny))
+				components.append(component)
+	if components.size() <= 1:
+		return
+	
+	# Find the largest component
+	var largest_component_idx: int = 0
+	var max_size: int = 0
+	for i in range(components.size()):
+		if components[i].size() > max_size:
+			max_size = components[i].size()
+			largest_component_idx = i
+	
+	# Fill all other components with black
+	for i in range(components.size()):
+		if i == largest_component_idx:
+			continue
+		for p in components[i]:
+			image.set_pixel(p.x, p.y, Color.BLACK)
+
 ## Generates a black & white maze image.
 ## White pixels = empty space, Black pixels = walls
 func generate_map_image(width: int, height: int, map_seed: int, settings: MapSettings = MapSettings.new()) -> Image:
 	seed(map_seed)
 	var image := Image.create(width, height, false, Image.FORMAT_RGB8)
-	image.fill(Color.WHITE) # Start with all white canvas
+	image.fill(Color(0,0,1)) # Start with all white canvas
 	_mod_plot_random_black_pixels(image, settings.fill_ratio)
 	_mod_connect_diagonal_black_pixels(image)
 	_mod_connect_black_pixels(image, settings.connection_distance, settings.connection_chance)
 	_mod_draw_black_border(image);
+	_mod_ensure_no_enclaves(image)
+	_mod_place_lights(image, settings.lights_grid_size, settings.lights_offset_chance, settings.lights_offsets)
 	return image
 
 func generate_map(width: int, height: int, map_seed: int, debug_png_filename: String, settings: MapSettings = MapSettings.new()) -> void:
@@ -153,7 +223,7 @@ func _carve_line(image: Image, start: Vector2i, end: Vector2i, line_width: int) 
 	var y_start = min(start.y, end.y)
 	var y_end = max(start.y, end.y)
 	
-	var offset = line_width / 2
+	var offset = line_width >> 1
 
 	for x in range(x_start - offset, x_end + (line_width - offset)):
 		for y in range(y_start - offset, y_end + (line_width - offset)):

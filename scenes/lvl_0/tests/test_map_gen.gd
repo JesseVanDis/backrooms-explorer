@@ -17,16 +17,16 @@ func _init():
 	# Test 2: Custom settings (Large rooms, wide hallways)
 	print("Test 2: Generating map with custom settings...")
 	var settings = gen_script.MapSettings.new()
-	settings.room_iterations = 40
-	settings.room_min_size = 5
-	settings.room_max_size = 30
-	settings.hallway_min_width = 1
-	settings.hallway_max_width = 6
-	settings.room_margin = 2
-	settings.dead_end_ratio = 0.0
-	settings.fill_ratio = 0.1
-	settings.connection_distance = 6
-	settings.connection_chance = 0.5
+	# settings.room_iterations = 40
+	# settings.room_min_size = 5
+	# settings.room_max_size = 30
+	# settings.hallway_min_width = 1
+	# settings.hallway_max_width = 6
+	# settings.room_margin = 2
+	# settings.dead_end_ratio = 0.0
+	# settings.fill_ratio = 0.1
+	# settings.connection_distance = 6
+	# settings.connection_chance = 0.5
 	
 	# Biome settings
 	var aquamarine_biome = gen_script.MapSettings.BiomeSettings.new(Color.AQUAMARINE, 2, 3, 20, 30)

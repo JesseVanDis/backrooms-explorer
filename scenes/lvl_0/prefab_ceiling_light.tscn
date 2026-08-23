@@ -7,5 +7,4 @@
 [node name="OmniLight3D" type="OmniLight3D" parent="." index="1" unique_id=1357501907]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0404124, 0)
 light_color = Color(1, 0.95233333, 0.74, 1)
-light_bake_mode = 1
 shadow_enabled = true

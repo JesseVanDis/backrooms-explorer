@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://8y8epqhwryyd"]
+
+[ext_resource type="PackedScene" uid="uid://c2ax6owh0gymv" path="res://scenes/lvl_0/saves/part_1x1_ceiling_light.blend" id="1_ff6hj"]
+
+[node name="part_1x1_ceiling_light" unique_id=1814395978 instance=ExtResource("1_ff6hj")]
+
+[node name="OmniLight3D" type="OmniLight3D" parent="." index="1" unique_id=1338369808]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1426687, 0)
+light_color = Color(1, 0.955, 0.7, 1)
+light_bake_mode = 1
+shadow_enabled = true
+shadow_blur = 10.0

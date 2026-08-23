@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://rbo2fgyyfpte" path="res://scenes/lvl_0/lvl_0.gd" id="1_j6thp"]
 [ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://generic_assets/scenes/player.tscn" id="1_rj2d8"]
-[ext_resource type="PackedScene" uid="uid://bap2c7g38eg2l" path="res://scenes/lvl_0/prefab_ceiling_light.tscn" id="3_smeuj"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -13,7 +12,7 @@ sky_material = SubResource("ProceduralSkyMaterial_rj2d8")
 
 [sub_resource type="Environment" id="Environment_j6thp"]
 background_mode = 1
-background_color = Color(0.49354547, 0.49354553, 0.49354535, 1)
+background_color = Color(0.24524355, 0.20881572, 4.813075e-08, 1)
 sky = SubResource("Sky_smeuj")
 glow_enabled = true
 
@@ -27,6 +26,3 @@ environment = SubResource("Environment_j6thp")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.411394, 0, 1.8429631)
 
 [node name="Map" type="Node3D" parent="." unique_id=1437659456]
-
-[node name="prefab_ceiling_light" parent="Map" unique_id=1868134297 instance=ExtResource("3_smeuj")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.337176, 0, 6.6731386)
