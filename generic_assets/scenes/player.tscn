@@ -17,6 +17,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9348949, 0)
 script = ExtResource("1_l7vax")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="CharacterBody3D" unique_id=479480019]
+cast_shadow = 0
+ignore_occlusion_culling = true
+gi_mode = 0
 mesh = SubResource("CapsuleMesh_khlrb")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D" unique_id=349531905]

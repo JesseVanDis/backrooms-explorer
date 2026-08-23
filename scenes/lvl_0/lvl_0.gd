@@ -28,7 +28,7 @@ func generate_level() -> Image:
 	const width = 64
 	const height = 64
 	
-	var image = MapGenerator.new().generate_map_image(width, height, randi())
+	var image = MapGenerator.new().generate_map_image(width, height, 1234) #randi())
 	
 	for x in range(width):
 		for z in range(height):
