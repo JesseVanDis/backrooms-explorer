@@ -4,4 +4,4 @@ cd "$SCRIPT_DIR/../../../"
 
 godot --headless --path . -s scenes/lvl_0/tests/test_map_gen.gd
 
-xdg-open "scenes/lvl_0/tests/test_maze_custom.png"
+xdg-open "scenes/lvl_0/tests/result.png"
