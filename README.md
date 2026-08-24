@@ -65,11 +65,11 @@ It will be sold on Steam for a yet to be discussed price to support the project.
 | Subject                    | progress (%) |
 |----------------------------|--------------|
 | **Mechanics**              | -            |
-| - Running                  | 0            |
-| - Jumping                  | 0            |
+| - Running                  | 100%         |
+| - Jumping                  | 100%         |
 | - Moving in between levels | 0            |
 | **Scenes**                 | -            |
-| - lvl 0                    | 0            |
+| - lvl 0                    | 5%           |
 | - lvl 1                    | 0            |
 
 ### V0.0.2
@@ -111,6 +111,7 @@ It will be sold on Steam for a yet to be discussed price to support the project.
 |--------------------------------------------------|----------|
 | **Mechanics**                                    | -        |
 | - Mobile phone with level description upon entry | 0        |
+| - Psychological effects                          | 0        |
 | **Entities**                                     | -        |
 | - Clumps                                         | 0        |
 | - Haunds                                         | 0        |
