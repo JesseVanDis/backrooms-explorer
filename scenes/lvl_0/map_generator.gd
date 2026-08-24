@@ -2,6 +2,37 @@ extends Node
 
 class_name MapGenerator
 
+class Bounds:
+	var x0: int
+	var y0: int
+	var x1: int
+	var y1: int
+
+	func _init(_x0: int, _y0: int, _x1: int, _y1: int) -> void:
+		x0 = _x0
+		y0 = _y0
+		x1 = _x1
+		y1 = _y1
+
+	func get_width() -> int:
+		return maxi(0, x1 - x0)
+
+	func get_height() -> int:
+		return maxi(0, y1 - y0)
+
+	func contains(x: int, y: int) -> bool:
+		return x >= x0 and x < x1 and y >= y0 and y < y1
+
+class PlotData:
+	var x: int
+	var y: int
+	var color: Color
+
+	func _init(_x: int, _y: int, _color: Color) -> void:
+		x = _x
+		y = _y
+		color = _color
+
 class MapSettings:
 	var room_iterations: int = 50
 	var room_min_size: int = 3
@@ -48,115 +79,108 @@ class MapSettings:
 		connection_distance = _connection_distance
 		connection_chance = _connection_chance
 
-static func is_wall(image: Image, x: int, y: int):
+static func is_wall(image: Image, x: int, y: int) -> bool:
 	return image.get_pixel(x, y).b < 0.1
 
-static func is_light(image: Image, x: int, y: int):
+static func is_light(image: Image, x: int, y: int) -> bool:
 	return image.get_pixel(x, y).g > 0.9
 
-func _mod_plot_random_black_pixels(image: Image, fill_ratio: float):
-	var height: int = image.get_height();
-	var width:  int = image.get_width();
-	for y in range(height):
-		for x in range(width):
+func _mod_plot_random_black_pixels(bounds: Bounds, cb: Callable, fill_ratio: float) -> void:
+	for y: int in range(bounds.y0, bounds.y1):
+		for x: int in range(bounds.x0, bounds.x1):
 			if randf() < fill_ratio:
-				image.set_pixel(x, y, Color.BLACK)
+				cb.call(PlotData.new(x, y, Color.BLACK))
 
-func _mod_connect_diagonal_black_pixels(image: Image):
-	var height: int = image.get_height();
-	var width:  int = image.get_width();
-	for y in range(1, height-1):
-		for x in range(1, width-1):
-			if ! is_wall(image, x, y):
-				var wall_up:    bool = is_wall(image, x, y+1)
-				var wall_down:  bool = is_wall(image, x, y-1)
-				var wall_left:  bool = is_wall(image, x-1, y)
-				var wall_right: bool = is_wall(image, x+1, y)
+func _mod_connect_diagonal_black_pixels(bounds: Bounds, cb: Callable, is_wall_callback: Callable) -> void:
+	for y: int in range(bounds.y0 + 1, bounds.y1 - 1):
+		for x: int in range(bounds.x0 + 1, bounds.x1 - 1):
+			if not is_wall_callback.call(x, y):
+				var wall_up: bool = is_wall_callback.call(x, y + 1)
+				var wall_down: bool = is_wall_callback.call(x, y - 1)
+				var wall_left: bool = is_wall_callback.call(x - 1, y)
+				var wall_right: bool = is_wall_callback.call(x + 1, y)
 				
 				if (wall_up && wall_left) || (wall_up && wall_right) || (wall_down && wall_left) || (wall_down && wall_right):
-					image.set_pixel(x, y, Color.BLACK)
+					cb.call(PlotData.new(x, y, Color.BLACK))
 
-func _mod_draw_black_border(image: Image):
-	var height: int = image.get_height();
-	var width:  int = image.get_width();
-	for x in range(width):
-		image.set_pixel(x, 0,        Color.BLACK)
-		image.set_pixel(x, height-1, Color.BLACK)
-	for y in range(height):
-		image.set_pixel(0,       y,  Color.BLACK)
-		image.set_pixel(width-1, y,  Color.BLACK)
+func _mod_draw_black_border(bounds: Bounds, cb: Callable) -> void:
+	if bounds.get_width() == 0 or bounds.get_height() == 0:
+		return
+	for x: int in range(bounds.x0, bounds.x1):
+		cb.call(PlotData.new(x, bounds.y0, Color.BLACK))
+		cb.call(PlotData.new(x, bounds.y1 - 1, Color.BLACK))
+	for y: int in range(bounds.y0, bounds.y1):
+		cb.call(PlotData.new(bounds.x0, y, Color.BLACK))
+		cb.call(PlotData.new(bounds.x1 - 1, y, Color.BLACK))
 
-func _mod_connect_black_pixels(image: Image, connection_distance: int, chance: float):
-	var height: int = image.get_height();
-	var width:  int = image.get_width();
+func _mod_connect_black_pixels(bounds: Bounds, cb: Callable, is_wall_callback: Callable, connection_distance: int, chance: float) -> void:
 	if connection_distance > 0:
-		for x in range(width):
-			for y in range(height):
-				if is_wall(image, x, y):
-					if x + connection_distance < width and is_wall(image, x + connection_distance, y):
+		for x: int in range(bounds.x0, bounds.x1):
+			for y: int in range(bounds.y0, bounds.y1):
+				if is_wall_callback.call(x, y):
+					if x + connection_distance < bounds.x1 and is_wall_callback.call(x + connection_distance, y):
 						if randf() < chance:
-							for dx in range(1, connection_distance):
-								image.set_pixel(x + dx, y, Color.BLACK)					
-					if y + connection_distance < height and is_wall(image, x, y + connection_distance):
+							for dx: int in range(1, connection_distance):
+								cb.call(PlotData.new(x + dx, y, Color.BLACK))
+					if y + connection_distance < bounds.y1 and is_wall_callback.call(x, y + connection_distance):
 						if randf() < chance:
-							for dy in range(1, connection_distance):
-								image.set_pixel(x, y + dy, Color.BLACK)
+							for dy: int in range(1, connection_distance):
+								cb.call(PlotData.new(x, y + dy, Color.BLACK))
 
-func _mod_draw_biomes(image: Image, biomes):
-	var height: int = image.get_height();
-	var width:  int = image.get_width();
-	for biome in biomes:
-		var count_range = biome.count_max - biome.count_min
-		var num_circles = biome.count_min + (randi() % (count_range + 1) if count_range > 0 else 0)
-		for i in range(num_circles):
-			var size_range = biome.radius_max - biome.radius_min
-			var radius = biome.radius_min + (randi() % (size_range + 1) if size_range > 0 else 0)
-			var center_x = randi() % width
-			var center_y = randi() % height
-			_draw_filled_circle(image, center_x, center_y, radius, biome.color)
+func _mod_draw_biomes(bounds: Bounds, cb: Callable, biomes: Array) -> void:
+	if bounds.get_width() == 0 or bounds.get_height() == 0:
+		return
+	for biome: MapSettings.BiomeSettings in biomes:
+		var count_range: int = biome.count_max - biome.count_min
+		var num_circles: int = biome.count_min + (randi() % (count_range + 1) if count_range > 0 else 0)
+		for _i: int in range(num_circles):
+			var size_range: int = biome.radius_max - biome.radius_min
+			var radius: int = biome.radius_min + (randi() % (size_range + 1) if size_range > 0 else 0)
+			var center_x: int = bounds.x0 + randi() % bounds.get_width()
+			var center_y: int = bounds.y0 + randi() % bounds.get_height()
+			_draw_filled_circle(bounds, cb, center_x, center_y, radius, biome.color)
 
-func _mod_place_lights(image: Image, lights_grid_size: int, lights_offset_chance: float, lights_offsets: Array[int]):
-	var height: int = image.get_height()
-	var width:  int = image.get_width()
-	
-	for y in range(lights_grid_size >> 1, height, lights_grid_size):
-		for x in range(lights_grid_size >> 1, width, lights_grid_size):
+func _mod_place_lights(bounds: Bounds, cb: Callable, is_wall_callback: Callable, lights_grid_size: int, lights_offset_chance: float, lights_offsets: Array[int]) -> void:
+	if lights_grid_size <= 0 or bounds.get_width() == 0 or bounds.get_height() == 0:
+		return
+	for y: int in range(bounds.y0 + (lights_grid_size >> 1), bounds.y1, lights_grid_size):
+		for x: int in range(bounds.x0 + (lights_grid_size >> 1), bounds.x1, lights_grid_size):
 			var lx: int = x
 			var ly: int = y
-			if randf() < lights_offset_chance:
+			if not lights_offsets.is_empty() and randf() < lights_offset_chance:
 				lx += lights_offsets[randi() % lights_offsets.size()]
 				ly += lights_offsets[randi() % lights_offsets.size()]
-			lx = clampi(lx, 0, width - 1)
-			ly = clampi(ly, 0, height - 1)
-			if not is_wall(image, lx, ly):
-				image.set_pixel(lx, ly, Color(0,1,1))
+			lx = clampi(lx, bounds.x0, bounds.x1 - 1)
+			ly = clampi(ly, bounds.y0, bounds.y1 - 1)
+			if not is_wall_callback.call(lx, ly):
+				cb.call(PlotData.new(lx, ly, Color(0, 1, 1)))
 
 
-func _mod_ensure_no_enclaves(image: Image):
-	var width: int = image.get_width()
-	var height: int = image.get_height()
+func _mod_ensure_no_enclaves(bounds: Bounds, cb: Callable, is_wall_callback: Callable) -> void:
+	var width: int = bounds.get_width()
+	var height: int = bounds.get_height()
 	var visited: Array = []
-	for x in range(width):
+	for _x: int in range(width):
 		var column: Array = []
 		column.resize(height)
 		column.fill(false)
 		visited.append(column)
 	var components: Array = []
-	for y in range(height):
-		for x in range(width):
-			if not is_wall(image, x, y) and not visited[x][y]:
+	for y: int in range(bounds.y0, bounds.y1):
+		for x: int in range(bounds.x0, bounds.x1):
+			if not is_wall_callback.call(x, y) and not visited[x - bounds.x0][y - bounds.y0]:
 				var component: Array = []
 				var queue: Array = [Vector2i(x, y)]
-				visited[x][y] = true
+				visited[x - bounds.x0][y - bounds.y0] = true
 				while queue.size() > 0:
 					var p: Vector2i = queue.pop_front()
 					component.append(p)
-					for dir in [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]:
+					for dir: Vector2i in [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]:
 						var nx: int = p.x + dir.x
 						var ny: int = p.y + dir.y
-						if nx >= 0 and nx < width and ny >= 0 and ny < height:
-							if not is_wall(image, nx, ny) and not visited[nx][ny]:
-								visited[nx][ny] = true
+						if bounds.contains(nx, ny):
+							if not is_wall_callback.call(nx, ny) and not visited[nx - bounds.x0][ny - bounds.y0]:
+								visited[nx - bounds.x0][ny - bounds.y0] = true
 								queue.push_back(Vector2i(nx, ny))
 				components.append(component)
 	if components.size() <= 1:
@@ -165,77 +189,82 @@ func _mod_ensure_no_enclaves(image: Image):
 	# Find the largest component
 	var largest_component_idx: int = 0
 	var max_size: int = 0
-	for i in range(components.size()):
+	for i: int in range(components.size()):
 		if components[i].size() > max_size:
 			max_size = components[i].size()
 			largest_component_idx = i
 	
 	# Fill all other components with black
-	for i in range(components.size()):
+	for i: int in range(components.size()):
 		if i == largest_component_idx:
 			continue
-		for p in components[i]:
-			image.set_pixel(p.x, p.y, Color.BLACK)
+		for p: Vector2i in components[i]:
+			cb.call(PlotData.new(p.x, p.y, Color.BLACK))
 
 ## Generates a black & white maze image.
 ## White pixels = empty space, Black pixels = walls
 func generate_map_image(width: int, height: int, map_seed: int, settings: MapSettings = MapSettings.new()) -> Image:
 	seed(map_seed)
-	var image := Image.create(width, height, false, Image.FORMAT_RGB8)
-	image.fill(Color(0,0,1)) # Start with all white canvas
-	_mod_plot_random_black_pixels(image, settings.fill_ratio)
-	_mod_connect_diagonal_black_pixels(image)
-	_mod_connect_black_pixels(image, settings.connection_distance, settings.connection_chance)
-	_mod_draw_black_border(image);
-	_mod_ensure_no_enclaves(image)
-	_mod_place_lights(image, settings.lights_grid_size, settings.lights_offset_chance, settings.lights_offsets)
+	var image: Image = Image.create(width, height, false, Image.FORMAT_RGB8)
+	image.fill(Color(0, 0, 1)) # Start with all white canvas
+	var bounds: Bounds = Bounds.new(0, 0, width, height)
+	var cb: Callable = func(data: PlotData) -> void:
+		image.set_pixel(data.x, data.y, data.color)
+	var is_wall_callback: Callable = func(x: int, y: int) -> bool:
+		return is_wall(image, x, y)
+	_mod_plot_random_black_pixels(bounds, cb, settings.fill_ratio)
+	_mod_connect_diagonal_black_pixels(bounds, cb, is_wall_callback)
+	_mod_connect_black_pixels(bounds, cb, is_wall_callback, settings.connection_distance, settings.connection_chance)
+	_mod_draw_black_border(bounds, cb)
+	_mod_ensure_no_enclaves(bounds, cb, is_wall_callback)
+	_mod_place_lights(bounds, cb, is_wall_callback, settings.lights_grid_size, settings.lights_offset_chance, settings.lights_offsets)
 	return image
 
 func generate_map(width: int, height: int, map_seed: int, debug_png_filename: String, settings: MapSettings = MapSettings.new()) -> void:
-	var image = generate_map_image(width, height, map_seed, settings)
+	var image: Image = generate_map_image(width, height, map_seed, settings)
 	# Save image
 	var err := image.save_png(debug_png_filename)
 	if err != OK:
 		push_error("Failed to save maze image: " + str(err))
 
-func _connect_rooms(image: Image, r1: Rect2i, r2: Rect2i, settings: MapSettings) -> void:
-	var p1 = r1.get_center()
-	var p2 = r2.get_center()
+func _connect_rooms(bounds: Bounds, cb: Callable, r1: Rect2i, r2: Rect2i, settings: MapSettings) -> void:
+	var p1: Vector2i = r1.get_center()
+	var p2: Vector2i = r2.get_center()
 
-	var h_width = settings.hallway_min_width
+	var h_width: int = settings.hallway_min_width
 	if settings.hallway_max_width > settings.hallway_min_width:
 		h_width = (randi() % (settings.hallway_max_width - settings.hallway_min_width + 1)) + settings.hallway_min_width
 
-	_carve_hallway(image, p1, p2, h_width)
+	_carve_hallway(bounds, cb, p1, p2, h_width)
 
-func _carve_hallway(image: Image, p1: Vector2i, p2: Vector2i, width: int) -> void:
+func _carve_hallway(bounds: Bounds, cb: Callable, p1: Vector2i, p2: Vector2i, width: int) -> void:
 	# Horizontal then vertical or vice versa
 	if randi() % 2 == 0:
-		_carve_line(image, Vector2i(p1.x, p1.y), Vector2i(p2.x, p1.y), width)
-		_carve_line(image, Vector2i(p2.x, p1.y), Vector2i(p2.x, p2.y), width)
+		_carve_line(bounds, cb, Vector2i(p1.x, p1.y), Vector2i(p2.x, p1.y), width)
+		_carve_line(bounds, cb, Vector2i(p2.x, p1.y), Vector2i(p2.x, p2.y), width)
 	else:
-		_carve_line(image, Vector2i(p1.x, p1.y), Vector2i(p1.x, p2.y), width)
-		_carve_line(image, Vector2i(p1.x, p2.y), Vector2i(p2.x, p2.y), width)
+		_carve_line(bounds, cb, Vector2i(p1.x, p1.y), Vector2i(p1.x, p2.y), width)
+		_carve_line(bounds, cb, Vector2i(p1.x, p2.y), Vector2i(p2.x, p2.y), width)
 
-func _carve_line(image: Image, start: Vector2i, end: Vector2i, line_width: int) -> void:
-	var x_start = min(start.x, end.x)
-	var x_end = max(start.x, end.x)
-	var y_start = min(start.y, end.y)
-	var y_end = max(start.y, end.y)
+func _carve_line(bounds: Bounds, cb: Callable, start: Vector2i, end: Vector2i, line_width: int) -> void:
+	var x_start: int = mini(start.x, end.x)
+	var x_end: int = maxi(start.x, end.x)
+	var y_start: int = mini(start.y, end.y)
+	var y_end: int = maxi(start.y, end.y)
 	
-	var offset = line_width >> 1
+	var offset: int = line_width >> 1
 
-	for x in range(x_start - offset, x_end + (line_width - offset)):
-		for y in range(y_start - offset, y_end + (line_width - offset)):
-			if x >= 0 and x < image.get_width() and y >= 0 and y < image.get_height():
-				image.set_pixel(x, y, Color.BLACK)
+	for x: int in range(x_start - offset, x_end + (line_width - offset)):
+		for y: int in range(y_start - offset, y_end + (line_width - offset)):
+			if bounds.contains(x, y):
+				cb.call(PlotData.new(x, y, Color.BLACK))
 
-func _draw_filled_circle(image: Image, center_x: int, center_y: int, radius: int, color: Color) -> void:
-	var r2 = radius * radius
-	for x in range(center_x - radius, center_x + radius + 1):
-		for y in range(center_y - radius, center_y + radius + 1):
-			if x >= 0 and x < image.get_width() and y >= 0 and y < image.get_height():
-				var dx = x - center_x
-				var dy = y - center_y
+func _draw_filled_circle(bounds: Bounds, cb: Callable, center_x: int, center_y: int, radius: int, color: Color) -> void:
+	var r2: int = radius * radius
+	for x: int in range(center_x - radius, center_x + radius + 1):
+		for y: int in range(center_y - radius, center_y + radius + 1):
+			if bounds.contains(x, y):
+				var dx: int = x - center_x
+				var dy: int = y - center_y
 				if dx * dx + dy * dy <= r2:
-					image.set_pixel(x, y, color)
+					cb.call(PlotData.new(x, y, color))
