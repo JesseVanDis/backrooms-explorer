@@ -8,6 +8,16 @@ enum TileType {
 	WALL,
 }
 
+func _ceiling_light(ctx: Context) -> bool:
+	if(posmod(ctx.x, 5) == 1 && posmod(ctx.y, 5) == 1):
+		return true
+	return false
+
+func _mapshader_standard(context: Context) -> TileType:
+	if _ceiling_light(context):
+		return TileType.CEILING_LIGHT
+	return TileType.EMPTY
+
 class PlotData:
 	var tile_type: TileType
 	func _init() -> void:
@@ -32,17 +42,14 @@ class Section:
 class Context:
 	var x: int
 	var y: int
+	var x_flt: float
+	var y_flt: float
 	
 	func random() -> float:
 		var seed_value = hash(Vector2i(int(x), int(y)))
 		var rng = RandomNumberGenerator.new()
 		rng.seed = seed_value
 		return rng.randf()
-
-func _mapshader_standard(context: Context) -> TileType:
-	if context.random() > 0.9:
-		return TileType.CEILING_LIGHT
-	return TileType.EMPTY
 
 func to_color(tile_type: TileType) -> Color:
 	match tile_type:
@@ -85,5 +92,7 @@ func _handle_shaders(x0: int, y0: int, x1: int, y1: int, cb: Callable) -> void:
 		for x in range(y0, y1):
 			context.x = x;
 			context.y = y;
+			context.x_flt = float(x);
+			context.y_flt = float(y);
 			cb_data.tile_type = _mapshader_standard(context);
 			cb.call(context, cb_data);
