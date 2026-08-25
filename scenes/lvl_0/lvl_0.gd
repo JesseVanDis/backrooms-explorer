@@ -38,7 +38,7 @@ func _place_wall(scene: Resource, pos, angle: float):
 
 
 func generate_level() -> void:
-	const radius = 16
+	const radius = 64
 		
 	var place_tile: Callable = func(x: int, y: int, tile_pos: Vector3, tile_type: MapGenerator.TileType) -> void:
 		# ALWAYS add a floor and ceiling
@@ -60,6 +60,7 @@ func generate_level() -> void:
 				ceiling_light_inst.transform.origin = tile_pos
 				
 			MapGenerator.TileType.WALL:
+				#_place_wall(wall_scene_x, tile_pos, 0)
 				var wall_n = map.get_tile_clamped(x, y+1) == MapGenerator.TileType.WALL
 				var wall_s = map.get_tile_clamped(x, y-1) == MapGenerator.TileType.WALL
 				var wall_e = map.get_tile_clamped(x+1, y) == MapGenerator.TileType.WALL
@@ -80,11 +81,10 @@ func generate_level() -> void:
 				elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(wall_scene_e, tile_pos, -PI/2)
 				elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(wall_scene_e, tile_pos, PI/2)
 				elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall(wall_scene_x, tile_pos, 0)
-					
 
 	var generator = MapGenerator.new();
 
-	map = generator.generate_map(-radius, -radius, radius, radius)	
+	map = generator.generate_map(0, 0, 64, 64)
 	for y in range(map.y, map.y + map.h):
 		for x in range(map.x, map.x + map.w):
 			place_tile.call(x, y, Vector3(x,0,y), map.get_tile(x, y));
