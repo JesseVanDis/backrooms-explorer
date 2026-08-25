@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://bq14es8rbaetf"]
+
+[ext_resource type="PackedScene" uid="uid://cg81k3q7vsko3" path="res://scenes/lvl_0/saves/part_wall_l.blend" id="1_m5671"]
+[ext_resource type="Material" uid="uid://6tbkpapliiuf" path="res://scenes/lvl_0/wallpaper.tres" id="2_4ie07"]
+
+[node name="part_wall_l" unique_id=1886839889 instance=ExtResource("1_m5671")]
+
+[node name="Cube_001" parent="." index="0" unique_id=1417074620]
+surface_material_override/0 = ExtResource("2_4ie07")

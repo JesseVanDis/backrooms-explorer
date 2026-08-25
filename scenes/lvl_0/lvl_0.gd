@@ -2,10 +2,14 @@ extends Node3D
 
 @onready var map_node = $Map
 
-const floor_scene = preload("res://scenes/lvl_0/part_1x1_floor.tscn")
-const ceiling_scene = preload("res://scenes/lvl_0/part_1x1_ceiling.tscn")
-const wall_scene = preload("res://scenes/lvl_0/part_1x1_wall.tscn")
-const ceiling_light_scene = preload("res://scenes/lvl_0/part_1x1_ceiling_light.tscn")
+const floor_scene: Resource = preload("res://scenes/lvl_0/part_1x1_floor.tscn")
+const ceiling_scene: Resource = preload("res://scenes/lvl_0/part_1x1_ceiling.tscn")
+const ceiling_light_scene: Resource = preload("res://scenes/lvl_0/part_1x1_ceiling_light.tscn")
+const wall_scene_x: Resource = preload("res://scenes/lvl_0/part_wall_x.tscn")
+const wall_scene_t: Resource = preload("res://scenes/lvl_0/part_wall_t.tscn")
+const wall_scene_i: Resource = preload("res://scenes/lvl_0/part_wall_i.tscn")
+const wall_scene_l: Resource = preload("res://scenes/lvl_0/part_wall_l.tscn")
+const wall_scene_e: Resource = preload("res://scenes/lvl_0/part_wall_end.tscn")
 
 const tile_size = 1.0
 
@@ -26,8 +30,15 @@ func _ready() -> void:
 	# Also reset rotation to avoid looking at the floor or something
 	$Player.rotation = Vector3.ZERO
 
+func _place_wall(scene: Resource, pos, angle: float):
+	var instance: Node3D = scene.instantiate()
+	map_node.add_child(instance)
+	instance.transform.origin = pos
+	instance.rotate_y(angle)
+
+
 func generate_level() -> void:
-	const radius = 64
+	const radius = 16
 		
 	var place_tile: Callable = func(x: int, y: int, tile_pos: Vector3, tile_type: MapGenerator.TileType) -> void:
 		# ALWAYS add a floor and ceiling
@@ -49,7 +60,27 @@ func generate_level() -> void:
 				ceiling_light_inst.transform.origin = tile_pos
 				
 			MapGenerator.TileType.WALL:
-				pass
+				var wall_n = map.get_tile_clamped(x, y+1) == MapGenerator.TileType.WALL
+				var wall_s = map.get_tile_clamped(x, y-1) == MapGenerator.TileType.WALL
+				var wall_e = map.get_tile_clamped(x+1, y) == MapGenerator.TileType.WALL
+				var wall_w = map.get_tile_clamped(x-1, y) == MapGenerator.TileType.WALL
+				if	( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(wall_scene_x, tile_pos, 0)
+				elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(wall_scene_t, tile_pos, 0)
+				elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(wall_scene_t, tile_pos, PI)
+				elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(wall_scene_i, tile_pos, 0)
+				elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(wall_scene_t, tile_pos, -PI/2)
+				elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(wall_scene_l, tile_pos, -PI/2)
+				elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(wall_scene_l, tile_pos, PI)
+				elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall(wall_scene_e, tile_pos, PI)
+				elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(wall_scene_t, tile_pos, PI/2)
+				elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(wall_scene_l, tile_pos, 0)
+				elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(wall_scene_l, tile_pos, PI/2)
+				elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(wall_scene_e, tile_pos, 0)
+				elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(wall_scene_i, tile_pos, PI/2)
+				elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(wall_scene_e, tile_pos, -PI/2)
+				elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(wall_scene_e, tile_pos, PI/2)
+				elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall(wall_scene_x, tile_pos, 0)
+					
 
 	var generator = MapGenerator.new();
 

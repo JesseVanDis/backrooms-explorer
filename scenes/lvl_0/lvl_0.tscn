@@ -12,7 +12,7 @@ sky_material = SubResource("ProceduralSkyMaterial_rj2d8")
 
 [sub_resource type="Environment" id="Environment_j6thp"]
 background_mode = 1
-background_color = Color(0.007847893, 0.0056208917, 1.1280645e-09, 1)
+background_color = Color(0.019101407, 0.009578037, 0, 1)
 sky = SubResource("Sky_smeuj")
 sdfgi_enabled = true
 sdfgi_read_sky_light = false
