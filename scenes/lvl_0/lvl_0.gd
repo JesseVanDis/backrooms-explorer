@@ -14,6 +14,7 @@ const wall_scene_e: Resource = preload("res://scenes/lvl_0/part_wall_end.tscn")
 const tile_size: float = 1.0
 const CHUNK_SIZE: int = 64
 const GENERATION_THRESHOLD: float = 15.0
+const REMOVAL_THRESHOLD: float = 200.0
 
 var generated_chunks: Dictionary = {} # Vector2i -> MapGenerator.Section
 var rendered_chunks: Dictionary = {} # Vector2i -> Node3D
@@ -68,9 +69,9 @@ func _generate_chunk(cp: Vector2i) -> void:
 	# Inspiration from generate_level
 	for y in range(section.y, section.y + section.h):
 		for x in range(section.x, section.x + section.w):
-			_render_tile(chunk_node, section, x, y)
+			_add_tile(chunk_node, section, x, y)
 
-func _render_tile(parent: Node3D, section: MapGenerator.Section, x: int, y: int) -> void:
+func _add_tile(parent: Node3D, section: MapGenerator.Section, x: int, y: int) -> void:
 	var tile_type: MapGenerator.TileType = section.get_tile(x, y)
 	var tile_pos: Vector3 = Vector3(float(x) * tile_size, 0.0, float(y) * tile_size)
 	
@@ -129,6 +130,30 @@ func _process(_delta: float) -> void:
 	var px: float = player_pos.x / tile_size
 	var py: float = player_pos.z / tile_size
 	
+	# Removal logic
+	var chunks_to_remove: Array[Vector2i] = []
+	for cp: Vector2i in rendered_chunks.keys():
+		var chunk_min_x: float = float(cp.x * CHUNK_SIZE)
+		var chunk_max_x: float = float((cp.x + 1) * CHUNK_SIZE)
+		var chunk_min_y: float = float(cp.y * CHUNK_SIZE)
+		var chunk_max_y: float = float((cp.y + 1) * CHUNK_SIZE)
+		
+		var closest_x: float = clamp(px, chunk_min_x, chunk_max_x)
+		var closest_y: float = clamp(py, chunk_min_y, chunk_max_y)
+		
+		var dist: float = Vector2(px - closest_x, py - closest_y).length()
+		if dist > REMOVAL_THRESHOLD:
+			chunks_to_remove.append(cp)
+			
+	for cp: Vector2i in chunks_to_remove:
+		var chunk_node: Node3D = rendered_chunks[cp]
+		map_node.remove_child(chunk_node)
+		chunk_node.queue_free()
+		rendered_chunks.erase(cp)
+		# Also remove from generated_chunks to save memory
+		if generated_chunks.has(cp):
+			generated_chunks.erase(cp)
+
 	var current_chunk_x: int = int(floor(px / float(CHUNK_SIZE)))
 	var current_chunk_y: int = int(floor(py / float(CHUNK_SIZE)))
 	
