@@ -20,57 +20,35 @@ func _mapshader_standard(context: Context) -> TileType:
 		return TileType.CEILING_LIGHT
 	return TileType.EMPTY
 
-func _extend_walls(ctx: Context, previous_pass: Array[TileType]) -> bool:
-	if ctx.get_at(previous_pass) != TileType.WALL:
-		var wall_nw =  ctx.get_at_offset(previous_pass, -1, 1) == TileType.WALL;
-		var wall_ne =  ctx.get_at_offset(previous_pass, 1, 1) == TileType.WALL;
-		var wall_sw =  ctx.get_at_offset(previous_pass, -1, -1) == TileType.WALL;
-		var wall_se =  ctx.get_at_offset(previous_pass, 1, -1) == TileType.WALL;
-		
-		if wall_nw || wall_ne || wall_sw || wall_se: return false
-		
-		var wall_w =  ctx.get_at_offset(previous_pass, -1, 0) == TileType.WALL;
-		var wall_ww = ctx.get_at_offset(previous_pass, -2, 0) == TileType.WALL;
-		var wall_e =  ctx.get_at_offset(previous_pass,  1, 0) == TileType.WALL;
-		var wall_ee = ctx.get_at_offset(previous_pass,  2, 0) == TileType.WALL;
-		var wall_s =  ctx.get_at_offset(previous_pass,  0, -1) == TileType.WALL;
-		var wall_ss = ctx.get_at_offset(previous_pass,  0, -2) == TileType.WALL;
-		var wall_n =  ctx.get_at_offset(previous_pass,  0, 1) == TileType.WALL;
-		var wall_nn = ctx.get_at_offset(previous_pass,  0, 2) == TileType.WALL;
-		
-		if wall_w && wall_ww && !wall_n && !wall_s: return true
-		if wall_e && wall_ee && !wall_n && !wall_s: return true
-		if wall_n && wall_nn && !wall_w && !wall_e: return true
-		if wall_s && wall_ss && !wall_w && !wall_e: return true
+func _extend_walls(ctx: Context) -> bool:
+	var pp: PreviousPass = ctx.previous_pass
+	if !pp.wall_c:
+		if pp.wall_nw || pp.wall_ne || pp.wall_sw || pp.wall_se: return false
+		if pp.wall_w && pp.wall_ww && !pp.wall_n && !pp.wall_s: return true
+		if pp.wall_e && pp.wall_ee && !pp.wall_n && !pp.wall_s: return true
+		if pp.wall_n && pp.wall_nn && !pp.wall_w && !pp.wall_e: return true
+		if pp.wall_s && pp.wall_ss && !pp.wall_w && !pp.wall_e: return true
 	return false
 
-func _is_isolated_wall_dot(ctx: Context, previous_pass: Array[TileType]) -> bool:
-	if ctx.get_at(previous_pass) == TileType.WALL:
-		return (ctx.get_at_offset(previous_pass, 1, 0) != TileType.WALL &&
-			ctx.get_at_offset(previous_pass, -1, 0) != TileType.WALL && 
-			ctx.get_at_offset(previous_pass, 0, 1) != TileType.WALL && 
-			ctx.get_at_offset(previous_pass, 0, -1) != TileType.WALL)
+func _is_isolated_wall_dot(ctx: Context) -> bool:
+	var pp: PreviousPass = ctx.previous_pass
+	if pp.wall_c:
+		return !pp.wall_e && !pp.wall_w && !pp.wall_n && !pp.wall_s
 	return false
 
-func _is_open_corner(ctx: Context, previous_pass: Array[TileType]) -> bool:
-	if ctx.get_at(previous_pass) != TileType.WALL:
-		var wall_w =  ctx.get_at_offset(previous_pass, -1, 0)  == TileType.WALL;
-		var wall_e =  ctx.get_at_offset(previous_pass,  1, 0)  == TileType.WALL;
-		var wall_s =  ctx.get_at_offset(previous_pass,  0, -1) == TileType.WALL;
-		var wall_n =  ctx.get_at_offset(previous_pass,  0, 1)  == TileType.WALL;
-		#var wall_w =  ctx.get_at_offset(previous_pass, -1, 0)  == TileType.WALL && ctx.get_at_offset(previous_pass, -2, 0) == TileType.WALL;
-		#var wall_e =  ctx.get_at_offset(previous_pass,  1, 0)  == TileType.WALL && ctx.get_at_offset(previous_pass,  2, 0) == TileType.WALL;
-		#var wall_s =  ctx.get_at_offset(previous_pass,  0, -1) == TileType.WALL && ctx.get_at_offset(previous_pass,  0, -2)== TileType.WALL;
-		#var wall_n =  ctx.get_at_offset(previous_pass,  0, 1)  == TileType.WALL && ctx.get_at_offset(previous_pass,  0, 2) == TileType.WALL;
-		if (wall_w || wall_e) && (wall_n || wall_s): return true
+func _is_open_corner(ctx: Context) -> bool:
+	var pp: PreviousPass = ctx.previous_pass
+	if !pp.wall_c:
+		if (pp.wall_w || pp.wall_e) && (pp.wall_n || pp.wall_s): return true
 	return false
 
-func _is_deadend(ctx: Context, offset_x: int, offset_y: int, previous_pass: Array[TileType]) -> bool:
-	if ctx.get_at_offset(previous_pass, offset_x, offset_y) == TileType.WALL:
-		var wall_w =  ctx.get_at_offset(previous_pass, offset_x + -1, offset_y + 0)  == TileType.WALL;
-		var wall_e =  ctx.get_at_offset(previous_pass, offset_x +  1, offset_y + 0)  == TileType.WALL;
-		var wall_s =  ctx.get_at_offset(previous_pass, offset_x +  0, offset_y + -1) == TileType.WALL;
-		var wall_n =  ctx.get_at_offset(previous_pass, offset_x +  0, offset_y + 1)  == TileType.WALL;
+func _is_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
+	var data: Array[TileType] = ctx.previous_pass.data
+	if ctx.get_at_offset(data, offset_x, offset_y) == TileType.WALL:
+		var wall_w: bool =  ctx.get_at_offset(data, offset_x + -1, offset_y + 0)  == TileType.WALL;
+		var wall_e: bool =  ctx.get_at_offset(data, offset_x +  1, offset_y + 0)  == TileType.WALL;
+		var wall_s: bool =  ctx.get_at_offset(data, offset_x +  0, offset_y + -1) == TileType.WALL;
+		var wall_n: bool =  ctx.get_at_offset(data, offset_x +  0, offset_y + 1)  == TileType.WALL;
 		if(wall_w && !wall_n && !wall_s && !wall_e): return true
 		if(!wall_w && wall_n && !wall_s && !wall_e): return true
 		if(!wall_w && !wall_n && wall_s && !wall_e): return true
@@ -79,18 +57,13 @@ func _is_deadend(ctx: Context, offset_x: int, offset_y: int, previous_pass: Arra
 	
 const _NUM_PASSES: int = 11
 	
-func _mapshader_pass(pass_index: int, ctx: Context, previous_pass: Array[TileType]) -> TileType:
-	
-	var wall   =  ctx.get_at_offset(previous_pass,  0,  0)  == TileType.WALL;
-	var wall_w =  ctx.get_at_offset(previous_pass, -1,  0)  == TileType.WALL;
-	var wall_e =  ctx.get_at_offset(previous_pass,  1,  0)  == TileType.WALL;
-	var wall_s =  ctx.get_at_offset(previous_pass,  0, -1) == TileType.WALL;
-	var wall_n =  ctx.get_at_offset(previous_pass,  0,  1)  == TileType.WALL;
-	var num_neighbour_walls = 0;
-	if wall_w: num_neighbour_walls = num_neighbour_walls + 1
-	if wall_e: num_neighbour_walls = num_neighbour_walls + 1
-	if wall_s: num_neighbour_walls = num_neighbour_walls + 1
-	if wall_n: num_neighbour_walls = num_neighbour_walls + 1
+func _mapshader_pass(pass_index: int, ctx: Context) -> TileType:
+	var pp: PreviousPass = ctx.previous_pass
+	var num_neighbour_walls: int = 0;
+	if pp.wall_w: num_neighbour_walls = num_neighbour_walls + 1
+	if pp.wall_e: num_neighbour_walls = num_neighbour_walls + 1
+	if pp.wall_s: num_neighbour_walls = num_neighbour_walls + 1
+	if pp.wall_n: num_neighbour_walls = num_neighbour_walls + 1
 
 	match pass_index:
 		0:
@@ -101,44 +74,48 @@ func _mapshader_pass(pass_index: int, ctx: Context, previous_pass: Array[TileTyp
 			return TileType.EMPTY
 	
 		1:
-			if num_neighbour_walls > 0 && !wall:
+			if num_neighbour_walls > 0 && !pp.wall_c:
 				if ctx.random() > 0.75:
 					return TileType.WALL
-			return ctx.get_at(previous_pass)
+			return ctx.get_at(pp.data)
 			
 		2:
-			if _is_isolated_wall_dot(ctx, previous_pass):
+			if _is_isolated_wall_dot(ctx):
 				return TileType.EMPTY
-			return ctx.get_at(previous_pass)
+			return ctx.get_at(pp.data)
 		
 		3,4,5,6,7,8,9,10:
 			if ctx.random() > 0.1:
-				if _extend_walls(ctx, previous_pass):
+				if _extend_walls(ctx):
 					return TileType.WALL
-			return ctx.get_at(previous_pass)
-						
+			return ctx.get_at(pp.data)
+		
+		11: 
+			# make room for spawn
+			pass
+	
 		#2:
 			#if ctx.random() > 0.3:
 				#var dir: int = int(ctx.random() * 4.0) & 3
 				#if dir == 0:
-					#if _is_deadend(ctx, 0, -1, previous_pass):
+					#if _is_deadend(ctx, 0, -1):
 						#return TileType.WALL
 				#if dir == 1:
-					#if _is_deadend(ctx, 0, 1, previous_pass):
+					#if _is_deadend(ctx, 0, 1):
 						#return TileType.WALL
 				#if dir == 2:
-					#if _is_deadend(ctx, -1, 0, previous_pass):
+					#if _is_deadend(ctx, -1, 0):
 						#return TileType.WALL
 				#if dir == 3:
-					#if _is_deadend(ctx,  1, 0, previous_pass):
+					#if _is_deadend(ctx,  1, 0):
 						#return TileType.WALL
-			#return ctx.get_at(previous_pass)
+			#return ctx.get_at(pp.data)
 	
-		7:
-			if _is_open_corner(ctx, previous_pass):
-				return TileType.WALL
-			return ctx.get_at(previous_pass)
-
+		#7:
+			#if _is_open_corner(ctx):
+				#return TileType.WALL
+			#return ctx.get_at(pp.data)
+	
 	return TileType.EMPTY
 
 
@@ -166,6 +143,42 @@ class Section:
 	func _init() -> void:
 		pass;
 
+class PreviousPass:
+	var data: Array[TileType]
+	
+	var wall_c: bool
+	var wall_n: bool
+	var wall_nn: bool
+	var wall_s: bool
+	var wall_ss: bool
+	var wall_e: bool
+	var wall_ee: bool
+	var wall_w: bool
+	var wall_ww: bool
+	var wall_nw: bool
+	var wall_ne: bool
+	var wall_sw: bool
+	var wall_se: bool
+	
+	func update(ctx: Context) -> void:
+		wall_c = ctx.get_at(data) == TileType.WALL
+		wall_n = ctx.get_at_offset(data, 0, 1) == TileType.WALL
+		wall_nn = ctx.get_at_offset(data, 0, 2) == TileType.WALL
+		wall_s = ctx.get_at_offset(data, 0, -1) == TileType.WALL
+		wall_ss = ctx.get_at_offset(data, 0, -2) == TileType.WALL
+		wall_e = ctx.get_at_offset(data, 1, 0) == TileType.WALL
+		wall_ee = ctx.get_at_offset(data, 2, 0) == TileType.WALL
+		wall_w = ctx.get_at_offset(data, -1, 0) == TileType.WALL
+		wall_ww = ctx.get_at_offset(data, -2, 0) == TileType.WALL
+		wall_nw = ctx.get_at_offset(data, -1, 1) == TileType.WALL
+		wall_ne = ctx.get_at_offset(data, 1, 1) == TileType.WALL
+		wall_sw = ctx.get_at_offset(data, -1, -1) == TileType.WALL
+		wall_se = ctx.get_at_offset(data, 1, -1) == TileType.WALL
+
+	func _init() -> void:
+		pass;
+	
+
 class Context:
 	var x: int
 	var y: int
@@ -173,13 +186,14 @@ class Context:
 	var h: int
 	var x_flt: float
 	var y_flt: float
+	var previous_pass: PreviousPass;
 	
-	func get_at(pass_data):
+	func get_at(pass_data: Array[TileType]) -> TileType:
 		return pass_data[x + y * w]
 	
-	func get_at_offset(pass_data, offset_x: int, offset_y: int):
-		var test_x = clamp(x + offset_x, 0, (w-1))
-		var test_y = clamp(y + offset_y, 0, (h-1))
+	func get_at_offset(pass_data: Array[TileType], offset_x: int, offset_y: int) -> TileType:
+		var test_x: int = clamp(x + offset_x, 0, (w-1))
+		var test_y: int = clamp(y + offset_y, 0, (h-1))
 		return pass_data[test_x + test_y * w]
 	
 	func random() -> float:
@@ -237,11 +251,14 @@ func generate_map(x0: int, y0: int, x1: int, y1: int) -> Section:
 	
 	return retval;
 
-func _run_pass(x0: int, y0: int, x1: int, y1: int, target, pass_index: int, previous_pass) -> void:
-	var width = x1-x0;
+func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[TileType], pass_index: int, previous_pass_array: Array[TileType]) -> void:
+	var width: int = x1-x0;
 	var context: Context = Context.new()
 	context.w = x1-x0;
 	context.h = y1-y0;
+	context.previous_pass = PreviousPass.new()
+	context.previous_pass.data = previous_pass_array
+	
 	target.resize(context.w * context.h);
 	for y in range(y0, y1):
 		for x in range(x0, x1):
@@ -249,4 +266,5 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target, pass_index: int, prev
 			context.y = y;
 			context.x_flt = float(x);
 			context.y_flt = float(y);
-			target[x + y * width] = _mapshader_pass(pass_index, context, previous_pass);
+			context.previous_pass.update(context)
+			target[x + y * width] = _mapshader_pass(pass_index, context);
