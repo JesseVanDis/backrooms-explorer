@@ -16,8 +16,21 @@ const CHUNK_SIZE: int = 64
 const GENERATION_THRESHOLD: float = 15.0
 const REMOVAL_THRESHOLD: float = 200.0
 
-var generated_chunks: Dictionary = {} # Vector2i -> MapGenerator.Section
-var rendered_chunks: Dictionary = {} # Vector2i -> Node3D
+class Chunk:
+	var chunk_index_x: int
+	var chunk_index_y: int
+	var global_pos_x: int
+	var global_pos_y: int
+	var static_body_3d: StaticBody3D
+	var tiles: Node3D
+	var section: MapGenerator.Section
+	
+	func _init() -> void:
+		pass;
+
+
+var chunks: Dictionary = {} # Vector2i -> Chunk
+#var rendered_chunks: Dictionary = {} # Vector2i -> Node3D
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -31,47 +44,67 @@ func _ready() -> void:
 	# Also reset rotation to avoid looking at the floor or something
 	$Player.rotation = Vector3.ZERO
 
-func _place_wall(parent: Node3D, scene: Resource, pos: Vector3, angle: float) -> void:
+func _place_wall(parent: Node3D, static_body: StaticBody3D, scene: Resource, pos: Vector3, angle: float) -> void:
 	var instance: Node3D = scene.instantiate()
 	parent.add_child(instance)
 	instance.transform.origin = pos
 	instance.rotate_y(angle)
+	_move_collision_shapes(instance, static_body)
+
+func _move_collision_shapes(source_node: Node, target_body: StaticBody3D) -> void:
+	var chunk_name: String = ""
+	var parent_node: Node = source_node.get_parent()
+	if parent_node and parent_node.name.begins_with("Chunk_"):
+		chunk_name = parent_node.name
+		
+	for child: Node in source_node.get_children():
+		if child is CollisionShape3D:
+			child.reparent(target_body, true)
+			if chunk_name != "":
+				child.add_to_group("col_" + chunk_name)
+		else:
+			_move_collision_shapes(child, target_body)
 
 func _get_tile_at(x: int, y: int) -> MapGenerator.TileType:
 	var cp: Vector2i = Vector2i(int(floor(float(x) / CHUNK_SIZE)), int(floor(float(y) / CHUNK_SIZE)))
-	var section: MapGenerator.Section = _ensure_chunk_data(cp)
+	if ! chunks.has(cp):
+		return MapGenerator.TileType.WALL
+	var section: MapGenerator.Section = _ensure_chunk_data(cp).section
 	return section.get_tile(x, y)
 
-func _ensure_chunk_data(cp: Vector2i) -> MapGenerator.Section:
-	if generated_chunks.has(cp):
-		return generated_chunks[cp]
-	
+func _ensure_chunk_data(cp: Vector2i) -> Chunk:
+	if chunks.has(cp):
+		return chunks[cp]
 	var x0: int = cp.x * CHUNK_SIZE
 	var y0: int = cp.y * CHUNK_SIZE
-	
 	var generator: MapGenerator = MapGenerator.new()
-	var section: MapGenerator.Section = generator.generate_map(x0, y0, x0 + CHUNK_SIZE, y0 + CHUNK_SIZE)
-	generated_chunks[cp] = section
-	return section
+	var chunk: Chunk = Chunk.new()
+	chunk.section = generator.generate_map(x0, y0, x0 + CHUNK_SIZE, y0 + CHUNK_SIZE)
+	chunk.chunk_index_x = cp.x
+	chunk.chunk_index_y = cp.y
+	chunk.global_pos_x = x0
+	chunk.global_pos_y = y0
+	chunk.static_body_3d = StaticBody3D.new()
+	chunk.tiles = Node3D.new()
+	map_node.add_child(chunk.static_body_3d)
+	map_node.add_child(chunk.tiles)
+	chunk.static_body_3d.name = "Chunk_static_body_%d_%d" % [cp.x, cp.y]
+	chunk.tiles.name = "Chunk_%d_%d" % [cp.x, cp.y]
+	chunks[cp] = chunk
+	return chunk
 
 func _generate_chunk(cp: Vector2i) -> void:
-	if rendered_chunks.has(cp):
+	if chunks.has(cp):
 		return
 	
-	var section: MapGenerator.Section = _ensure_chunk_data(cp)
-	
-	# Create a container for the chunk
-	var chunk_node: Node3D = Node3D.new()
-	chunk_node.name = "Chunk_%d_%d" % [cp.x, cp.y]
-	map_node.add_child(chunk_node)
-	rendered_chunks[cp] = chunk_node
+	var chunk: Chunk = _ensure_chunk_data(cp)	
 	
 	# Inspiration from generate_level
-	for y in range(section.y, section.y + section.h):
-		for x in range(section.x, section.x + section.w):
-			_add_tile(chunk_node, section, x, y)
+	for y in range(chunk.section.y, chunk.section.y + chunk.section.h):
+		for x in range(chunk.section.x, chunk.section.x + chunk.section.w):
+			_add_tile(chunk.tiles, chunk.static_body_3d, chunk.section, x, y)
 
-func _add_tile(parent: Node3D, section: MapGenerator.Section, x: int, y: int) -> void:
+func _add_tile(parent: Node3D, static_body: StaticBody3D, section: MapGenerator.Section, x: int, y: int) -> void:
 	var tile_type: MapGenerator.TileType = section.get_tile(x, y)
 	var tile_pos: Vector3 = Vector3(float(x) * tile_size, 0.0, float(y) * tile_size)
 	
@@ -82,6 +115,9 @@ func _add_tile(parent: Node3D, section: MapGenerator.Section, x: int, y: int) ->
 	parent.add_child(ceiling_inst)
 	floor_inst.transform.origin = tile_pos
 	ceiling_inst.transform.origin = tile_pos
+	
+	_move_collision_shapes(floor_inst, static_body)
+	_move_collision_shapes(ceiling_inst, static_body)
 
 	match tile_type:
 		MapGenerator.TileType.EMPTY:
@@ -90,6 +126,7 @@ func _add_tile(parent: Node3D, section: MapGenerator.Section, x: int, y: int) ->
 			var ceiling_light_inst: Node3D = ceiling_light_scene.instantiate()
 			parent.add_child(ceiling_light_inst)
 			ceiling_light_inst.transform.origin = tile_pos
+			_move_collision_shapes(ceiling_light_inst, static_body)
 			
 		MapGenerator.TileType.WALL:
 			# Use _get_tile_at for seamless transitions between chunks
@@ -98,41 +135,40 @@ func _add_tile(parent: Node3D, section: MapGenerator.Section, x: int, y: int) ->
 			var wall_e: bool = _get_tile_at(x + 1, y) == MapGenerator.TileType.WALL
 			var wall_w: bool = _get_tile_at(x - 1, y) == MapGenerator.TileType.WALL
 			
-			if    ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(parent, wall_scene_x, tile_pos, 0.0)
-			elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(parent, wall_scene_t, tile_pos, 0.0)
-			elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(parent, wall_scene_t, tile_pos, PI)
-			elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(parent, wall_scene_i, tile_pos, 0.0)
-			elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(parent, wall_scene_t, tile_pos, -PI/2)
-			elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(parent, wall_scene_l, tile_pos, -PI/2)
-			elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(parent, wall_scene_l, tile_pos, PI)
-			elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall(parent, wall_scene_e, tile_pos, PI)
-			elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(parent, wall_scene_t, tile_pos, PI/2)
-			elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(parent, wall_scene_l, tile_pos, 0.0)
-			elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(parent, wall_scene_l, tile_pos, PI/2)
-			elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(parent, wall_scene_e, tile_pos, 0.0)
-			elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(parent, wall_scene_i, tile_pos, PI/2)
-			elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(parent, wall_scene_e, tile_pos, -PI/2)
-			elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(parent, wall_scene_e, tile_pos, PI/2)
-			elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall(parent, wall_scene_x, tile_pos, 0.0)
+			if    ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_x, tile_pos, 0.0)
+			elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_t, tile_pos, 0.0)
+			elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_t, tile_pos, PI)
+			elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_i, tile_pos, 0.0)
+			elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_t, tile_pos, -PI/2)
+			elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_l, tile_pos, -PI/2)
+			elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_l, tile_pos, PI)
+			elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_e, tile_pos, PI)
+			elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_t, tile_pos, PI/2)
+			elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_l, tile_pos, 0.0)
+			elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_l, tile_pos, PI/2)
+			elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_e, tile_pos, 0.0)
+			elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_i, tile_pos, PI/2)
+			elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_e, tile_pos, -PI/2)
+			elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_e, tile_pos, PI/2)
+			elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_x, tile_pos, 0.0)
 
 #
 func _find_spawn_point() -> Vector2i:
-	var first_chunk: MapGenerator.Section = _ensure_chunk_data(Vector2i(0, 0))
-	for y in range(first_chunk.y, first_chunk.y + first_chunk.h):
-		for x in range(first_chunk.x, first_chunk.x + first_chunk.w):
-			if first_chunk.get_tile(x, y) != MapGenerator.TileType.WALL:
+	var first_chunk: Chunk = _ensure_chunk_data(Vector2i(0, 0))
+	for y in range(first_chunk.section.y, first_chunk.section.y + first_chunk.section.h):
+		for x in range(first_chunk.section.x, first_chunk.section.x + first_chunk.section.w):
+			if first_chunk.section.get_tile(x, y) != MapGenerator.TileType.WALL:
 				return Vector2i(x, y)
 	return Vector2i(1, 1)
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(_delta: float) -> void:
+func _handle_world_generation() -> void:
 	var player_pos: Vector3 = $Player.transform.origin
 	var px: float = player_pos.x / tile_size
 	var py: float = player_pos.z / tile_size
 	
 	# Removal logic
 	var chunks_to_remove: Array[Vector2i] = []
-	for cp: Vector2i in rendered_chunks.keys():
+	for cp: Vector2i in chunks.keys():
 		var chunk_min_x: float = float(cp.x * CHUNK_SIZE)
 		var chunk_max_x: float = float((cp.x + 1) * CHUNK_SIZE)
 		var chunk_min_y: float = float(cp.y * CHUNK_SIZE)
@@ -146,13 +182,19 @@ func _process(_delta: float) -> void:
 			chunks_to_remove.append(cp)
 			
 	for cp: Vector2i in chunks_to_remove:
-		var chunk_node: Node3D = rendered_chunks[cp]
+		var chunk_node: Node3D = chunks[cp].tiles
+		var chunk_collisions: StaticBody3D = chunks[cp].static_body_3d
+		var chunk_name: String = chunk_node.name
+		var chunk_collisions_name: String = chunk_collisions.name
 		map_node.remove_child(chunk_node)
+		map_node.remove_child(chunk_collisions)
 		chunk_node.queue_free()
-		rendered_chunks.erase(cp)
-		# Also remove from generated_chunks to save memory
-		if generated_chunks.has(cp):
-			generated_chunks.erase(cp)
+		
+		# Clean up collision shapes that were moved to the global StaticBody3D
+		get_tree().call_group("col_" + chunk_name, "queue_free")
+		get_tree().call_group("col_" + chunk_collisions_name, "queue_free")
+		
+		chunks.erase(cp)
 
 	var current_chunk_x: int = int(floor(px / float(CHUNK_SIZE)))
 	var current_chunk_y: int = int(floor(py / float(CHUNK_SIZE)))
@@ -160,7 +202,7 @@ func _process(_delta: float) -> void:
 	for dx in range(-1, 2):
 		for dy in range(-1, 2):
 			var cp: Vector2i = Vector2i(current_chunk_x + dx, current_chunk_y + dy)
-			if not rendered_chunks.has(cp):
+			if not chunks.has(cp):
 				var chunk_min_x: float = float(cp.x * CHUNK_SIZE)
 				var chunk_max_x: float = float((cp.x + 1) * CHUNK_SIZE)
 				var chunk_min_y: float = float(cp.y * CHUNK_SIZE)
@@ -172,6 +214,12 @@ func _process(_delta: float) -> void:
 				var dist: float = Vector2(px - closest_x, py - closest_y).length()
 				if dist < GENERATION_THRESHOLD:
 					_generate_chunk(cp)
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(_delta: float) -> void:
+	pass
+	#_handle_world_generation()
 
 func generate_level() -> void:
 	# Keep for inspiration/compatibility but actual work is in _generate_chunk
