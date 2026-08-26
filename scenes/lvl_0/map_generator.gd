@@ -131,14 +131,14 @@ class Section:
 	var h: int
 	var data: Array[TileType] = []
 	
-	func set_tile(x: int, y: int, tile_type: TileType) -> void:
-		data[x + y * w] = tile_type;
+	func set_tile(global_x: int, global_y: int, tile_type: TileType) -> void:
+		data[(global_x - x) + (global_y - y) * w] = tile_type;
 		
-	func get_tile(x: int, y: int) -> TileType:
-		return data[x + y * w];
+	func get_tile(global_x: int, global_y: int) -> TileType:
+		return data[(global_x - x) + (global_y - y) * w];
 
-	func get_tile_clamped(x: int, y: int) -> TileType:
-		return data[clamp(x, 0, w-1) + clamp(y, 0, h-1) * w];
+	func get_tile_clamped(global_x: int, global_y: int) -> TileType:
+		return data[clamp(global_x - x, 0, w-1) + clamp(global_y - y, 0, h-1) * w];
 		
 	func _init() -> void:
 		pass;
@@ -159,7 +159,7 @@ class PreviousPass:
 	var wall_ne: bool
 	var wall_sw: bool
 	var wall_se: bool
-	
+
 	func update(ctx: Context) -> void:
 		wall_c = ctx.get_at(data) == TileType.WALL
 		wall_n = ctx.get_at_offset(data, 0, 1) == TileType.WALL
@@ -182,6 +182,10 @@ class PreviousPass:
 class Context:
 	var x: int
 	var y: int
+	var lx: int
+	var ly: int
+	var start_x: int
+	var start_y: int
 	var w: int
 	var h: int
 	var x_flt: float
@@ -189,16 +193,16 @@ class Context:
 	var previous_pass: PreviousPass;
 	
 	func get_at(pass_data: Array[TileType]) -> TileType:
-		return pass_data[x + y * w]
+		return pass_data[lx + ly * w]
 	
 	func get_at_offset(pass_data: Array[TileType], offset_x: int, offset_y: int) -> TileType:
-		var test_x: int = clamp(x + offset_x, 0, (w-1))
-		var test_y: int = clamp(y + offset_y, 0, (h-1))
+		var test_x: int = clamp(lx + offset_x, 0, w - 1)
+		var test_y: int = clamp(ly + offset_y, 0, h - 1)
 		return pass_data[test_x + test_y * w]
 	
 	func random() -> float:
-		var seed_value = hash(Vector2i(int(x), int(y)))
-		var rng = RandomNumberGenerator.new()
+		var seed_value: int = hash(Vector2i(int(x), int(y)))
+		var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 		rng.seed = seed_value
 		return rng.randf()
 
@@ -213,7 +217,7 @@ func to_color(tile_type: TileType) -> Color:
 	return Color(0,0,0)
 
 func generate_map_image(width: int, height: int) -> Image:
-	var image = Image.create(width, height, false, Image.FORMAT_RGB8)
+	var image: Image = Image.create(width, height, false, Image.FORMAT_RGB8)
 		
 	var map: Section = generate_map(0, 0, width, height);
 	for y in range(0, height):
@@ -252,19 +256,25 @@ func generate_map(x0: int, y0: int, x1: int, y1: int) -> Section:
 	return retval;
 
 func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[TileType], pass_index: int, previous_pass_array: Array[TileType]) -> void:
-	var width: int = x1-x0;
+	var width: int = x1 - x0;
 	var context: Context = Context.new()
 	context.w = x1-x0;
 	context.h = y1-y0;
+	context.start_x = x0;
+	context.start_y = y0;
 	context.previous_pass = PreviousPass.new()
 	context.previous_pass.data = previous_pass_array
 	
 	target.resize(context.w * context.h);
 	for y in range(y0, y1):
+		var ly: int = y - y0
+		context.ly = ly
 		for x in range(x0, x1):
+			var lx: int = x - x0
 			context.x = x;
 			context.y = y;
+			context.lx = lx
 			context.x_flt = float(x);
 			context.y_flt = float(y);
 			context.previous_pass.update(context)
-			target[x + y * width] = _mapshader_pass(pass_index, context);
+			target[lx + ly * width] = _mapshader_pass(pass_index, context);
