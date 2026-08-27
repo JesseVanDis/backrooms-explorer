@@ -16,6 +16,22 @@ const CHUNK_SIZE: int = 64
 const GENERATION_THRESHOLD: float = 15.0
 const REMOVAL_THRESHOLD: float = 200.0
 
+
+var model_floor: Model = _load_model(floor_scene)
+var model_ceiling: Model = _load_model(ceiling_scene)
+var model_wall_x: Model = _load_model(wall_scene_x)
+var model_wall_t: Model = _load_model(wall_scene_t)
+var model_wall_i: Model = _load_model(wall_scene_i)
+var model_wall_l: Model = _load_model(wall_scene_l)
+var model_wall_e: Model = _load_model(wall_scene_e)
+
+class Model:
+	var graphic: Node3D
+	var collision: CollisionShape3D
+	
+	func _init() -> void:
+		pass;
+
 class Chunk:
 	var chunk_index_x: int
 	var chunk_index_y: int
@@ -44,26 +60,15 @@ func _ready() -> void:
 	# Also reset rotation to avoid looking at the floor or something
 	$Player.rotation = Vector3.ZERO
 
-func _place_wall(parent: Node3D, static_body: StaticBody3D, scene: Resource, pos: Vector3, angle: float) -> void:
-	var instance: Node3D = scene.instantiate()
-	parent.add_child(instance)
-	instance.transform.origin = pos
-	instance.rotate_y(angle)
-	_move_collision_shapes(instance, static_body)
+func _place_wall(parent: Node3D, static_body: StaticBody3D, model: Model, pos: Vector3, angle: float) -> void:
+	_instantiate_model(parent, static_body, model, pos, angle)
 
-func _move_collision_shapes(source_node: Node, target_body: StaticBody3D) -> void:
-	var chunk_name: String = ""
-	var parent_node: Node = source_node.get_parent()
-	if parent_node and parent_node.name.begins_with("Chunk_"):
-		chunk_name = parent_node.name
-		
-	for child: Node in source_node.get_children():
-		if child is CollisionShape3D:
-			child.reparent(target_body, true)
-			if chunk_name != "":
-				child.add_to_group("col_" + chunk_name)
-		else:
-			_move_collision_shapes(child, target_body)
+#func _move_collision_shapes(source_node: Node, target_body: StaticBody3D) -> void:
+	#for child: Node in source_node.get_children():
+		#if child is CollisionShape3D:
+			#child.reparent(target_body, true)
+		##else:
+		##	_move_collision_shapes(child, target_body)
 
 func _get_tile_at(x: int, y: int) -> MapGenerator.TileType:
 	var cp: Vector2i = Vector2i(int(floor(float(x) / CHUNK_SIZE)), int(floor(float(y) / CHUNK_SIZE)))
@@ -71,6 +76,19 @@ func _get_tile_at(x: int, y: int) -> MapGenerator.TileType:
 		return MapGenerator.TileType.WALL
 	var section: MapGenerator.Section = _ensure_chunk_data(cp).section
 	return section.get_tile(x, y)
+
+#func _generate_common_collision_shapes(chunk: Chunk):
+	#for y in range(chunk.section.y, chunk.section.y + chunk.section.h):
+		#for x in range(chunk.section.x, chunk.section.x + chunk.section.w):
+			## always add floor
+			#var collision_shape := CollisionShape3D.new()
+			#var box_shape := BoxShape3D.new()
+			#box_shape.size = Vector3(1, 1, 1)
+			#collision_shape.shape = box_shape
+			#collision_shape.position = Vector3(x, -0.5, y)
+			#chunk.static_body_3d.add_child(collision_shape)
+			#
+	#pass
 
 func _ensure_chunk_data(cp: Vector2i) -> Chunk:
 	if chunks.has(cp):
@@ -90,34 +108,39 @@ func _ensure_chunk_data(cp: Vector2i) -> Chunk:
 	map_node.add_child(chunk.tiles)
 	chunk.static_body_3d.name = "Chunk_static_body_%d_%d" % [cp.x, cp.y]
 	chunk.tiles.name = "Chunk_%d_%d" % [cp.x, cp.y]
+	#_generate_common_collision_shapes(chunk)
 	chunks[cp] = chunk
 	return chunk
 
 func _generate_chunk(cp: Vector2i) -> void:
 	if chunks.has(cp):
 		return
-	
 	var chunk: Chunk = _ensure_chunk_data(cp)	
 	
 	# Inspiration from generate_level
 	for y in range(chunk.section.y, chunk.section.y + chunk.section.h):
 		for x in range(chunk.section.x, chunk.section.x + chunk.section.w):
 			_add_tile(chunk.tiles, chunk.static_body_3d, chunk.section, x, y)
+	
+
+func _instantiate_model(graphic_parent: Node3D, collision_parent: StaticBody3D, model: Model, tile_pos: Vector3, angle: float):
+	var graphic_copy = model.graphic.duplicate()
+	graphic_copy.transform.origin = tile_pos
+	graphic_copy.rotate_y(angle)
+	graphic_parent.add_child(graphic_copy)
+	if(model.collision != null):
+		var collision_copy = model.collision.duplicate()
+		collision_copy.transform.origin = tile_pos
+		collision_copy.rotate_y(angle)
+		collision_parent.add_child(collision_copy)
 
 func _add_tile(parent: Node3D, static_body: StaticBody3D, section: MapGenerator.Section, x: int, y: int) -> void:
 	var tile_type: MapGenerator.TileType = section.get_tile(x, y)
 	var tile_pos: Vector3 = Vector3(float(x) * tile_size, 0.0, float(y) * tile_size)
 	
 	# ALWAYS add a floor and ceiling
-	var floor_inst: Node3D = floor_scene.instantiate()
-	var ceiling_inst: Node3D = ceiling_scene.instantiate()
-	parent.add_child(floor_inst)
-	parent.add_child(ceiling_inst)
-	floor_inst.transform.origin = tile_pos
-	ceiling_inst.transform.origin = tile_pos
-	
-	_move_collision_shapes(floor_inst, static_body)
-	_move_collision_shapes(ceiling_inst, static_body)
+	_instantiate_model(parent, static_body, model_floor, tile_pos, 0)
+	_instantiate_model(parent, static_body, model_ceiling, tile_pos, 0)
 
 	match tile_type:
 		MapGenerator.TileType.EMPTY:
@@ -126,7 +149,7 @@ func _add_tile(parent: Node3D, static_body: StaticBody3D, section: MapGenerator.
 			var ceiling_light_inst: Node3D = ceiling_light_scene.instantiate()
 			parent.add_child(ceiling_light_inst)
 			ceiling_light_inst.transform.origin = tile_pos
-			_move_collision_shapes(ceiling_light_inst, static_body)
+			#_move_collision_shapes(ceiling_light_inst, static_body)
 			
 		MapGenerator.TileType.WALL:
 			# Use _get_tile_at for seamless transitions between chunks
@@ -135,22 +158,22 @@ func _add_tile(parent: Node3D, static_body: StaticBody3D, section: MapGenerator.
 			var wall_e: bool = _get_tile_at(x + 1, y) == MapGenerator.TileType.WALL
 			var wall_w: bool = _get_tile_at(x - 1, y) == MapGenerator.TileType.WALL
 			
-			if    ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_x, tile_pos, 0.0)
-			elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_t, tile_pos, 0.0)
-			elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_t, tile_pos, PI)
-			elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_i, tile_pos, 0.0)
-			elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_t, tile_pos, -PI/2)
-			elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_l, tile_pos, -PI/2)
-			elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_l, tile_pos, PI)
-			elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_e, tile_pos, PI)
-			elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_t, tile_pos, PI/2)
-			elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_l, tile_pos, 0.0)
-			elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_l, tile_pos, PI/2)
-			elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_e, tile_pos, 0.0)
-			elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_i, tile_pos, PI/2)
-			elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_e, tile_pos, -PI/2)
-			elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, wall_scene_e, tile_pos, PI/2)
-			elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, wall_scene_x, tile_pos, 0.0)
+			if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_x, tile_pos, 0.0)
+			elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, model_wall_t, tile_pos, 0.0)
+			elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_t, tile_pos, PI)
+			elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, model_wall_i, tile_pos, 0.0)
+			elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_t, tile_pos, -PI/2)
+			elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, model_wall_l, tile_pos, -PI/2)
+			elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_l, tile_pos, PI)
+			elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, model_wall_e, tile_pos, PI)
+			elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_t, tile_pos, PI/2)
+			elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, model_wall_l, tile_pos, 0.0)
+			elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_l, tile_pos, PI/2)
+			elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, model_wall_e, tile_pos, 0.0)
+			elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_i, tile_pos, PI/2)
+			elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, model_wall_e, tile_pos, -PI/2)
+			elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_e, tile_pos, PI/2)
+			elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, model_wall_x, tile_pos, 0.0)
 
 #
 func _find_spawn_point() -> Vector2i:
@@ -224,3 +247,26 @@ func _process(_delta: float) -> void:
 func generate_level() -> void:
 	# Keep for inspiration/compatibility but actual work is in _generate_chunk
 	_generate_chunk(Vector2i(0, 0))
+
+func _get_collision_shape(resource: Resource) -> CollisionShape3D:
+	var inst: Node3D = resource.instantiate()
+	for child: Node in inst.get_children():
+		if child is CollisionShape3D:
+			var shape := child.duplicate() as CollisionShape3D
+			inst.queue_free()
+			return shape
+	inst.queue_free()
+	return null
+
+func _instantiate_and_remove_collision(graphic: Resource) -> Node3D:
+	var node: Node3D = graphic.instantiate()
+	for child: Node in node.get_children():
+		if child is CollisionShape3D:
+			child.queue_free()
+	return node
+
+func _load_model(tile: Resource) -> Model:
+	var retval = Model.new()
+	retval.graphic = _instantiate_and_remove_collision(tile)
+	retval.collision = _get_collision_shape(tile)
+	return retval
