@@ -16,6 +16,7 @@ background_color = Color(0.019101407, 0.009578037, 0, 1)
 sky = SubResource("Sky_smeuj")
 sdfgi_enabled = true
 sdfgi_read_sky_light = false
+sdfgi_min_cell_size = 0.1
 sdfgi_y_scale = 0
 glow_enabled = true
 

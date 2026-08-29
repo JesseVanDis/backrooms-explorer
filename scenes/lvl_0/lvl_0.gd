@@ -13,7 +13,7 @@ const wall_scene_e: Resource = preload("res://scenes/lvl_0/part_wall_end.tscn")
 
 const TILE_SIZE: float = 1.0
 const CHUNK_SIZE: int = 64
-const GENERATION_THRESHOLD: float = 15.0
+const GENERATION_THRESHOLD: float = 30.0
 const REMOVAL_THRESHOLD: float = 200.0
 
 
@@ -25,6 +25,8 @@ var model_wall_t: Model = _load_model(wall_scene_t)
 var model_wall_i: Model = _load_model(wall_scene_i)
 var model_wall_l: Model = _load_model(wall_scene_l)
 var model_wall_e: Model = _load_model(wall_scene_e)
+
+var node_pool: NodePool = NodePool.new()
 
 class Model:
 	var graphic: Node3D
@@ -106,7 +108,7 @@ func _get_or_create_chunk(chunk_index: Vector2i) -> Chunk:
 
 func _instantiate_model(graphic_parent: Node3D, collision_parent: StaticBody3D, model: Model, tile_index: Vector2i, angle: float):
 	var tile_pos: Vector3 = Vector3(float(tile_index.x) * TILE_SIZE, 0.0, float(tile_index.y) * TILE_SIZE)
-	var graphic_copy = model.graphic.duplicate()
+	var graphic_copy = node_pool.get_auto_create(model.graphic)
 	graphic_copy.transform.origin = tile_pos
 	graphic_copy.rotate_y(angle)
 	graphic_parent.add_child(graphic_copy)
@@ -191,7 +193,7 @@ func _handle_static_collision_shapes() -> void:
 	var tile_index_of_player = Vector2i(int(player_pos.x), int(player_pos.y))
 	print("player tile index: " + str(tile_index_of_player))
 	
-	const COLLISION_RADIUS: int = 5
+	const COLLISION_RADIUS: int = 2
 
 	var x0 = tile_index_of_player.x - COLLISION_RADIUS
 	var x1 = tile_index_of_player.x + COLLISION_RADIUS
@@ -254,7 +256,7 @@ func _handle_world_generation() -> void:
 			var chunk_index: Vector2i = Vector2i(current_chunk_x + dx, current_chunk_y + dy)
 			if not chunks.has(chunk_index):
 				var dist: float = (_get_center_chunk_pos(chunk_index) - player_pos).length()
-				print("chunk: [" + str(chunk_index) + "] check distance: " + str(dist - CHUNK_SIZE/2.0) + ")")
+				# print("chunk: [" + str(chunk_index) + "] check distance: " + str(dist - CHUNK_SIZE/2.0) + ")")
 				if (dist - CHUNK_SIZE/2.0) < GENERATION_THRESHOLD:
 					_get_or_create_chunk(chunk_index)
 
