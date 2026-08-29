@@ -27,6 +27,7 @@ var model_wall_l: Model = _load_model(wall_scene_l)
 var model_wall_e: Model = _load_model(wall_scene_e)
 
 class Model:
+	var id: int
 	var graphic: Node3D
 	var collision: CollisionShape3D
 	
@@ -47,11 +48,11 @@ class PlacedTile:
 	# constant
 	var tile_index: Vector2i
 	var angle: float
-	var models: Dictionary # string, Model
+	var models: Dictionary # int(model_id), Model
 	
 	# mutable
-	var graphics: Dictionary # string, CollisionShape3D
-	var collision_shapes: Dictionary # string, CollisionShape3D
+	var graphics: Dictionary # int(model_id), CollisionShape3D
+	var collision_shapes: Dictionary # int(model_id), CollisionShape3D
 	
 	func _init() -> void:
 		pass;
@@ -114,7 +115,7 @@ func _instantiate_model(graphic_parent: Node3D, collision_parent: StaticBody3D, 
 		placed_tile = PlacedTile.new()
 		placed_tiles[tile_index] = placed_tile
 	
-	placed_tile.models[model.graphic.name] = model
+	placed_tile.models[model.id] = model
 	placed_tile.angle = angle
 	placed_tile.tile_index = tile_index
 
@@ -185,17 +186,21 @@ var _last_tiles_where_collision_is_needed: Dictionary # Vector2i, bool   ( bool 
 func _handle_static_collision_shapes() -> void:
 	var create = func(placed_tile: PlacedTile, chunk: Chunk):
 		for model: Model in placed_tile.models.values():
-			if (model.collision != null) && (! placed_tile.collision_shapes.has(model.collision.name)):
+			if (model.collision != null) && (! placed_tile.collision_shapes.has(model.id)):
+				print("Collision '" + str(model.id) + "' place!")
 				var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
 				var collision_shape = model.collision.duplicate()
 				collision_shape.transform.origin = tile_pos
 				collision_shape.rotate_y(placed_tile.angle)
 				chunk.static_body_3d.add_child(collision_shape)
-				placed_tile.collision_shapes[model.collision.name] = collision_shape
+				placed_tile.collision_shapes[model.id] = collision_shape
+				
 	var remove = func(placed_tile: PlacedTile):
-		for collision_shape in placed_tile.collision_shapes.values():
-			collision_shape.queue_free() # automatically removes it from the scene as well.
-		placed_tile.collision_shapes = {}
+		pass
+		#for collision_shape in placed_tile.collision_shapes.values():
+		#	collision_shape.queue_free() # automatically removes it from the scene as well.
+		#placed_tile.collision_shapes = {}
+		
 	_handle_tiles_in_radius(2, _last_tiles_where_collision_is_needed, create, remove)
 
 
@@ -203,18 +208,17 @@ var _last_tiles_where_graphics_is_needed: Dictionary # Vector2i, bool   ( bool n
 func _handle_tile_graphics() -> void:
 	var create = func(placed_tile: PlacedTile, chunk: Chunk):
 		for model: Model in placed_tile.models.values():
-			if ! placed_tile.graphics.has(model.graphic.name):
+			if ! placed_tile.graphics.has(model.id):
 				var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
 				var graphic = model.graphic.duplicate()
 				graphic.transform.origin = tile_pos
 				graphic.rotate_y(placed_tile.angle)
 				chunk.tiles.add_child(graphic)
-				placed_tile.graphics[model.graphic.name] = graphic
+				placed_tile.graphics[model.id] = graphic
 
 	var remove = func(placed_tile: PlacedTile):
 		for graphic: Node3D in placed_tile.graphics.values():
-			graphic.get_parent().remove_child(graphic)
-			graphic.queue_free()
+			graphic.queue_free() # gets remove from the parent automatically
 		placed_tile.graphics = {}
 	
 	_handle_tiles_in_radius(40, _last_tiles_where_graphics_is_needed, create, remove)
@@ -310,10 +314,13 @@ func _instantiate_and_remove_collision(graphic: Resource) -> Node3D:
 			child.queue_free()
 	return node
 
+var last_model_id: int = 0
 func _load_model(tile: Resource) -> Model:
+	last_model_id = last_model_id + 1
 	var retval = Model.new()
 	retval.graphic = _instantiate_and_remove_collision(tile)
 	retval.collision = _get_collision_shape(tile)
+	retval.id = last_model_id
 	return retval
 
 func _get_center_chunk_pos(chunk_index: Vector2i) -> Vector2:
