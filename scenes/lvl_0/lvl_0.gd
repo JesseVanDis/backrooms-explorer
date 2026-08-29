@@ -26,8 +26,6 @@ var model_wall_i: Model = _load_model(wall_scene_i)
 var model_wall_l: Model = _load_model(wall_scene_l)
 var model_wall_e: Model = _load_model(wall_scene_e)
 
-var node_pool: NodePool = NodePool.new()
-
 class Model:
 	var graphic: Node3D
 	var collision: CollisionShape3D
@@ -47,17 +45,19 @@ class Chunk:
 
 class PlacedTile:
 	# constant
-	var model: Model
+	var tile_index: Vector2i
 	var angle: float
+	var models: Dictionary # string, Model
 	
 	# mutable
-	var collision_shape: CollisionShape3D
+	var graphics: Dictionary # string, CollisionShape3D
+	var collision_shapes: Dictionary # string, CollisionShape3D
 	
 	func _init() -> void:
 		pass;
 	
 var chunks: Dictionary = {}        # Vector2i(chunk index) -> Chunk
-var placed_tiles: Dictionary = {}  # Vector2i(tile index)  -> CollisionTile
+var placed_tiles: Dictionary = {}  # Vector2i(tile index)  -> PlacedTile
 #var rendered_chunks: Dictionary = {} # Vector2i -> Node3D
 
 # Called when the node enters the scene tree for the first time.
@@ -107,20 +107,11 @@ func _get_or_create_chunk(chunk_index: Vector2i) -> Chunk:
 	return chunk
 
 func _instantiate_model(graphic_parent: Node3D, collision_parent: StaticBody3D, model: Model, tile_index: Vector2i, angle: float):
-	var tile_pos: Vector3 = Vector3(float(tile_index.x) * TILE_SIZE, 0.0, float(tile_index.y) * TILE_SIZE)
-	var graphic_copy = node_pool.get_auto_create(model.graphic)
-	graphic_copy.transform.origin = tile_pos
-	graphic_copy.rotate_y(angle)
-	graphic_parent.add_child(graphic_copy)
-	if(model.collision != null):
-		var placed_tile: PlacedTile = PlacedTile.new()
-		placed_tile.model = model
-		placed_tile.angle = angle
-		placed_tiles[tile_index] = placed_tile
-		#var collision_shape = model.collision.duplicate()
-		#collision_shape.transform.origin = tile_pos
-		#collision_shape.rotate_y(angle)
-		#collision_parent.add_child(collision_shape)
+	var placed_tile: PlacedTile = PlacedTile.new()
+	placed_tile.models[model.graphic.name] = model
+	placed_tile.angle = angle
+	placed_tile.tile_index = tile_index
+	placed_tiles[tile_index] = placed_tile
 
 func _add_tile(parent: Node3D, static_body: StaticBody3D, section: MapGenerator.Section, x: int, y: int) -> void:
 	var tile_type: MapGenerator.TileType = section.get_tile(x, y)
@@ -186,52 +177,82 @@ func _remove_chunk(chunk_index: Vector2i) -> void:
 	chunks.erase(chunk_index)
 
 var _last_tiles_where_collision_is_needed: Dictionary # Vector2i, bool   ( bool not used. treat as std::set )
-
 func _handle_static_collision_shapes() -> void:
+	var create = func(placed_tile: PlacedTile, chunk: Chunk):
+		for model: Model in placed_tile.models.values():
+			if (model.collision != null) && (! placed_tile.collision_shapes.has(model.collision.name)):
+				var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
+				var collision_shape = model.collision.duplicate()
+				collision_shape.transform.origin = tile_pos
+				collision_shape.rotate_y(placed_tile.angle)
+				chunk.static_body_3d.add_child(collision_shape)
+				placed_tile.collision_shapes[model.collision.name] = collision_shape
+
+	var remove = func(placed_tile: PlacedTile):
+		for collision_shape in placed_tile.collision_shapes.values():
+			collision_shape.queue_free() # automatically removes it from the scene as well.
+		placed_tile.collision_shapes = {}
+	
+	_handle_tiles_in_radius(2, _last_tiles_where_collision_is_needed, create, remove)
+
+
+var _last_tiles_where_graphics_is_needed: Dictionary # Vector2i, bool   ( bool not used. treat as std::set )
+func _handle_tile_graphics() -> void:
+	var create = func(placed_tile: PlacedTile, chunk: Chunk):
+		for model: Model in placed_tile.models.values():
+			if ! placed_tile.graphics.has(model.graphic.name):
+				var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
+				var graphic = model.graphic.duplicate()
+				graphic.transform.origin = tile_pos
+				graphic.rotate_y(placed_tile.angle)
+				chunk.tiles.add_child(graphic)
+				placed_tile.graphics[model.graphic.name] = graphic
+
+	var remove = func(placed_tile: PlacedTile):
+		for graphic: Node3D in placed_tile.graphics.values():
+			graphic.get_parent().remove_child(graphic)
+			graphic.queue_free()
+		placed_tile.graphics = {}
+	
+	_handle_tiles_in_radius(5, _last_tiles_where_graphics_is_needed, create, remove)
+
+func _handle_tiles_in_radius(radius: int, cache: Dictionary, create_cb: Callable, remove_cb: Callable) -> void:
 	var player_pos_3d: Vector3 = $Player/CharacterBody3D.transform.origin
 	var player_pos: Vector2 = Vector2(player_pos_3d.x, player_pos_3d.z)
 	var tile_index_of_player = Vector2i(int(player_pos.x), int(player_pos.y))
-	print("player tile index: " + str(tile_index_of_player))
+	#print("player tile index: " + str(tile_index_of_player))
 	
-	const COLLISION_RADIUS: int = 2
-
-	var x0 = tile_index_of_player.x - COLLISION_RADIUS
-	var x1 = tile_index_of_player.x + COLLISION_RADIUS
-	var y0 = tile_index_of_player.y - COLLISION_RADIUS
-	var y1 = tile_index_of_player.y + COLLISION_RADIUS
+	var x0 = tile_index_of_player.x - radius
+	var x1 = tile_index_of_player.x + radius
+	var y0 = tile_index_of_player.y - radius
+	var y1 = tile_index_of_player.y + radius
 	
-	var tiles_where_collision_is_needed: Array[Vector2i] = []
-	var tiles_where_collision_is_no_longer_needed = _last_tiles_where_collision_is_needed.duplicate()
+	var tiles_visible: Array[Vector2i] = []
+	var tiles_no_longer_visible = cache.duplicate()
 	
 	for y in range(y0, y1):
 		for x in range(x0, x1):
 			var tile_index = Vector2i(x, y)
-			tiles_where_collision_is_needed.append(tile_index)
-			tiles_where_collision_is_no_longer_needed.erase(tile_index)
+			tiles_visible.append(tile_index)
+			tiles_no_longer_visible.erase(tile_index)
 
 	# remove collision tile first
-	for tile_index: Vector2i in tiles_where_collision_is_no_longer_needed.keys():
+	for tile_index: Vector2i in tiles_no_longer_visible.keys():
 		if placed_tiles.has(tile_index):
 			var placed_tile: PlacedTile = placed_tiles[tile_index]
-			placed_tile.collision_shape.queue_free() # automatically removes it from the scene as well.
-			placed_tile.collision_shape = null
-			#print("collision [" + str(tile_index) + "] removed")
+			remove_cb.call(placed_tile)
 	
-	_last_tiles_where_collision_is_needed = {}
-	for tile_index: Vector2i in tiles_where_collision_is_needed:
-		_last_tiles_where_collision_is_needed[tile_index] = true
+	cache.clear()
+	for tile_index: Vector2i in tiles_visible:
+		cache[tile_index] = true
 		if placed_tiles.has(tile_index):
 			var placed_tile: PlacedTile = placed_tiles[tile_index]
 			var chunk_index = _get_chunk_index(tile_index)
-			if placed_tile.collision_shape == null && chunks.has(chunk_index):
+			if chunks.has(chunk_index):
 				var chunk: Chunk = chunks[chunk_index]
-				var tile_pos: Vector3 = Vector3(float(tile_index.x) * TILE_SIZE, 0.0, float(tile_index.y) * TILE_SIZE)
-				placed_tile.collision_shape = placed_tile.model.collision.duplicate()
-				placed_tile.collision_shape.transform.origin = tile_pos
-				placed_tile.collision_shape.rotate_y(placed_tile.angle)
-				chunk.static_body_3d.add_child(placed_tile.collision_shape)
-				#print("collision [" + str(tile_index) + "] added")
-
+				#var tile_pos: Vector3 = Vector3(float(tile_index.x) * TILE_SIZE, 0.0, float(tile_index.y) * TILE_SIZE)
+				create_cb.call(placed_tile, chunk)
+				
 
 func _handle_world_generation() -> void:
 	var player_pos_3d: Vector3 = $Player/CharacterBody3D.transform.origin
@@ -266,6 +287,7 @@ func _get_chunk_index(tile_index: Vector2i) -> Vector2i:
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
 	_handle_world_generation()
+	_handle_tile_graphics()
 	_handle_static_collision_shapes()
 
 func _get_collision_shape(resource: Resource) -> CollisionShape3D:
