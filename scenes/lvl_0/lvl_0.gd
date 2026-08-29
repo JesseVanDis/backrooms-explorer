@@ -191,7 +191,7 @@ func _handle_static_collision_shapes() -> void:
 	var tile_index_of_player = Vector2i(int(player_pos.x), int(player_pos.y))
 	print("player tile index: " + str(tile_index_of_player))
 	
-	const COLLISION_RADIUS: int = 2
+	const COLLISION_RADIUS: int = 5
 
 	var x0 = tile_index_of_player.x - COLLISION_RADIUS
 	var x1 = tile_index_of_player.x + COLLISION_RADIUS
@@ -208,13 +208,11 @@ func _handle_static_collision_shapes() -> void:
 			tiles_where_collision_is_no_longer_needed.erase(tile_index)
 
 	# remove collision tile first
-	#for tile_index: Vector2i in tiles_where_collision_is_no_longer_needed.keys():
-	#	var chunk_index = _get_chunk_index(tile_index)
-	#	if chunks.has(chunk_index) && placed_tiles.has(tile_index):
-	#		var placed_tile: PlacedTile = placed_tiles[tile_index]
-	#		var chunk: Chunk = chunks[chunk_index]
-	#		chunk.static_body_3d.remove_child(placed_tile.collision_shape)
-	#		get_tree().call_group("col_" + placed_tile.collision_shape.name, "queue_free") # not sure if this is needed.
+	for tile_index: Vector2i in tiles_where_collision_is_no_longer_needed.keys():
+		if placed_tiles.has(tile_index):
+			var placed_tile: PlacedTile = placed_tiles[tile_index]
+			placed_tile.collision_shape.queue_free() # automatically removes it from the scene as well.
+			placed_tile.collision_shape = null
 			#print("collision [" + str(tile_index) + "] removed")
 	
 	_last_tiles_where_collision_is_needed = {}
