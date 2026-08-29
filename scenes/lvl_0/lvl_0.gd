@@ -71,8 +71,8 @@ func _ready() -> void:
 	
 	$Player.transform.origin = Vector3(float(spawn_pos.x) * TILE_SIZE, 0.0, float(spawn_pos.y) * TILE_SIZE)
 
-func _place_wall(parent: Node3D, static_body: StaticBody3D, model: Model, tile_index: Vector2i, angle: float) -> void:
-	_instantiate_model(parent, static_body, model, tile_index, angle)
+func _place_wall(model: Model, tile_index: Vector2i, angle: float) -> void:
+	_instantiate_model(model, tile_index, angle)
 
 func _get_tile_at(x: int, y: int) -> MapGenerator.TileType:
 	var cp: Vector2i = Vector2i(int(floor(float(x) / CHUNK_SIZE)), int(floor(float(y) / CHUNK_SIZE)))
@@ -103,11 +103,11 @@ func _get_or_create_chunk(chunk_index: Vector2i) -> Chunk:
 	print(" - converting pixels to models...")
 	for y in range(chunk.section.y, chunk.section.y + chunk.section.h):
 		for x in range(chunk.section.x, chunk.section.x + chunk.section.w):
-			_add_tile(chunk.tiles, chunk.static_body_3d, chunk.section, x, y)
+			_add_tile(chunk.section, x, y)
 	print(" - done")
 	return chunk
 
-func _instantiate_model(graphic_parent: Node3D, collision_parent: StaticBody3D, model: Model, tile_index: Vector2i, angle: float):
+func _instantiate_model(model: Model, tile_index: Vector2i, angle: float):
 	var placed_tile: PlacedTile
 	if placed_tiles.has(tile_index):
 		placed_tile = placed_tiles[tile_index]
@@ -119,20 +119,20 @@ func _instantiate_model(graphic_parent: Node3D, collision_parent: StaticBody3D, 
 	placed_tile.angle = angle
 	placed_tile.tile_index = tile_index
 
-func _add_tile(parent: Node3D, static_body: StaticBody3D, section: MapGenerator.Section, x: int, y: int) -> void:
+func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 	var tile_type: MapGenerator.TileType = section.get_tile(x, y)
 	var tile_index: Vector2i = Vector2i(x, y)
 	
 	# ALWAYS add a floor and ceiling
-	_instantiate_model(parent, static_body, model_floor, tile_index, 0)
-	_instantiate_model(parent, static_body, model_ceiling, tile_index, 0)
+	_instantiate_model(model_floor, tile_index, 0)
+	_instantiate_model(model_ceiling, tile_index, 0)
 
 	match tile_type:
 		MapGenerator.TileType.EMPTY:
 			return
 			
 		MapGenerator.TileType.CEILING_LIGHT:
-			_instantiate_model(parent, static_body, model_ceiling_light, tile_index, 0)
+			_instantiate_model(model_ceiling_light, tile_index, 0)
 			
 		MapGenerator.TileType.WALL:
 			# Use _get_tile_at for seamless transitions between chunks
@@ -141,22 +141,22 @@ func _add_tile(parent: Node3D, static_body: StaticBody3D, section: MapGenerator.
 			var wall_e: bool = _get_tile_at(x + 1, y) == MapGenerator.TileType.WALL
 			var wall_w: bool = _get_tile_at(x - 1, y) == MapGenerator.TileType.WALL
 			
-			if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_x, tile_index, 0.0)
-			elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, model_wall_t, tile_index, 0.0)
-			elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_t, tile_index, PI)
-			elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, model_wall_i, tile_index, 0.0)
-			elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_t, tile_index, -PI/2)
-			elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, model_wall_l, tile_index, -PI/2)
-			elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_l, tile_index, PI)
-			elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, model_wall_e, tile_index, PI)
-			elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_t, tile_index, PI/2)
-			elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, model_wall_l, tile_index, 0.0)
-			elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_l, tile_index, PI/2)
-			elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, model_wall_e, tile_index, 0.0)
-			elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_i, tile_index, PI/2)
-			elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(parent, static_body, model_wall_e, tile_index, -PI/2)
-			elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(parent, static_body, model_wall_e, tile_index, PI/2)
-			elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall(parent, static_body, model_wall_x, tile_index, 0.0)
+			if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(model_wall_x, tile_index, 0.0)
+			elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(model_wall_t, tile_index, 0.0)
+			elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(model_wall_t, tile_index, PI)
+			elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(model_wall_i, tile_index, 0.0)
+			elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(model_wall_t, tile_index, -PI/2)
+			elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(model_wall_l, tile_index, -PI/2)
+			elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(model_wall_l, tile_index, PI)
+			elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall(model_wall_e, tile_index, PI)
+			elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(model_wall_t, tile_index, PI/2)
+			elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(model_wall_l, tile_index, 0.0)
+			elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(model_wall_l, tile_index, PI/2)
+			elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(model_wall_e, tile_index, 0.0)
+			elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(model_wall_i, tile_index, PI/2)
+			elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(model_wall_e, tile_index, -PI/2)
+			elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(model_wall_e, tile_index, PI/2)
+			elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall(model_wall_x, tile_index, 0.0)
 
 #
 func _find_spawn_point() -> Vector2i:
@@ -187,7 +187,7 @@ func _handle_static_collision_shapes() -> void:
 	var create = func(placed_tile: PlacedTile, chunk: Chunk):
 		for model: Model in placed_tile.models.values():
 			if (model.collision != null) && (! placed_tile.collision_shapes.has(model.id)):
-				print("Collision '" + str(model.id) + "' place!")
+				#print("Collision '" + str(model.id) + "' place!")
 				var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
 				var collision_shape = model.collision.duplicate()
 				collision_shape.transform.origin = tile_pos
@@ -196,10 +196,9 @@ func _handle_static_collision_shapes() -> void:
 				placed_tile.collision_shapes[model.id] = collision_shape
 				
 	var remove = func(placed_tile: PlacedTile):
-		pass
-		#for collision_shape in placed_tile.collision_shapes.values():
-		#	collision_shape.queue_free() # automatically removes it from the scene as well.
-		#placed_tile.collision_shapes = {}
+		for collision_shape in placed_tile.collision_shapes.values():
+			collision_shape.queue_free() # automatically removes it from the scene as well.
+		placed_tile.collision_shapes = {}
 		
 	_handle_tiles_in_radius(2, _last_tiles_where_collision_is_needed, create, remove)
 
@@ -289,7 +288,7 @@ func _handle_world_generation() -> void:
 					_get_or_create_chunk(chunk_index)
 
 func _get_chunk_index(tile_index: Vector2i) -> Vector2i:
-	return Vector2i(tile_index.x / CHUNK_SIZE, tile_index.y / CHUNK_SIZE)
+	return Vector2i(int(round(float(tile_index.x) / float(CHUNK_SIZE))), int(round(float(tile_index.y) / float(CHUNK_SIZE))))
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
