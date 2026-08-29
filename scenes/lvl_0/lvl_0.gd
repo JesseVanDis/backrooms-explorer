@@ -107,11 +107,16 @@ func _get_or_create_chunk(chunk_index: Vector2i) -> Chunk:
 	return chunk
 
 func _instantiate_model(graphic_parent: Node3D, collision_parent: StaticBody3D, model: Model, tile_index: Vector2i, angle: float):
-	var placed_tile: PlacedTile = PlacedTile.new()
+	var placed_tile: PlacedTile
+	if placed_tiles.has(tile_index):
+		placed_tile = placed_tiles[tile_index]
+	else:
+		placed_tile = PlacedTile.new()
+		placed_tiles[tile_index] = placed_tile
+	
 	placed_tile.models[model.graphic.name] = model
 	placed_tile.angle = angle
 	placed_tile.tile_index = tile_index
-	placed_tiles[tile_index] = placed_tile
 
 func _add_tile(parent: Node3D, static_body: StaticBody3D, section: MapGenerator.Section, x: int, y: int) -> void:
 	var tile_type: MapGenerator.TileType = section.get_tile(x, y)
@@ -187,12 +192,10 @@ func _handle_static_collision_shapes() -> void:
 				collision_shape.rotate_y(placed_tile.angle)
 				chunk.static_body_3d.add_child(collision_shape)
 				placed_tile.collision_shapes[model.collision.name] = collision_shape
-
 	var remove = func(placed_tile: PlacedTile):
 		for collision_shape in placed_tile.collision_shapes.values():
 			collision_shape.queue_free() # automatically removes it from the scene as well.
 		placed_tile.collision_shapes = {}
-	
 	_handle_tiles_in_radius(2, _last_tiles_where_collision_is_needed, create, remove)
 
 
@@ -214,7 +217,7 @@ func _handle_tile_graphics() -> void:
 			graphic.queue_free()
 		placed_tile.graphics = {}
 	
-	_handle_tiles_in_radius(5, _last_tiles_where_graphics_is_needed, create, remove)
+	_handle_tiles_in_radius(40, _last_tiles_where_graphics_is_needed, create, remove)
 
 func _handle_tiles_in_radius(radius: int, cache: Dictionary, create_cb: Callable, remove_cb: Callable) -> void:
 	var player_pos_3d: Vector3 = $Player/CharacterBody3D.transform.origin
