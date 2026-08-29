@@ -11,24 +11,26 @@ Since it will take so long to find the glitched wall ( can take days ) there nee
 
 ### Must
 
-| Subject                                   | progress (%) | Note |
-|-------------------------------------------|--------------|------|
-| **Mechanics**                             | -            |      |
-| - Different carpet walking sounds         | 0%           |      |
-| **Map generation**                        | -            |      |
-| - Infinite chunks                         | 5%           |      |
-| - Layout changes where you dont look      | 0%           |      |
-| - Glitched wall - exit to lvl_1           | 0%           |      |
-| - Sound: Background noise                 | 0%           |      |
-| **Map**                                   | -            |      |
-| - Biome: Arches                           | 0%           |      |
-| - Biome: Pillars                          | 0%           |      |
-| - Biome: Holes                            | 0%           |      |
-| - Biome: Blackout zones                   | 0%           |      |
-| - Biome: Extremely loud buzzing sound     | 0%           |      |
-| - Biome: Manila room                      | 0%           |      |
-| **Events**                                | -            |      |
-| - Sound of scratching behind wall         | 0%           |      |
+| Subject                             | progress (%) | Note |
+|-------------------------------------|--------------|------|
+| **Mechanics**                       | -            |      |
+| - Different carpet walking sounds   | 0%           |      |
+| - Inner voice                       | 0%           |      |
+| - occasional blinking ceiling lights | 0%           |      |
+| **Map generation**                  | -            |      |
+| - Infinite chunks                   | 80%          |      |
+| - Layout changes where you dont look | 0%           |      |
+| - Glitched wall - exit to lvl_1     | 0%           |      |
+| - Sound: Background noise           | 0%           |      |
+| **Map**                             | -            |      |
+| - Biome: Arches                     | 0%           |      |
+| - Biome: Pillars                    | 0%           |      |
+| - Biome: Holes                      | 0%           |      |
+| - Biome: Blackout zones             | 0%           |      |
+| - Biome: Extremely loud buzzing sound | 0%           |      |
+| - Biome: Manila room                | 0%           |      |
+| **Events**                          | -            |      |
+| - Sound of scratching behind wall   | 0%           |      |
 
 ### Should 
 | Subject                          | progress (%) | Note |

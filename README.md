@@ -69,7 +69,7 @@ It will be sold on Steam for a yet to be discussed price to support the project.
 | - Jumping                  | 100%         |
 | - Moving in between levels | 0            |
 | **Scenes**                 | -            |
-| - lvl 0                    | 5%           |
+| - lvl 0                    | 10%          |
 | - lvl 1                    | 0            |
 
 ### V0.0.2
