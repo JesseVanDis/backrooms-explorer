@@ -65,7 +65,7 @@ var placed_tiles: Dictionary = {}  # Vector2i(tile index)  -> PlacedTile
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	# Initial generation
-	_get_or_create_chunk(Vector2i(0, 0))
+	_get_or_create_chunk(Vector2i(0, 0), false)
 	
 	# Find a spawn point (white pixel)
 	var spawn_pos: Vector2i = _find_spawn_point()
@@ -79,27 +79,75 @@ func _process(_delta: float) -> void:
 	_handle_static_collision_shapes()
 
 
-
 func _place_wall(model: Model, tile_index: Vector2i, angle: float) -> void:
 	_instantiate_model(model, tile_index, angle)
 
 func _get_pixel_at(x: int, y: int) -> MapGenerator.Pixel:
-	var cp: Vector2i = Vector2i(int(floor(float(x) / CHUNK_SIZE)), int(floor(float(y) / CHUNK_SIZE)))
-	if ! chunks.has(cp):
+	var chunk_index: Vector2i = Vector2i(int(floor(float(x) / CHUNK_SIZE)), int(floor(float(y) / CHUNK_SIZE)))
+	if ! chunks.has(chunk_index):
 		return MapGenerator.Pixel.INVALID
-	var section: MapGenerator.Section = _get_or_create_chunk(cp).section
+	var chunk: Chunk = _get_or_create_chunk(chunk_index, false)
+	var section: MapGenerator.Section = chunk.section
 	return section.get_pixel(x, y)
 
-func _get_or_create_chunk(chunk_index: Vector2i) -> Chunk:
-	if chunks.has(chunk_index):
-		return chunks[chunk_index]
+var chunks_in_progress: Dictionary = {}        # Vector2i(chunk index) -> bool ( bool ignored )
+var chunks_in_progress_mutex := Mutex.new()
+var chunks_in_results: Dictionary = {} # Vector2i(chunk index) -> MapGenerator.Section
+var chunks_in_results_mutex := Mutex.new()
+
+func _generate_chunk(chunk_index: Vector2i) -> MapGenerator.Section:
 	print("Creating chunk: " + str(chunk_index))
 	var x0: int = chunk_index.x * CHUNK_SIZE
 	var y0: int = chunk_index.y * CHUNK_SIZE
-	var generator: MapGenerator = MapGenerator.new()
-	var chunk: Chunk = Chunk.new()
+	var generator := MapGenerator.new()
 	print(" - generating bitmap...")
-	chunk.section = generator.generate_map(x0, y0, x0 + CHUNK_SIZE, y0 + CHUNK_SIZE)
+	var section: MapGenerator.Section = generator.generate_map(x0, y0, x0 + CHUNK_SIZE, y0 + CHUNK_SIZE)
+	return section
+	
+func _generate_chunk_thread(chunk_index: Vector2i) -> void:
+	var section: MapGenerator.Section = _generate_chunk(chunk_index)
+	chunks_in_results_mutex.lock()
+	chunks_in_results[chunk_index] = section
+	chunks_in_results_mutex.unlock()
+
+var chunk_threads: Dictionary = {}
+func _start_chunk_generation(chunk_index: Vector2i) -> void:
+	var thread := Thread.new()
+	chunk_threads[chunk_index] = thread
+	thread.start(_generate_chunk_thread.bind(chunk_index))
+	
+func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
+	if chunks.has(chunk_index):
+		return chunks[chunk_index]
+	var x0: int = chunk_index.x * CHUNK_SIZE
+	var y0: int = chunk_index.y * CHUNK_SIZE
+	
+	var result: MapGenerator.Section = null
+	if async:
+		chunks_in_progress_mutex.lock()
+		var already_generating := chunks_in_progress.has(chunk_index)
+		if !already_generating:
+			chunks_in_progress[chunk_index] = true
+			chunks_in_progress_mutex.unlock()
+			_start_chunk_generation(chunk_index)
+		else:
+			chunks_in_progress_mutex.unlock()
+		
+		if already_generating:
+			# check for result
+			chunks_in_results_mutex.lock()
+			if chunks_in_results.has(chunk_index):
+				result = chunks_in_results[chunk_index]
+				chunks_in_results.erase(chunk_index)
+			chunks_in_results_mutex.unlock()
+		
+		if result == null:
+			return null
+	else:
+		result = _generate_chunk(chunk_index)
+	
+	var chunk: Chunk = Chunk.new()
+	chunk.section = result
 	chunk.chunk_index = chunk_index
 	chunk.global_pos = Vector2(x0, y0)
 	chunk.static_body_3d = StaticBody3D.new()
@@ -109,11 +157,11 @@ func _get_or_create_chunk(chunk_index: Vector2i) -> Chunk:
 	chunk.static_body_3d.name = "Chunk_static_body_%d_%d" % [chunk_index.x, chunk_index.y]
 	chunk.tiles.name = "Chunk_%d_%d" % [chunk_index.x, chunk_index.y]
 	chunks[chunk_index] = chunk
-	print(" - converting pixels to models...")
+	print("converting pixels to models for chunk[" + str(chunk_index) + "]...")
 	for y in range(chunk.section.y, chunk.section.y + chunk.section.h):
 		for x in range(chunk.section.x, chunk.section.x + chunk.section.w):
 			_add_tile(chunk.section, x, y)
-	print(" - done")
+	print("converting pixels to models for chunk[" + str(chunk_index) + "]... done")
 	return chunk
 
 func _instantiate_model(model: Model, tile_index: Vector2i, angle: float):
@@ -144,7 +192,7 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 			_instantiate_model(model_ceiling_light, tile_index, 0)
 			
 		MapGenerator.Pixel.TILE_WALL:
-			# Use _get_tile_at for seamless transitions between chunks
+			# Use _get_pixel_at for seamless transitions between chunks
 			var wall_n: bool = (_get_pixel_at(x, y + 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
 			var wall_s: bool = (_get_pixel_at(x, y - 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
 			var wall_e: bool = (_get_pixel_at(x + 1, y) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
@@ -169,7 +217,7 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 
 #
 func _find_spawn_point() -> Vector2i:
-	var first_chunk: Chunk = _get_or_create_chunk(Vector2i(0, 0))
+	var first_chunk: Chunk = _get_or_create_chunk(Vector2i(0, 0), false)
 	for y in range(first_chunk.section.y, first_chunk.section.y + first_chunk.section.h):
 		for x in range(first_chunk.section.x, first_chunk.section.x + first_chunk.section.w):
 			if ((first_chunk.section.get_pixel(x, y) & MapGenerator.TILE_MASK) != MapGenerator.Pixel.TILE_WALL):
@@ -297,7 +345,7 @@ func _handle_world_generation() -> void:
 				var dist: float = (chunk_center - player_pos).length()
 				# print("chunk: [" + str(chunk_index) + "]. center: [" + str(chunk_center) + "] check distance: " + str(dist - CHUNK_SIZE/2.0) + ")")
 				if (dist - CHUNK_SIZE/2.0) < GENERATION_THRESHOLD:
-					_get_or_create_chunk(chunk_index)
+					_get_or_create_chunk(chunk_index, true)
 
 func _get_chunk_index(tile_index: Vector2i) -> Vector2i:
 	return Vector2i(int(round(float(tile_index.x) / float(CHUNK_SIZE))), int(round(float(tile_index.y) / float(CHUNK_SIZE))))
