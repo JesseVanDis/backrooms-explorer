@@ -14,12 +14,11 @@ enum Pixel {
 const BIOME_MASK = (1 << 16) - 1
 const TILE_MASK  = ((1 << 16) - 1) << 16
 
-func _ceiling_light(ctx: Context) -> bool:
+func _ceiling_light(ctx: Context, misplacement_chance: float) -> bool:
 	#if(posmod(ctx.x, 5) == 1 && posmod(ctx.y, 5) == 1):
 	#	return true
 	
 	const grid_size = 5
-	const offset_chance = 0.7
 	@warning_ignore("integer_division")
 	var grid_x = ctx.x / grid_size as int
 	@warning_ignore("integer_division")
@@ -29,12 +28,12 @@ func _ceiling_light(ctx: Context) -> bool:
 	@warning_ignore("integer_division")
 	var light_pos_y = (abs(grid_y) * grid_size) + grid_size / 2
 	var random = ctx.random_with_seed(hash(Vector2i(grid_x, grid_y)))
-	if random < offset_chance:
-		if random < 0.25 * offset_chance:
+	if random < misplacement_chance:
+		if random < 0.25 * misplacement_chance:
 			light_pos_x = light_pos_x+1
-		elif random < 0.5 * offset_chance:
+		elif random < 0.5 * misplacement_chance:
 			light_pos_y = light_pos_y+1
-		elif random < 0.75 * offset_chance:
+		elif random < 0.75 * misplacement_chance:
 			light_pos_x = light_pos_x-1
 		else:
 			light_pos_y = light_pos_y-1
@@ -80,10 +79,16 @@ func _is_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
 
 
 const NUM_PASSES_IN_GEN_BIOMES = 1 # change this everytime you change the amount of cases in 'match pass_index' below
-func _gen_biomes(pass_index: int, _ctx: Context) -> Pixel:
+func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:	
 	match pass_index:
 		0:
-			return Pixel.BIOME_DEFAULT
+			var grid_low_x = ctx.x / 40
+			var grid_low_y = ctx.y / 40
+			var random_low = ctx.random_with_seed(hash(Vector2i(grid_low_x, grid_low_y)))
+			if random_low < 0.2:
+				return Pixel.BIOME_PILLARS
+			else:
+				return Pixel.BIOME_DEFAULT
 	return Pixel.INVALID
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
@@ -113,7 +118,7 @@ func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
 		0:
 			if ctx.random() > 0.9:
 				return pp.biome_c | Pixel.TILE_WALL
-			if _ceiling_light(ctx):
+			if _ceiling_light(ctx, 0.7):
 				return pp.biome_c | Pixel.TILE_CEILING_LIGHT
 			return pp.biome_c | Pixel.TILE_EMPTY
 	
@@ -141,8 +146,10 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 	
 	match pass_index:
 		0:
+			if _ceiling_light(ctx, 0.1):
+				return pp.biome_c | Pixel.TILE_CEILING_LIGHT
 			return pp.biome_c | Pixel.TILE_EMPTY
-
+			
 	return Pixel.INVALID
 
 class Section:

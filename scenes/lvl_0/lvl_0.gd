@@ -2,7 +2,7 @@ extends Node3D
 
 const TILE_SIZE: float = 1.0
 const CHUNK_SIZE: int = 64
-const GENERATION_THRESHOLD: float = 30.0
+const GENERATION_THRESHOLD: float = CHUNK_SIZE
 const REMOVAL_THRESHOLD: float = 200.0
 const VIEW_DISTANCE: int = 40
 
@@ -274,7 +274,7 @@ func _handle_tiles_in_radius(radius: int, cache: Dictionary, create_cb: Callable
 func _handle_world_generation() -> void:
 	var player_pos_3d: Vector3 = $Player/CharacterBody3D.transform.origin
 	var player_pos: Vector2 = Vector2(player_pos_3d.x, player_pos_3d.z)
-	#print("Player pos: " + str(player_pos))
+	# print("Player pos: " + str(player_pos))
 	
 	# Removal logic
 	var chunks_to_remove: Array[Vector2i] = []
@@ -293,8 +293,9 @@ func _handle_world_generation() -> void:
 		for dy in range(-1, 2):
 			var chunk_index: Vector2i = Vector2i(current_chunk_x + dx, current_chunk_y + dy)
 			if not chunks.has(chunk_index):
-				var dist: float = (_get_center_chunk_pos(chunk_index) - player_pos).length()
-				# print("chunk: [" + str(chunk_index) + "] check distance: " + str(dist - CHUNK_SIZE/2.0) + ")")
+				var chunk_center = _get_center_chunk_pos(chunk_index)
+				var dist: float = (chunk_center - player_pos).length()
+				# print("chunk: [" + str(chunk_index) + "]. center: [" + str(chunk_center) + "] check distance: " + str(dist - CHUNK_SIZE/2.0) + ")")
 				if (dist - CHUNK_SIZE/2.0) < GENERATION_THRESHOLD:
 					_get_or_create_chunk(chunk_index)
 
