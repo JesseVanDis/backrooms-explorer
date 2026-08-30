@@ -142,8 +142,13 @@ class Section:
 	func get_tile_clamped(global_x: int, global_y: int) -> TileType:
 		return data[clamp(global_x - x, 0, w-1) + clamp(global_y - y, 0, h-1) * w];
 		
-	func _init() -> void:
-		pass;
+	func _init(x0: int, y0: int, x1: int, y1: int) -> void:
+		var size: int = (x1-x0) * (y1-y0)
+		x = x0;
+		y = y0;
+		w = x1-x0;
+		h = y1-y0;
+		data.resize(size);
 
 class PreviousPass:
 	var data: Array[TileType]
@@ -230,37 +235,34 @@ func generate_map_image(width: int, height: int) -> Image:
 	
 
 func generate_map(x0: int, y0: int, x1: int, y1: int) -> Section:
-	var retval: Section = Section.new();
-	var size: int = (x1-x0) * (y1-y0)
-	retval.x = x0;
-	retval.y = y0;
-	retval.w = x1-x0;
-	retval.h = y1-y0;
-	retval.data.resize(size);
+	var retval: Section = Section.new(x0, y0, x1, y1);
+	_run_mapshader(retval, _mapshader_default)
+	return retval
+
+func _run_mapshader(section: Section, shader: Callable) -> void:
+	var size: int = section.w * section.h
 
 	var pass_a: Array[TileType] = []
 	var pass_b: Array[TileType] = []
 	pass_a.resize(size)
 	
-	_run_pass(x0, y0, x1, y1, pass_b, 0, pass_a);
+	_run_pass(section.x, section.y, section.x + section.w, section.y + section.h, pass_b, 0, pass_a, shader);
 	print("Pass: " + str(0))
-	retval.data = pass_b
+	section.data = pass_b
 	
 	var was_valid = true
 	var pass_index = 0
 	while was_valid:
 		if pass_index & 1 == 0:
-			was_valid = _run_pass(x0, y0, x1, y1, pass_b, pass_index, pass_a);
-			retval.data = pass_b
+			was_valid = _run_pass(section.x, section.y, section.x + section.w, section.y + section.h, pass_b, pass_index, pass_a, shader);
+			section.data = pass_b
 		else:
-			was_valid = _run_pass(x0, y0, x1, y1, pass_a, pass_index, pass_b);
-			retval.data = pass_a
+			was_valid = _run_pass(section.x, section.y, section.x + section.w, section.y + section.h, pass_a, pass_index, pass_b, shader);
+			section.data = pass_a
 		print("Pass: " + str(pass_index))
 		pass_index = pass_index+1
-	
-	return retval;
 
-func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[TileType], pass_index: int, previous_pass_array: Array[TileType]) -> bool:
+func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[TileType], pass_index: int, previous_pass_array: Array[TileType], shader: Callable) -> bool:
 	var width: int = x1 - x0;
 	var context: Context = Context.new()
 	context.w = x1-x0;
@@ -282,7 +284,7 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[TileType], pass
 			context.x_flt = float(x);
 			context.y_flt = float(y);
 			context.previous_pass.update(context)
-			var pixel = _mapshader_default(pass_index, context);
+			var pixel = shader.call(pass_index, context);
 			if pixel == TileType.COUNT:
 				return false
 			target[lx + ly * width] = pixel;
