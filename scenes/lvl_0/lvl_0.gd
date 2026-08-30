@@ -4,6 +4,7 @@ const TILE_SIZE: float = 1.0
 const CHUNK_SIZE: int = 64
 const GENERATION_THRESHOLD: float = 30.0
 const REMOVAL_THRESHOLD: float = 200.0
+const VIEW_DISTANCE: int = 40
 
 const floor_scene: Resource = preload("res://scenes/lvl_0/part_1x1_floor.tscn")
 const ceiling_scene: Resource = preload("res://scenes/lvl_0/part_1x1_ceiling.tscn")
@@ -24,7 +25,6 @@ var model_wall_l: Model = _load_model(wall_scene_l)
 var model_wall_e: Model = _load_model(wall_scene_e)
 
 @onready var map_node: Node3D = $Map
-@onready var voxel_gi: VoxelGI = $VoxelGI
 # @onready var lightmap_gi: LightmapGI = $LightmapGI
 
 class Model:
@@ -77,10 +77,6 @@ func _process(_delta: float) -> void:
 	_handle_world_generation()
 	_handle_tile_graphics()
 	_handle_static_collision_shapes()
-	if Input.is_key_pressed(KEY_B):
-		print("Baking...")
-		voxel_gi.bake()
-		print("Baking... done")
 
 
 
@@ -233,7 +229,7 @@ func _handle_tile_graphics() -> void:
 			graphic.queue_free() # gets remove from the parent automatically
 		placed_tile.graphics = {}
 	
-	_handle_tiles_in_radius(40, _last_tiles_where_graphics_is_needed, create, remove)
+	_handle_tiles_in_radius(VIEW_DISTANCE, _last_tiles_where_graphics_is_needed, create, remove)
 
 func _handle_tiles_in_radius(radius: int, cache: Dictionary, create_cb: Callable, remove_cb: Callable) -> void:
 	var player_pos_3d: Vector3 = $Player/CharacterBody3D.transform.origin
@@ -251,9 +247,11 @@ func _handle_tiles_in_radius(radius: int, cache: Dictionary, create_cb: Callable
 	
 	for y in range(y0, y1):
 		for x in range(x0, x1):
-			var tile_index = Vector2i(x, y)
-			tiles_visible.append(tile_index)
-			tiles_no_longer_visible.erase(tile_index)
+			var dist = (Vector2(x, y) - player_pos).length()
+			if int(round(dist)) < radius:
+				var tile_index = Vector2i(x, y)
+				tiles_visible.append(tile_index)
+				tiles_no_longer_visible.erase(tile_index)
 
 	# remove collision tile first
 	for tile_index: Vector2i in tiles_no_longer_visible.keys():

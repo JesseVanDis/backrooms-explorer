@@ -2,7 +2,11 @@
 
 [ext_resource type="Script" uid="uid://rbo2fgyyfpte" path="res://scenes/lvl_0/lvl_0.gd" id="1_j6thp"]
 [ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://generic_assets/scenes/player.tscn" id="1_rj2d8"]
+[ext_resource type="PackedScene" uid="uid://dbac8i5a3v6kp" path="res://scenes/lvl_0/part_1x1_floor.tscn" id="3_rgdx1"]
 [ext_resource type="AudioStream" uid="uid://dmf0wv5g66kt4" path="res://scenes/lvl_0/fluorescent-light-buzz.mp3" id="3_smeuj"]
+[ext_resource type="PackedScene" uid="uid://byjxtaij4gmeo" path="res://scenes/lvl_0/part_wall_i.tscn" id="4_qmsdi"]
+[ext_resource type="PackedScene" uid="uid://8y8epqhwryyd" path="res://scenes/lvl_0/part_1x1_ceiling_light.tscn" id="5_63adb"]
+[ext_resource type="PackedScene" uid="uid://dausxfxho355c" path="res://scenes/lvl_0/part_1x1_ceiling.tscn" id="6_mkhuw"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -13,12 +17,13 @@ sky_material = SubResource("ProceduralSkyMaterial_rj2d8")
 
 [sub_resource type="Environment" id="Environment_j6thp"]
 background_mode = 1
-background_color = Color(0.019101407, 0.009578037, 0, 1)
 sky = SubResource("Sky_smeuj")
 sdfgi_use_occlusion = true
 sdfgi_read_sky_light = false
+sdfgi_bounce_feedback = 0.1
 sdfgi_min_cell_size = 0.15
 sdfgi_y_scale = 0
+sdfgi_energy = 0.3
 glow_enabled = true
 
 [node name="lvl_0" type="Node3D" unique_id=1577277307]
@@ -32,15 +37,105 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.411394, 0, 1.8429631)
 
 [node name="Map" type="Node3D" parent="." unique_id=1437659456]
 
+[node name="part_1x1_floor" parent="Map" unique_id=84726402 instance=ExtResource("3_rgdx1")]
+visible = false
+
+[node name="part_1x1_floor" parent="Map/part_1x1_floor" unique_id=1597753756 instance=ExtResource("3_rgdx1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor" unique_id=2008071172 instance=ExtResource("3_rgdx1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor/part_1x1_floor" unique_id=356917853 instance=ExtResource("3_rgdx1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_floor2" parent="Map/part_1x1_floor" unique_id=59654972 instance=ExtResource("3_rgdx1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+
+[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor2" unique_id=1068064970 instance=ExtResource("3_rgdx1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor2/part_1x1_floor" unique_id=1056219974 instance=ExtResource("3_rgdx1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor2/part_1x1_floor/part_1x1_floor" unique_id=1389480644 instance=ExtResource("3_rgdx1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_floor2" parent="Map/part_1x1_floor/part_1x1_floor2" unique_id=169156543 instance=ExtResource("3_rgdx1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+
+[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor2/part_1x1_floor2" unique_id=559412 instance=ExtResource("3_rgdx1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor2/part_1x1_floor2/part_1x1_floor" unique_id=690280359 instance=ExtResource("3_rgdx1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor2/part_1x1_floor2/part_1x1_floor/part_1x1_floor" unique_id=1435809179 instance=ExtResource("3_rgdx1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_wall_i" parent="Map/part_1x1_floor" unique_id=1818878546 instance=ExtResource("4_qmsdi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6674335, 0, -1.1374478)
+
+[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i" unique_id=1731783001 instance=ExtResource("4_qmsdi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1)
+
+[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i/part_wall_i" unique_id=1034418650 instance=ExtResource("4_qmsdi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+
+[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i/part_wall_i/part_wall_i" unique_id=445920594 instance=ExtResource("4_qmsdi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+
+[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i/part_wall_i/part_wall_i/part_wall_i" unique_id=1158670236 instance=ExtResource("4_qmsdi")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.427037, 0, -0.4440062)
+
+[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i" unique_id=38835486 instance=ExtResource("4_qmsdi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0003883, 0, 0.045187287)
+
+[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i" unique_id=954800723 instance=ExtResource("4_qmsdi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0338993, 0, 0.045187145)
+
+[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i" unique_id=1191553416 instance=ExtResource("4_qmsdi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.007979333, 0, 1.0171132)
+
+[node name="part_1x1_ceiling_light" parent="Map/part_1x1_floor" unique_id=1814395978 instance=ExtResource("5_63adb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9838673, 0, -1)
+
+[node name="part_1x1_ceiling" parent="Map/part_1x1_floor" unique_id=1743678236 instance=ExtResource("6_mkhuw")]
+
+[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling" unique_id=634348888 instance=ExtResource("6_mkhuw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling" unique_id=465314512 instance=ExtResource("6_mkhuw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling/part_1x1_ceiling" unique_id=2107255722 instance=ExtResource("6_mkhuw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_ceiling2" parent="Map/part_1x1_floor/part_1x1_ceiling" unique_id=230901152 instance=ExtResource("6_mkhuw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+
+[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2" unique_id=4978118 instance=ExtResource("6_mkhuw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling" unique_id=1043924139 instance=ExtResource("6_mkhuw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling/part_1x1_ceiling" unique_id=831838487 instance=ExtResource("6_mkhuw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_ceiling2" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2" unique_id=776820242 instance=ExtResource("6_mkhuw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+
+[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling2" unique_id=1498575585 instance=ExtResource("6_mkhuw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling2/part_1x1_ceiling" unique_id=477053115 instance=ExtResource("6_mkhuw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling2/part_1x1_ceiling/part_1x1_ceiling" unique_id=945403473 instance=ExtResource("6_mkhuw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1023188745]
 stream = ExtResource("3_smeuj")
 autoplay = true
 parameters/looping = false
-
-[node name="VoxelGI" type="VoxelGI" parent="." unique_id=475497046]
-process_thread_group = 2
-process_thread_group_order = 0
-process_thread_messages = 0
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8641243, 0)
-subdiv = 0
-size = Vector3(20, 5.7950516, 20)
