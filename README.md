@@ -47,8 +47,11 @@ It depends on the following:
 - **Engine**: [Godot Engine](https://godotengine.org/)
 - **Language**: GDScript
 
-Server mode is starting with the argument `--server`
-When playing in offline mode, the server is started automatically, but nobody but the player can join.
+
+ - Server mode is starting with the argument `--server`
+   - When playing in offline mode, the server is started automatically, but nobody but the player can join.
+
+ - If you use 3rd party assets, please make sure they are licensed for commercial use. And note the author of the assets in 'CREDITS.md'
 
 For more please see the [TECHNICAL.md](TECHNICAL.md)
 
@@ -56,7 +59,10 @@ For more please see the [TECHNICAL.md](TECHNICAL.md)
 Please choose any editor to your liking. Prefer free software, as other contributors can then also open the save file and edit it if needed. The saves go into the 'assets' folder
 
 ## Financial
-It will be sold on Steam for a yet to be discussed price to support the project. The earnings will be spread over the contributors, depending on an estimate on their effort or based on their hours if they provide any. please make sure your tools have the correct licensing. Some free tools require a license if you use them for profit.
+ - It will be sold on Steam for a yet to be discussed price to support the project. 
+ - The earnings will be spread over the contributors, depending on an estimate on their effort or based on their hours if they provide any. 
+   - Authors of third-party assets that are freely available for commercial use are not entitled to receive revenue from the use of those assets in this game.  
+ - please make sure your tools have the correct licensing. Some free tools require a license if you use them for profit.
 
 
 ## Roadmap
@@ -69,7 +75,7 @@ It will be sold on Steam for a yet to be discussed price to support the project.
 | - Jumping                  | 100%         |
 | - Moving in between levels | 0            |
 | **Scenes**                 | -            |
-| - lvl 0                    | 5%           |
+| - lvl 0                    | 10%          |
 | - lvl 1                    | 0            |
 
 ### V0.0.2

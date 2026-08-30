@@ -8,7 +8,7 @@ size = Vector3(1, 2.3069577, 0.001)
 
 [node name="part_1x1_wall" unique_id=1626756096 instance=ExtResource("1_crq7y")]
 
-[node name="Cube_001" parent="." index="0" unique_id=1018682785]
+[node name="Cube_001" parent="." index="0" unique_id=652900937]
 surface_material_override/0 = ExtResource("2_7v1ol")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="Cube_001" index="0" unique_id=1670318655]

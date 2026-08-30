@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://rbo2fgyyfpte" path="res://scenes/lvl_0/lvl_0.gd" id="1_j6thp"]
 [ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://generic_assets/scenes/player.tscn" id="1_rj2d8"]
+[ext_resource type="AudioStream" uid="uid://dmf0wv5g66kt4" path="res://scenes/lvl_0/fluorescent-light-buzz.mp3" id="3_smeuj"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -12,10 +13,11 @@ sky_material = SubResource("ProceduralSkyMaterial_rj2d8")
 
 [sub_resource type="Environment" id="Environment_j6thp"]
 background_mode = 1
-background_color = Color(0.007847893, 0.0056208917, 1.1280645e-09, 1)
+background_color = Color(0.019101407, 0.009578037, 0, 1)
 sky = SubResource("Sky_smeuj")
-sdfgi_enabled = true
+sdfgi_use_occlusion = true
 sdfgi_read_sky_light = false
+sdfgi_min_cell_size = 0.15
 sdfgi_y_scale = 0
 glow_enabled = true
 
@@ -29,3 +31,16 @@ environment = SubResource("Environment_j6thp")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.411394, 0, 1.8429631)
 
 [node name="Map" type="Node3D" parent="." unique_id=1437659456]
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1023188745]
+stream = ExtResource("3_smeuj")
+autoplay = true
+parameters/looping = false
+
+[node name="VoxelGI" type="VoxelGI" parent="." unique_id=475497046]
+process_thread_group = 2
+process_thread_group_order = 0
+process_thread_messages = 0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8641243, 0)
+subdiv = 0
+size = Vector3(20, 5.7950516, 20)

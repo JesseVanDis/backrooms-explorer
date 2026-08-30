@@ -28,4 +28,5 @@ godot --path . --export-release "Windows Desktop" ./build/debug/windows/backgroo
 - do **NOT** change any third party assets / libraries.
 - Always ask for permission when you change something in any .md file.
 - When changing the parsing tools, only invoke 'parse_assets.sh' to verify the changes.
+- Do not abbreviate function and variable names, with the exception of: `dt`
 
