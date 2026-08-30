@@ -6,4 +6,5 @@
 [node name="part_1x1_ceiling" unique_id=1743678236 instance=ExtResource("1_upv8s")]
 
 [node name="Cube_002" parent="." index="0" unique_id=607844797]
+gi_mode = 2
 surface_material_override/0 = ExtResource("2_dn215")

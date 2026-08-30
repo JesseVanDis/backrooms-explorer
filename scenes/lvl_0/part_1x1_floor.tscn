@@ -12,5 +12,5 @@ size = Vector3(1, 0.001, 1)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5e-06, 0)
 shape = SubResource("BoxShape3D_l1r05")
 
-[node name="Cube" parent="." index="1" unique_id=1732452801]
+[node name="Cube" parent="." index="1" unique_id=113969816]
 surface_material_override/0 = ExtResource("2_l1r05")

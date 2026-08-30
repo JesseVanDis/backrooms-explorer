@@ -8,7 +8,7 @@ size = Vector3(0.2000001, 2.3069577, 1)
 
 [node name="part_wall_i" unique_id=1818878546 instance=ExtResource("1_8nkiq")]
 
-[node name="Cube_001" parent="." index="0" unique_id=914408238]
+[node name="Cube_001" parent="." index="0" unique_id=1152183177]
 surface_material_override/0 = ExtResource("2_e2n6o")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." index="1" unique_id=1955125950]

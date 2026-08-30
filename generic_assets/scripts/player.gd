@@ -1,7 +1,7 @@
 extends CharacterBody3D
 
 
-const SPEED: float = 5.0
+const SPEED: float = 3.0
 const JUMP_VELOCITY: float = 4.5
 
 @onready var camera_node : Node3D = $Neck/Camera3D

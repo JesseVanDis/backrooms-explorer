@@ -1,6 +1,9 @@
 extends Node3D
 
-@onready var map_node: Node3D = $Map
+const TILE_SIZE: float = 1.0
+const CHUNK_SIZE: int = 64
+const GENERATION_THRESHOLD: float = 30.0
+const REMOVAL_THRESHOLD: float = 200.0
 
 const floor_scene: Resource = preload("res://scenes/lvl_0/part_1x1_floor.tscn")
 const ceiling_scene: Resource = preload("res://scenes/lvl_0/part_1x1_ceiling.tscn")
@@ -11,12 +14,6 @@ const wall_scene_i: Resource = preload("res://scenes/lvl_0/part_wall_i.tscn")
 const wall_scene_l: Resource = preload("res://scenes/lvl_0/part_wall_l.tscn")
 const wall_scene_e: Resource = preload("res://scenes/lvl_0/part_wall_end.tscn")
 
-const TILE_SIZE: float = 1.0
-const CHUNK_SIZE: int = 64
-const GENERATION_THRESHOLD: float = 30.0
-const REMOVAL_THRESHOLD: float = 200.0
-
-
 var model_floor: Model = _load_model(floor_scene)
 var model_ceiling: Model = _load_model(ceiling_scene)
 var model_ceiling_light: Model = _load_model(ceiling_light_scene)
@@ -25,6 +22,10 @@ var model_wall_t: Model = _load_model(wall_scene_t)
 var model_wall_i: Model = _load_model(wall_scene_i)
 var model_wall_l: Model = _load_model(wall_scene_l)
 var model_wall_e: Model = _load_model(wall_scene_e)
+
+@onready var map_node: Node3D = $Map
+@onready var voxel_gi: VoxelGI = $VoxelGI
+# @onready var lightmap_gi: LightmapGI = $LightmapGI
 
 class Model:
 	var id: int
@@ -70,6 +71,18 @@ func _ready() -> void:
 	var spawn_pos: Vector2i = _find_spawn_point()
 	
 	$Player.transform.origin = Vector3(float(spawn_pos.x) * TILE_SIZE, 0.0, float(spawn_pos.y) * TILE_SIZE)
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(_delta: float) -> void:
+	_handle_world_generation()
+	_handle_tile_graphics()
+	_handle_static_collision_shapes()
+	if Input.is_key_pressed(KEY_B):
+		print("Baking...")
+		voxel_gi.bake()
+		print("Baking... done")
+
+
 
 func _place_wall(model: Model, tile_index: Vector2i, angle: float) -> void:
 	_instantiate_model(model, tile_index, angle)
@@ -289,12 +302,6 @@ func _handle_world_generation() -> void:
 
 func _get_chunk_index(tile_index: Vector2i) -> Vector2i:
 	return Vector2i(int(round(float(tile_index.x) / float(CHUNK_SIZE))), int(round(float(tile_index.y) / float(CHUNK_SIZE))))
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(_delta: float) -> void:
-	_handle_world_generation()
-	_handle_tile_graphics()
-	_handle_static_collision_shapes()
 
 func _get_collision_shape(resource: Resource) -> CollisionShape3D:
 	var inst: Node3D = resource.instantiate()

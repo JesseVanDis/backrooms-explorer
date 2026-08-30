@@ -12,6 +12,7 @@ gi_mode = 0
 [node name="OmniLight3D" type="OmniLight3D" parent="." index="1" unique_id=1338369808]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1426687, 0)
 light_color = Color(1, 0.955, 0.7, 1)
+light_bake_mode = 1
 shadow_enabled = true
 shadow_blur = 5.157
 omni_range = 6.0
