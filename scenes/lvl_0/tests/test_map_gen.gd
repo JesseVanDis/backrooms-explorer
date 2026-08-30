@@ -9,7 +9,7 @@ func _init() -> void:
 		return
 
 	var gen: MapGenerator = gen_script.new()
-	var image: Image = gen.generate_map_image(512, 512)
+	var image: Image = gen.generate_map_image(256, 256)
 	var err := image.save_png("res://scenes/lvl_0/tests/result.png")
 	if err != OK:
 		push_error("Failed to save maze image: " + str(err))

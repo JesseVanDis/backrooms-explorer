@@ -83,12 +83,12 @@ func _process(_delta: float) -> void:
 func _place_wall(model: Model, tile_index: Vector2i, angle: float) -> void:
 	_instantiate_model(model, tile_index, angle)
 
-func _get_tile_at(x: int, y: int) -> MapGenerator.TileType:
+func _get_pixel_at(x: int, y: int) -> MapGenerator.Pixel:
 	var cp: Vector2i = Vector2i(int(floor(float(x) / CHUNK_SIZE)), int(floor(float(y) / CHUNK_SIZE)))
 	if ! chunks.has(cp):
-		return MapGenerator.TileType.WALL
+		return MapGenerator.Pixel.INVALID
 	var section: MapGenerator.Section = _get_or_create_chunk(cp).section
-	return section.get_tile(x, y)
+	return section.get_pixel(x, y)
 
 func _get_or_create_chunk(chunk_index: Vector2i) -> Chunk:
 	if chunks.has(chunk_index):
@@ -129,26 +129,26 @@ func _instantiate_model(model: Model, tile_index: Vector2i, angle: float):
 	placed_tile.tile_index = tile_index
 
 func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
-	var tile_type: MapGenerator.TileType = section.get_tile(x, y)
+	var pixel: MapGenerator.Pixel = section.get_pixel(x, y)
 	var tile_index: Vector2i = Vector2i(x, y)
 	
 	# ALWAYS add a floor and ceiling
 	_instantiate_model(model_floor, tile_index, 0)
 	_instantiate_model(model_ceiling, tile_index, 0)
 
-	match tile_type:
-		MapGenerator.TileType.EMPTY:
+	match pixel & MapGenerator.TILE_MASK:
+		MapGenerator.Pixel.TILE_EMPTY:
 			return
 			
-		MapGenerator.TileType.CEILING_LIGHT:
+		MapGenerator.Pixel.TILE_CEILING_LIGHT:
 			_instantiate_model(model_ceiling_light, tile_index, 0)
 			
-		MapGenerator.TileType.WALL:
+		MapGenerator.Pixel.TILE_WALL:
 			# Use _get_tile_at for seamless transitions between chunks
-			var wall_n: bool = _get_tile_at(x, y + 1) == MapGenerator.TileType.WALL
-			var wall_s: bool = _get_tile_at(x, y - 1) == MapGenerator.TileType.WALL
-			var wall_e: bool = _get_tile_at(x + 1, y) == MapGenerator.TileType.WALL
-			var wall_w: bool = _get_tile_at(x - 1, y) == MapGenerator.TileType.WALL
+			var wall_n: bool = (_get_pixel_at(x, y + 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
+			var wall_s: bool = (_get_pixel_at(x, y - 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
+			var wall_e: bool = (_get_pixel_at(x + 1, y) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
+			var wall_w: bool = (_get_pixel_at(x - 1, y) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
 			
 			if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(model_wall_x, tile_index, 0.0)
 			elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(model_wall_t, tile_index, 0.0)
@@ -172,7 +172,7 @@ func _find_spawn_point() -> Vector2i:
 	var first_chunk: Chunk = _get_or_create_chunk(Vector2i(0, 0))
 	for y in range(first_chunk.section.y, first_chunk.section.y + first_chunk.section.h):
 		for x in range(first_chunk.section.x, first_chunk.section.x + first_chunk.section.w):
-			if first_chunk.section.get_tile(x, y) != MapGenerator.TileType.WALL:
+			if ((first_chunk.section.get_pixel(x, y) & MapGenerator.TILE_MASK) != MapGenerator.Pixel.TILE_WALL):
 				return Vector2i(x, y)
 	return Vector2i(1, 1)
 

@@ -2,24 +2,22 @@ extends Node
 
 class_name MapGenerator
 
-enum TileType {
-	EMPTY,
-	CEILING_LIGHT,
-	WALL,
-	COUNT
+enum Pixel {
+	BIOME_DEFAULT 		= 1 << 1,
+	BIOME_PILLARS 		= 1 << 2,
+	TILE_EMPTY			= 1 << 16,
+	TILE_CEILING_LIGHT	= 2 << 16,
+	TILE_WALL			= 3 << 16,
+	INVALID				= 1 << 31
 }
+
+const BIOME_MASK = (1 << 16) - 1
+const TILE_MASK  = ((1 << 16) - 1) << 16
 
 func _ceiling_light(ctx: Context) -> bool:
 	if(posmod(ctx.x, 5) == 1 && posmod(ctx.y, 5) == 1):
 		return true
 	return false
-
-func _mapshader_standard(context: Context) -> TileType:
-	if context.random() > 0.8:
-		return TileType.WALL
-	if _ceiling_light(context):
-		return TileType.CEILING_LIGHT
-	return TileType.EMPTY
 
 func _extend_walls(ctx: Context) -> bool:
 	var pp: PreviousPass = ctx.previous_pass
@@ -44,22 +42,42 @@ func _is_open_corner(ctx: Context) -> bool:
 	return false
 
 func _is_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
-	var data: Array[TileType] = ctx.previous_pass.data
-	if ctx.get_at_offset(data, offset_x, offset_y) == TileType.WALL:
-		var wall_w: bool =  ctx.get_at_offset(data, offset_x + -1, offset_y + 0)  == TileType.WALL;
-		var wall_e: bool =  ctx.get_at_offset(data, offset_x +  1, offset_y + 0)  == TileType.WALL;
-		var wall_s: bool =  ctx.get_at_offset(data, offset_x +  0, offset_y + -1) == TileType.WALL;
-		var wall_n: bool =  ctx.get_at_offset(data, offset_x +  0, offset_y + 1)  == TileType.WALL;
+	var data: Array[Pixel] = ctx.previous_pass.data
+	if (ctx.get_at_offset(data, offset_x, offset_y) & TILE_MASK) == Pixel.TILE_WALL:
+		var wall_w: bool =  (ctx.get_at_offset(data, offset_x + -1, offset_y + 0) & TILE_MASK)  == Pixel.TILE_WALL;
+		var wall_e: bool =  (ctx.get_at_offset(data, offset_x +  1, offset_y + 0) & TILE_MASK)  == Pixel.TILE_WALL;
+		var wall_s: bool =  (ctx.get_at_offset(data, offset_x +  0, offset_y + -1) & TILE_MASK) == Pixel.TILE_WALL;
+		var wall_n: bool =  (ctx.get_at_offset(data, offset_x +  0, offset_y + 1) & TILE_MASK)  == Pixel.TILE_WALL;
 		if(wall_w && !wall_n && !wall_s && !wall_e): return true
 		if(!wall_w && wall_n && !wall_s && !wall_e): return true
 		if(!wall_w && !wall_n && wall_s && !wall_e): return true
 		if(!wall_w && !wall_n && !wall_s && wall_e): return true
 	return false
 
-func _mapshader_biome_pillar(pass_index: int, ctx: Context) -> TileType:
-	return TileType.COUNT
 
-func _mapshader_default(pass_index: int, ctx: Context) -> TileType:
+const NUM_PASSES_IN_GEN_BIOMES = 1 # change this everytime you change the amount of cases in 'match pass_index' below
+func _gen_biomes(pass_index: int, _ctx: Context) -> Pixel:
+	match pass_index:
+		0:
+			return Pixel.BIOME_DEFAULT
+	return Pixel.INVALID
+
+func _gen(pass_index: int, ctx: Context) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	if pass_index < NUM_PASSES_IN_GEN_BIOMES:
+		return _gen_biomes(pass_index, ctx)
+	else:
+		var biome_pass_index: int = pass_index - NUM_PASSES_IN_GEN_BIOMES
+		match pp.biome_c:
+			Pixel.BIOME_DEFAULT:
+				var huh = _gen_biome_default(biome_pass_index, ctx)
+				return huh
+			Pixel.BIOME_PILLARS:
+				return _gen_biome_pillars(biome_pass_index, ctx)
+	
+	return Pixel.INVALID
+
+func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	var num_neighbour_walls: int = 0;
 	if pp.wall_w: num_neighbour_walls = num_neighbour_walls + 1
@@ -70,78 +88,55 @@ func _mapshader_default(pass_index: int, ctx: Context) -> TileType:
 	match pass_index:
 		0:
 			if ctx.random() > 0.9:
-				return TileType.WALL
+				return pp.biome_c | Pixel.TILE_WALL
 			if _ceiling_light(ctx):
-				return TileType.CEILING_LIGHT
-			return TileType.EMPTY
+				return pp.biome_c | Pixel.TILE_CEILING_LIGHT
+			return pp.biome_c | Pixel.TILE_EMPTY
 	
 		1:
 			if num_neighbour_walls > 0 && !pp.wall_c:
 				if ctx.random() > 0.75:
-					return TileType.WALL
-			return ctx.get_at(pp.data)
+					return pp.biome_c | Pixel.TILE_WALL
+			return pp.pixel_c
 			
 		2:
 			if _is_isolated_wall_dot(ctx):
-				return TileType.EMPTY
-			return ctx.get_at(pp.data)
+				return pp.biome_c | Pixel.TILE_EMPTY
+			return pp.pixel_c
 		
 		3,4,5,6,7,8,9,10:
 			if ctx.random() > 0.1:
 				if _extend_walls(ctx):
-					return TileType.WALL
-			return ctx.get_at(pp.data)
+					return pp.biome_c | Pixel.TILE_WALL
+			return pp.pixel_c
 		
-		11: 
-			# make room for spawn
-			pass
-	
-		#2:
-			#if ctx.random() > 0.3:
-				#var dir: int = int(ctx.random() * 4.0) & 3
-				#if dir == 0:
-					#if _is_deadend(ctx, 0, -1):
-						#return TileType.WALL
-				#if dir == 1:
-					#if _is_deadend(ctx, 0, 1):
-						#return TileType.WALL
-				#if dir == 2:
-					#if _is_deadend(ctx, -1, 0):
-						#return TileType.WALL
-				#if dir == 3:
-					#if _is_deadend(ctx,  1, 0):
-						#return TileType.WALL
-			#return ctx.get_at(pp.data)
-	
-		#7:
-			#if _is_open_corner(ctx):
-				#return TileType.WALL
-			#return ctx.get_at(pp.data)
-	
-	return TileType.COUNT
+	return Pixel.INVALID
 
+func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	
+	match pass_index:
+		0:
+			return pp.biome_c | Pixel.TILE_EMPTY
 
-class PlotData:
-	var tile_type: TileType
-	func _init() -> void:
-		pass;
+	return Pixel.INVALID
 
 class Section:
 	var x: int
 	var y: int
 	var w: int
 	var h: int
-	var data: Array[TileType] = []
+	var data: Array[Pixel] = []
 	
-	func set_tile(global_x: int, global_y: int, tile_type: TileType) -> void:
+	func set_pixel(global_x: int, global_y: int, tile_type: Pixel) -> void:
 		data[(global_x - x) + (global_y - y) * w] = tile_type;
 		
-	func get_tile(global_x: int, global_y: int) -> TileType:
+	func get_pixel(global_x: int, global_y: int) -> Pixel:
 		return data[(global_x - x) + (global_y - y) * w];
 
-	func get_tile_clamped(global_x: int, global_y: int) -> TileType:
+	func get_pixel_clamped(global_x: int, global_y: int) -> Pixel:
 		return data[clamp(global_x - x, 0, w-1) + clamp(global_y - y, 0, h-1) * w];
-		
+	
 	func _init(x0: int, y0: int, x1: int, y1: int) -> void:
 		var size: int = (x1-x0) * (y1-y0)
 		x = x0;
@@ -151,8 +146,11 @@ class Section:
 		data.resize(size);
 
 class PreviousPass:
-	var data: Array[TileType]
+	var data: Array[Pixel]
 	
+	var pixel_c = Pixel
+	var tile_c = Pixel
+	var biome_c = Pixel
 	var wall_c: bool
 	var wall_n: bool
 	var wall_nn: bool
@@ -168,19 +166,22 @@ class PreviousPass:
 	var wall_se: bool
 
 	func update(ctx: Context) -> void:
-		wall_c = ctx.get_at(data) == TileType.WALL
-		wall_n = ctx.get_at_offset(data, 0, 1) == TileType.WALL
-		wall_nn = ctx.get_at_offset(data, 0, 2) == TileType.WALL
-		wall_s = ctx.get_at_offset(data, 0, -1) == TileType.WALL
-		wall_ss = ctx.get_at_offset(data, 0, -2) == TileType.WALL
-		wall_e = ctx.get_at_offset(data, 1, 0) == TileType.WALL
-		wall_ee = ctx.get_at_offset(data, 2, 0) == TileType.WALL
-		wall_w = ctx.get_at_offset(data, -1, 0) == TileType.WALL
-		wall_ww = ctx.get_at_offset(data, -2, 0) == TileType.WALL
-		wall_nw = ctx.get_at_offset(data, -1, 1) == TileType.WALL
-		wall_ne = ctx.get_at_offset(data, 1, 1) == TileType.WALL
-		wall_sw = ctx.get_at_offset(data, -1, -1) == TileType.WALL
-		wall_se = ctx.get_at_offset(data, 1, -1) == TileType.WALL
+		pixel_c = ctx.get_at(data)
+		biome_c = TileUtils.get_biome(pixel_c)
+		tile_c = pixel_c - biome_c
+		wall_c = (ctx.get_at(data) & TILE_MASK) == Pixel.TILE_WALL
+		wall_n = (ctx.get_at_offset(data, 0, 1) & TILE_MASK) == Pixel.TILE_WALL
+		wall_nn = (ctx.get_at_offset(data, 0, 2) & TILE_MASK) == Pixel.TILE_WALL
+		wall_s = (ctx.get_at_offset(data, 0, -1) & TILE_MASK) == Pixel.TILE_WALL
+		wall_ss = (ctx.get_at_offset(data, 0, -2) & TILE_MASK) == Pixel.TILE_WALL
+		wall_e = (ctx.get_at_offset(data, 1, 0) & TILE_MASK) == Pixel.TILE_WALL
+		wall_ee = (ctx.get_at_offset(data, 2, 0) & TILE_MASK) == Pixel.TILE_WALL
+		wall_w = (ctx.get_at_offset(data, -1, 0) & TILE_MASK) == Pixel.TILE_WALL
+		wall_ww = (ctx.get_at_offset(data, -2, 0) & TILE_MASK) == Pixel.TILE_WALL
+		wall_nw = (ctx.get_at_offset(data, -1, 1) & TILE_MASK) == Pixel.TILE_WALL
+		wall_ne = (ctx.get_at_offset(data, 1, 1) & TILE_MASK) == Pixel.TILE_WALL
+		wall_sw = (ctx.get_at_offset(data, -1, -1) & TILE_MASK) == Pixel.TILE_WALL
+		wall_se = (ctx.get_at_offset(data, 1, -1) & TILE_MASK) == Pixel.TILE_WALL
 
 	func _init() -> void:
 		pass;
@@ -199,10 +200,10 @@ class Context:
 	var y_flt: float
 	var previous_pass: PreviousPass;
 	
-	func get_at(pass_data: Array[TileType]) -> TileType:
+	func get_at(pass_data: Array[Pixel]) -> Pixel:
 		return pass_data[lx + ly * w]
 	
-	func get_at_offset(pass_data: Array[TileType], offset_x: int, offset_y: int) -> TileType:
+	func get_at_offset(pass_data: Array[Pixel], offset_x: int, offset_y: int) -> Pixel:
 		var test_x: int = clamp(lx + offset_x, 0, w - 1)
 		var test_y: int = clamp(ly + offset_y, 0, h - 1)
 		return pass_data[test_x + test_y * w]
@@ -212,16 +213,10 @@ class Context:
 		var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 		rng.seed = seed_value
 		return rng.randf()
-
-func to_color(tile_type: TileType) -> Color:
-	match tile_type:
-		TileType.EMPTY:
-			return Color(0,0,1)
-		TileType.CEILING_LIGHT:
-			return Color(0,1,1)
-		TileType.WALL:
-			return Color(0,0,0)
-	return Color(0,0,0)
+	
+#	func with_biome(pixel: Pixel) -> Pixel:
+#		tile = TileUtils.remove_biome(pixel)
+#		return tile | TileUtils.get_biome(previous_pass.pixel_c) as Pixel
 
 func generate_map_image(width: int, height: int) -> Image:
 	var image: Image = Image.create(width, height, false, Image.FORMAT_RGB8)
@@ -229,40 +224,51 @@ func generate_map_image(width: int, height: int) -> Image:
 	var map: Section = generate_map(0, 0, width, height);
 	for y in range(0, height):
 		for x in range(0, width):
-			image.set_pixel(x, y, to_color(map.get_tile(x, y)))
+			image.set_pixel(x, y, TileUtils.to_color(map.get_pixel(x, y)))
+	
+	return image;
+
+func generate_biome_image(width: int, height: int) -> Image:
+	var image: Image = Image.create(width, height, false, Image.FORMAT_RGB8)
+		
+	var map: Section = generate_map(0, 0, width, height);
+	for y in range(0, height):
+		for x in range(0, width):
+			image.set_pixel(x, y, TileUtils.to_color(map.get_pixel(x, y)))
 	
 	return image;
 	
 
 func generate_map(x0: int, y0: int, x1: int, y1: int) -> Section:
 	var retval: Section = Section.new(x0, y0, x1, y1);
-	_run_mapshader(retval, _mapshader_default)
+	_run_mapshader(retval)
 	return retval
 
-func _run_mapshader(section: Section, shader: Callable) -> void:
+func _run_mapshader(section: Section) -> void:
 	var size: int = section.w * section.h
 
-	var pass_a: Array[TileType] = []
-	var pass_b: Array[TileType] = []
+	var pass_a: Array[Pixel] = []
+	var pass_b: Array[Pixel] = []
 	pass_a.resize(size)
 	
-	_run_pass(section.x, section.y, section.x + section.w, section.y + section.h, pass_b, 0, pass_a, shader);
-	print("Pass: " + str(0))
+	_run_pass(section.x, section.y, section.x + section.w, section.y + section.h, pass_b, 0, pass_a);
+	#print("Pass: " + str(0))
 	section.data = pass_b
 	
 	var was_valid = true
-	var pass_index = 0
+	var pass_index = 1
 	while was_valid:
 		if pass_index & 1 == 0:
-			was_valid = _run_pass(section.x, section.y, section.x + section.w, section.y + section.h, pass_b, pass_index, pass_a, shader);
+			was_valid = _run_pass(section.x, section.y, section.x + section.w, section.y + section.h, pass_b, pass_index, pass_a);
 			section.data = pass_b
 		else:
-			was_valid = _run_pass(section.x, section.y, section.x + section.w, section.y + section.h, pass_a, pass_index, pass_b, shader);
+			was_valid = _run_pass(section.x, section.y, section.x + section.w, section.y + section.h, pass_a, pass_index, pass_b);
 			section.data = pass_a
-		print("Pass: " + str(pass_index))
+		#print("Pass: " + str(pass_index))
 		pass_index = pass_index+1
 
-func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[TileType], pass_index: int, previous_pass_array: Array[TileType], shader: Callable) -> bool:
+func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[Pixel], pass_index: int, previous_pass_array: Array[Pixel]) -> bool:
+	print("Running pass: " + str(pass_index))
 	var width: int = x1 - x0;
 	var context: Context = Context.new()
 	context.w = x1-x0;
@@ -271,6 +277,7 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[TileType], pass
 	context.start_y = y0;
 	context.previous_pass = PreviousPass.new()
 	context.previous_pass.data = previous_pass_array
+	var all_pixels_set_to_count = true
 	
 	target.resize(context.w * context.h);
 	for y in range(y0, y1):
@@ -278,14 +285,41 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[TileType], pass
 		context.ly = ly
 		for x in range(x0, x1):
 			var lx: int = x - x0
+			var index = lx + ly * width
 			context.x = x;
 			context.y = y;
 			context.lx = lx
 			context.x_flt = float(x);
 			context.y_flt = float(y);
 			context.previous_pass.update(context)
-			var pixel = shader.call(pass_index, context);
-			if pixel == TileType.COUNT:
-				return false
-			target[lx + ly * width] = pixel;
-	return true
+			var pixel = _gen(pass_index, context);
+			if pixel != Pixel.INVALID:
+				target[index] = pixel;
+				all_pixels_set_to_count = false
+			else:
+				target[index] = previous_pass_array[index]
+	# print("all_pixels_set_to_count: " + str(all_pixels_set_to_count) + " for index: " + str(pass_index))
+	return !all_pixels_set_to_count
+
+class TileUtils:
+	static func get_biome(pixel: Pixel) -> Pixel:
+		return pixel & BIOME_MASK as Pixel
+	
+	static func remove_biome(pixel: Pixel) -> Pixel:
+		return pixel - get_biome(pixel) as Pixel
+	
+	static func to_color(pixel: Pixel) -> Color:
+		match pixel:
+			Pixel.BIOME_DEFAULT: 					return Color(0.887, 0.975, 1.0, 1.0)
+			Pixel.BIOME_PILLARS: 					return Color(0.811, 1.0, 0.792, 1.0)
+			Pixel.BIOME_DEFAULT | Pixel.TILE_EMPTY: return Color(0.587, 0.723, 1.0, 1.0)
+			Pixel.BIOME_PILLARS | Pixel.TILE_EMPTY: return Color(0.0, 0.886, 0.522, 1.0)
+		
+		match pixel & TILE_MASK:
+			Pixel.TILE_CEILING_LIGHT:				return Color(0,1,1)
+			Pixel.TILE_WALL:						return Color(0,0,0)
+		
+		var h := fmod(abs(sin(float(pixel) * 12.9898) * 43758.5453), 1.0)
+		return Color.from_hsv(h, 0.7, 1.0)
+		
+		# return Color(1,0,1)
