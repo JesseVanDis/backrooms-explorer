@@ -39,102 +39,102 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.411394, 0, 1.8429631)
 
 [node name="Map" type="Node3D" parent="." unique_id=1437659456]
 
-[node name="part_1x1_floor" parent="Map" unique_id=84726402 instance=ExtResource("3_rgdx1")]
+[node name="editor_only_playground" parent="Map" unique_id=84726402 instance=ExtResource("3_rgdx1")]
 visible = false
 
-[node name="part_1x1_floor" parent="Map/part_1x1_floor" unique_id=1597753756 instance=ExtResource("3_rgdx1")]
+[node name="part_1x1_floor" parent="Map/editor_only_playground" unique_id=1597753756 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor" unique_id=2008071172 instance=ExtResource("3_rgdx1")]
+[node name="part_1x1_floor" parent="Map/editor_only_playground/part_1x1_floor" unique_id=2008071172 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor/part_1x1_floor" unique_id=356917853 instance=ExtResource("3_rgdx1")]
+[node name="part_1x1_floor" parent="Map/editor_only_playground/part_1x1_floor/part_1x1_floor" unique_id=356917853 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_floor2" parent="Map/part_1x1_floor" unique_id=59654972 instance=ExtResource("3_rgdx1")]
+[node name="part_1x1_floor2" parent="Map/editor_only_playground" unique_id=59654972 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
 
-[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor2" unique_id=1068064970 instance=ExtResource("3_rgdx1")]
+[node name="part_1x1_floor" parent="Map/editor_only_playground/part_1x1_floor2" unique_id=1068064970 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor2/part_1x1_floor" unique_id=1056219974 instance=ExtResource("3_rgdx1")]
+[node name="part_1x1_floor" parent="Map/editor_only_playground/part_1x1_floor2/part_1x1_floor" unique_id=1056219974 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor2/part_1x1_floor/part_1x1_floor" unique_id=1389480644 instance=ExtResource("3_rgdx1")]
+[node name="part_1x1_floor" parent="Map/editor_only_playground/part_1x1_floor2/part_1x1_floor/part_1x1_floor" unique_id=1389480644 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_floor2" parent="Map/part_1x1_floor/part_1x1_floor2" unique_id=169156543 instance=ExtResource("3_rgdx1")]
+[node name="part_1x1_floor2" parent="Map/editor_only_playground/part_1x1_floor2" unique_id=169156543 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
 
-[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor2/part_1x1_floor2" unique_id=559412 instance=ExtResource("3_rgdx1")]
+[node name="part_1x1_floor" parent="Map/editor_only_playground/part_1x1_floor2/part_1x1_floor2" unique_id=559412 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor2/part_1x1_floor2/part_1x1_floor" unique_id=690280359 instance=ExtResource("3_rgdx1")]
+[node name="part_1x1_floor" parent="Map/editor_only_playground/part_1x1_floor2/part_1x1_floor2/part_1x1_floor" unique_id=690280359 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_floor" parent="Map/part_1x1_floor/part_1x1_floor2/part_1x1_floor2/part_1x1_floor/part_1x1_floor" unique_id=1435809179 instance=ExtResource("3_rgdx1")]
+[node name="part_1x1_floor" parent="Map/editor_only_playground/part_1x1_floor2/part_1x1_floor2/part_1x1_floor/part_1x1_floor" unique_id=1435809179 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_wall_i" parent="Map/part_1x1_floor" unique_id=1818878546 instance=ExtResource("4_qmsdi")]
+[node name="part_wall_i" parent="Map/editor_only_playground" unique_id=1818878546 instance=ExtResource("4_qmsdi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6674335, 0, -1.1374478)
 
-[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i" unique_id=1731783001 instance=ExtResource("4_qmsdi")]
+[node name="part_wall_i" parent="Map/editor_only_playground/part_wall_i" unique_id=1731783001 instance=ExtResource("4_qmsdi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1)
 
-[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i/part_wall_i" unique_id=1034418650 instance=ExtResource("4_qmsdi")]
+[node name="part_wall_i" parent="Map/editor_only_playground/part_wall_i/part_wall_i" unique_id=1034418650 instance=ExtResource("4_qmsdi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
 
-[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i/part_wall_i/part_wall_i" unique_id=445920594 instance=ExtResource("4_qmsdi")]
+[node name="part_wall_i" parent="Map/editor_only_playground/part_wall_i/part_wall_i/part_wall_i" unique_id=445920594 instance=ExtResource("4_qmsdi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
 
-[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i/part_wall_i/part_wall_i/part_wall_i" unique_id=1158670236 instance=ExtResource("4_qmsdi")]
+[node name="part_wall_i" parent="Map/editor_only_playground/part_wall_i/part_wall_i/part_wall_i/part_wall_i" unique_id=1158670236 instance=ExtResource("4_qmsdi")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.427037, 0, -0.4440062)
 
-[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i" unique_id=38835486 instance=ExtResource("4_qmsdi")]
+[node name="part_wall_i" parent="Map/editor_only_playground/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i" unique_id=38835486 instance=ExtResource("4_qmsdi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0003883, 0, 0.045187287)
 
-[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i" unique_id=954800723 instance=ExtResource("4_qmsdi")]
+[node name="part_wall_i" parent="Map/editor_only_playground/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i" unique_id=954800723 instance=ExtResource("4_qmsdi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0338993, 0, 0.045187145)
 
-[node name="part_wall_i" parent="Map/part_1x1_floor/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i" unique_id=1191553416 instance=ExtResource("4_qmsdi")]
+[node name="part_wall_i" parent="Map/editor_only_playground/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i/part_wall_i" unique_id=1191553416 instance=ExtResource("4_qmsdi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.007979333, 0, 1.0171132)
 
-[node name="part_1x1_ceiling_light" parent="Map/part_1x1_floor" unique_id=1814395978 instance=ExtResource("5_63adb")]
+[node name="part_1x1_ceiling_light" parent="Map/editor_only_playground" unique_id=1814395978 instance=ExtResource("5_63adb")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9838673, 0, -1)
 
-[node name="part_1x1_ceiling" parent="Map/part_1x1_floor" unique_id=1743678236 instance=ExtResource("6_mkhuw")]
+[node name="part_1x1_ceiling" parent="Map/editor_only_playground" unique_id=1743678236 instance=ExtResource("6_mkhuw")]
 
-[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling" unique_id=634348888 instance=ExtResource("6_mkhuw")]
+[node name="part_1x1_ceiling" parent="Map/editor_only_playground/part_1x1_ceiling" unique_id=634348888 instance=ExtResource("6_mkhuw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling" unique_id=465314512 instance=ExtResource("6_mkhuw")]
+[node name="part_1x1_ceiling" parent="Map/editor_only_playground/part_1x1_ceiling/part_1x1_ceiling" unique_id=465314512 instance=ExtResource("6_mkhuw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling/part_1x1_ceiling" unique_id=2107255722 instance=ExtResource("6_mkhuw")]
+[node name="part_1x1_ceiling" parent="Map/editor_only_playground/part_1x1_ceiling/part_1x1_ceiling/part_1x1_ceiling" unique_id=2107255722 instance=ExtResource("6_mkhuw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_ceiling2" parent="Map/part_1x1_floor/part_1x1_ceiling" unique_id=230901152 instance=ExtResource("6_mkhuw")]
+[node name="part_1x1_ceiling2" parent="Map/editor_only_playground/part_1x1_ceiling" unique_id=230901152 instance=ExtResource("6_mkhuw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
 
-[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2" unique_id=4978118 instance=ExtResource("6_mkhuw")]
+[node name="part_1x1_ceiling" parent="Map/editor_only_playground/part_1x1_ceiling/part_1x1_ceiling2" unique_id=4978118 instance=ExtResource("6_mkhuw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling" unique_id=1043924139 instance=ExtResource("6_mkhuw")]
+[node name="part_1x1_ceiling" parent="Map/editor_only_playground/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling" unique_id=1043924139 instance=ExtResource("6_mkhuw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling/part_1x1_ceiling" unique_id=831838487 instance=ExtResource("6_mkhuw")]
+[node name="part_1x1_ceiling" parent="Map/editor_only_playground/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling/part_1x1_ceiling" unique_id=831838487 instance=ExtResource("6_mkhuw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_ceiling2" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2" unique_id=776820242 instance=ExtResource("6_mkhuw")]
+[node name="part_1x1_ceiling2" parent="Map/editor_only_playground/part_1x1_ceiling/part_1x1_ceiling2" unique_id=776820242 instance=ExtResource("6_mkhuw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
 
-[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling2" unique_id=1498575585 instance=ExtResource("6_mkhuw")]
+[node name="part_1x1_ceiling" parent="Map/editor_only_playground/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling2" unique_id=1498575585 instance=ExtResource("6_mkhuw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling2/part_1x1_ceiling" unique_id=477053115 instance=ExtResource("6_mkhuw")]
+[node name="part_1x1_ceiling" parent="Map/editor_only_playground/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling2/part_1x1_ceiling" unique_id=477053115 instance=ExtResource("6_mkhuw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
-[node name="part_1x1_ceiling" parent="Map/part_1x1_floor/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling2/part_1x1_ceiling/part_1x1_ceiling" unique_id=945403473 instance=ExtResource("6_mkhuw")]
+[node name="part_1x1_ceiling" parent="Map/editor_only_playground/part_1x1_ceiling/part_1x1_ceiling2/part_1x1_ceiling2/part_1x1_ceiling/part_1x1_ceiling" unique_id=945403473 instance=ExtResource("6_mkhuw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1023188745]

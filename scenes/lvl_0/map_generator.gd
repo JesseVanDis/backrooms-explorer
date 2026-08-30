@@ -6,6 +6,7 @@ enum TileType {
 	EMPTY,
 	CEILING_LIGHT,
 	WALL,
+	COUNT
 }
 
 func _ceiling_light(ctx: Context) -> bool:
@@ -54,10 +55,11 @@ func _is_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
 		if(!wall_w && !wall_n && wall_s && !wall_e): return true
 		if(!wall_w && !wall_n && !wall_s && wall_e): return true
 	return false
-	
-const _NUM_PASSES: int = 11
-	
-func _mapshader_pass(pass_index: int, ctx: Context) -> TileType:
+
+func _mapshader_biome_pillar(pass_index: int, ctx: Context) -> TileType:
+	return TileType.COUNT
+
+func _mapshader_default(pass_index: int, ctx: Context) -> TileType:
 	var pp: PreviousPass = ctx.previous_pass
 	var num_neighbour_walls: int = 0;
 	if pp.wall_w: num_neighbour_walls = num_neighbour_walls + 1
@@ -116,7 +118,7 @@ func _mapshader_pass(pass_index: int, ctx: Context) -> TileType:
 				#return TileType.WALL
 			#return ctx.get_at(pp.data)
 	
-	return TileType.EMPTY
+	return TileType.COUNT
 
 
 class PlotData:
@@ -243,19 +245,22 @@ func generate_map(x0: int, y0: int, x1: int, y1: int) -> Section:
 	_run_pass(x0, y0, x1, y1, pass_b, 0, pass_a);
 	print("Pass: " + str(0))
 	retval.data = pass_b
-			
-	for index in range(1, _NUM_PASSES):
-		if index & 1 == 0:
-			_run_pass(x0, y0, x1, y1, pass_b, index, pass_a);
+	
+	var was_valid = true
+	var pass_index = 0
+	while was_valid:
+		if pass_index & 1 == 0:
+			was_valid = _run_pass(x0, y0, x1, y1, pass_b, pass_index, pass_a);
 			retval.data = pass_b
 		else:
-			_run_pass(x0, y0, x1, y1, pass_a, index, pass_b);
+			was_valid = _run_pass(x0, y0, x1, y1, pass_a, pass_index, pass_b);
 			retval.data = pass_a
-		print("Pass: " + str(index))
+		print("Pass: " + str(pass_index))
+		pass_index = pass_index+1
 	
 	return retval;
 
-func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[TileType], pass_index: int, previous_pass_array: Array[TileType]) -> void:
+func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[TileType], pass_index: int, previous_pass_array: Array[TileType]) -> bool:
 	var width: int = x1 - x0;
 	var context: Context = Context.new()
 	context.w = x1-x0;
@@ -277,4 +282,8 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[TileType], pass
 			context.x_flt = float(x);
 			context.y_flt = float(y);
 			context.previous_pass.update(context)
-			target[lx + ly * width] = _mapshader_pass(pass_index, context);
+			var pixel = _mapshader_default(pass_index, context);
+			if pixel == TileType.COUNT:
+				return false
+			target[lx + ly * width] = pixel;
+	return true
