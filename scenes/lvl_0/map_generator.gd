@@ -15,7 +15,31 @@ const BIOME_MASK = (1 << 16) - 1
 const TILE_MASK  = ((1 << 16) - 1) << 16
 
 func _ceiling_light(ctx: Context) -> bool:
-	if(posmod(ctx.x, 5) == 1 && posmod(ctx.y, 5) == 1):
+	#if(posmod(ctx.x, 5) == 1 && posmod(ctx.y, 5) == 1):
+	#	return true
+	
+	const grid_size = 5
+	const offset_chance = 0.7
+	@warning_ignore("integer_division")
+	var grid_x = ctx.x / grid_size as int
+	@warning_ignore("integer_division")
+	var grid_y = ctx.y / grid_size as int
+	@warning_ignore("integer_division")
+	var light_pos_x = (abs(grid_x) * grid_size) + grid_size / 2
+	@warning_ignore("integer_division")
+	var light_pos_y = (abs(grid_y) * grid_size) + grid_size / 2
+	var random = ctx.random_with_seed(hash(Vector2i(grid_x, grid_y)))
+	if random < offset_chance:
+		if random < 0.25 * offset_chance:
+			light_pos_x = light_pos_x+1
+		elif random < 0.5 * offset_chance:
+			light_pos_y = light_pos_y+1
+		elif random < 0.75 * offset_chance:
+			light_pos_x = light_pos_x-1
+		else:
+			light_pos_y = light_pos_y-1
+		
+	if abs(ctx.x) == light_pos_x && abs(ctx.y) == light_pos_y:
 		return true
 	return false
 
@@ -44,10 +68,10 @@ func _is_open_corner(ctx: Context) -> bool:
 func _is_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
 	var data: Array[Pixel] = ctx.previous_pass.data
 	if (ctx.get_at_offset(data, offset_x, offset_y) & TILE_MASK) == Pixel.TILE_WALL:
-		var wall_w: bool =  (ctx.get_at_offset(data, offset_x + -1, offset_y + 0) & TILE_MASK)  == Pixel.TILE_WALL;
-		var wall_e: bool =  (ctx.get_at_offset(data, offset_x +  1, offset_y + 0) & TILE_MASK)  == Pixel.TILE_WALL;
-		var wall_s: bool =  (ctx.get_at_offset(data, offset_x +  0, offset_y + -1) & TILE_MASK) == Pixel.TILE_WALL;
-		var wall_n: bool =  (ctx.get_at_offset(data, offset_x +  0, offset_y + 1) & TILE_MASK)  == Pixel.TILE_WALL;
+		var wall_w: bool =  ctx.previous_pass.wall_w;
+		var wall_e: bool =  ctx.previous_pass.wall_e;
+		var wall_s: bool =  ctx.previous_pass.wall_s;
+		var wall_n: bool =  ctx.previous_pass.wall_n;
 		if(wall_w && !wall_n && !wall_s && !wall_e): return true
 		if(!wall_w && wall_n && !wall_s && !wall_e): return true
 		if(!wall_w && !wall_n && wall_s && !wall_e): return true
@@ -84,7 +108,7 @@ func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
 	if pp.wall_e: num_neighbour_walls = num_neighbour_walls + 1
 	if pp.wall_s: num_neighbour_walls = num_neighbour_walls + 1
 	if pp.wall_n: num_neighbour_walls = num_neighbour_walls + 1
-
+	
 	match pass_index:
 		0:
 			if ctx.random() > 0.9:
@@ -210,6 +234,12 @@ class Context:
 	
 	func random() -> float:
 		var seed_value: int = hash(Vector2i(int(x), int(y)))
+		var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+		rng.seed = seed_value
+		return rng.randf()
+	
+	func random_with_seed(seed_val: int) -> float:
+		var seed_value: int = hash(seed_val)
 		var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 		rng.seed = seed_value
 		return rng.randf()
