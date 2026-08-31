@@ -145,5 +145,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1023188745]
 stream = ExtResource("3_smeuj")
+volume_db = 15.294
 autoplay = true
 parameters/looping = false
