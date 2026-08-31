@@ -14,19 +14,21 @@ enum Pixel {
 const BIOME_MASK = (1 << 16) - 1
 const TILE_MASK  = ((1 << 16) - 1) << 16
 
-func _ceiling_light(ctx: Context, misplacement_chance: float) -> bool:
+func _ceiling_light(ctx: Context, misplacement_chance: float, interval_range: int, offset: int) -> bool:
 	#if(posmod(ctx.x, 5) == 1 && posmod(ctx.y, 5) == 1):
 	#	return true
 	
-	const grid_size = 5
+	#@warning_ignore("integer_division")
+	#var grid_x = ctx.x / interval_range as int
+	#@warning_ignore("integer_division")
+	#var grid_y = ctx.y / interval_range as int
+
+	var grid_x := floori(float(ctx.x) / float(interval_range))
+	var grid_y := floori(float(ctx.y) / float(interval_range))
 	@warning_ignore("integer_division")
-	var grid_x = ctx.x / grid_size as int
+	var light_pos_x = (grid_x * interval_range) + offset
 	@warning_ignore("integer_division")
-	var grid_y = ctx.y / grid_size as int
-	@warning_ignore("integer_division")
-	var light_pos_x = (abs(grid_x) * grid_size) + grid_size / 2
-	@warning_ignore("integer_division")
-	var light_pos_y = (abs(grid_y) * grid_size) + grid_size / 2
+	var light_pos_y = (grid_y * interval_range) + offset
 	var random = ctx.random_with_seed(hash(Vector2i(grid_x, grid_y)))
 	if random < misplacement_chance:
 		if random < 0.25 * misplacement_chance:
@@ -38,7 +40,7 @@ func _ceiling_light(ctx: Context, misplacement_chance: float) -> bool:
 		else:
 			light_pos_y = light_pos_y-1
 		
-	if abs(ctx.x) == light_pos_x && abs(ctx.y) == light_pos_y:
+	if ctx.x == light_pos_x && ctx.y == light_pos_y:
 		return true
 	return false
 
@@ -79,7 +81,7 @@ func _is_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
 
 
 const NUM_PASSES_IN_GEN_BIOMES = 1 # change this everytime you change the amount of cases in 'match pass_index' below
-func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:	
+func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 	match pass_index:
 		0:
 			var grid_low_x = ctx.x / 40
@@ -99,8 +101,7 @@ func _gen(pass_index: int, ctx: Context) -> Pixel:
 		var biome_pass_index: int = pass_index - NUM_PASSES_IN_GEN_BIOMES
 		match pp.biome_c:
 			Pixel.BIOME_DEFAULT:
-				var huh = _gen_biome_default(biome_pass_index, ctx)
-				return huh
+				return _gen_biome_default(biome_pass_index, ctx)
 			Pixel.BIOME_PILLARS:
 				return _gen_biome_pillars(biome_pass_index, ctx)
 	
@@ -118,7 +119,7 @@ func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
 		0:
 			if ctx.random() > 0.9:
 				return pp.biome_c | Pixel.TILE_WALL
-			if _ceiling_light(ctx, 0.7):
+			if _ceiling_light(ctx, 0.7, 5, 2):
 				return pp.biome_c | Pixel.TILE_CEILING_LIGHT
 			return pp.biome_c | Pixel.TILE_EMPTY
 	
@@ -144,12 +145,27 @@ func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
 func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	
+	const grid_cell_size = 3
+	var grid_x := floori(ctx.x_flt / grid_cell_size)
+	var grid_y := floori(ctx.y_flt / grid_cell_size)
+	var grid_local_x = (ctx.x - (grid_x * grid_cell_size))
+	var grid_local_y = (ctx.y - (grid_y * grid_cell_size))
+	
 	match pass_index:
 		0:
-			if _ceiling_light(ctx, 0.1):
+			if _ceiling_light(ctx, 1.0, 3, 1):
 				return pp.biome_c | Pixel.TILE_CEILING_LIGHT
 			return pp.biome_c | Pixel.TILE_EMPTY
-			
+		
+		1:
+			var x_offset := 1
+			var y_offset := 1
+			if ((grid_local_x == x_offset + 0 && grid_local_y == y_offset + 0) || 
+				(grid_local_x == x_offset + 0 && grid_local_y == y_offset + 1) ||
+				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 0) || 
+				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 1)):
+					return pp.biome_c | Pixel.TILE_WALL
+		
 	return Pixel.INVALID
 
 class Section:

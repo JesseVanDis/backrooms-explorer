@@ -1,10 +1,10 @@
 extends Node3D
 
 const TILE_SIZE: float = 1.0
-const CHUNK_SIZE: int = 64
+const CHUNK_SIZE: int = 128
 const GENERATION_THRESHOLD: float = CHUNK_SIZE
 const REMOVAL_THRESHOLD: float = 200.0
-const VIEW_DISTANCE: int = 40
+const VIEW_DISTANCE: int = 60
 
 const floor_scene: Resource = preload("res://scenes/lvl_0/part_1x1_floor.tscn")
 const ceiling_scene: Resource = preload("res://scenes/lvl_0/part_1x1_ceiling.tscn")

@@ -27,6 +27,12 @@ sdfgi_min_cell_size = 0.15
 sdfgi_y_scale = 0
 sdfgi_energy = 0.3
 glow_enabled = true
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.28764337, 0.24979874, 0, 1)
+fog_density = 1.0
+fog_depth_begin = 40.0
+fog_depth_end = 60.0
 
 [node name="lvl_0" type="Node3D" unique_id=1577277307]
 script = ExtResource("1_j6thp")
