@@ -24,6 +24,16 @@ const FOOTSTEP_SOUNDS: Array[AudioStream] = [
 	preload("res://scenes/lvl_0/footstep_6.wav")
 ]
 
+const JUMP_SOUNDS: Array[AudioStream] = [
+	preload("res://scenes/lvl_0/jump_start_1.wav"),
+	preload("res://scenes/lvl_0/jump_start_2.wav")
+]
+
+const LANDING_SOUNDS: Array[AudioStream] = [
+	preload("res://scenes/lvl_0/jump_end_1.wav"),
+	preload("res://scenes/lvl_0/jump_end_2.wav")
+]
+
 var model_floor: Model = _load_model(floor_scene)
 var model_ceiling: Model = _load_model(ceiling_scene)
 var model_ceiling_light: Model = _load_model(ceiling_light_scene)
@@ -84,7 +94,10 @@ func _ready() -> void:
 	_setup_player_footsteps()
 
 func _setup_player_footsteps() -> void:
-	$Player/CharacterBody3D.apply_footsteps(FOOTSTEP_SOUNDS)
+	var player: Player = $Player/CharacterBody3D
+	player.apply_footsteps(FOOTSTEP_SOUNDS)
+	player.apply_jump_sounds(JUMP_SOUNDS)
+	player.apply_landing_sounds(LANDING_SOUNDS)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:

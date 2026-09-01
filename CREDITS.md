@@ -37,6 +37,19 @@ This game uses the following third-party assets:
 
 ---
 
+## voices
+* **Main character** https://elevenlabs.io/voices/oJEeOXECH9V31Oci9WHK
+
+Possible other characters:
+- [unknown yet] https://elevenlabs.io/voices/NMbn4FNN0acONjKLsueJ
+- [unknown yet] https://elevenlabs.io/voices/xBT0PhfAi7vmiOsypCA8
+- [unknown yet] https://elevenlabs.io/voices/FF59babHL8N8gfTgtBMT
+- [unknown yet] https://elevenlabs.io/voices/r5Al4oLBZaQ3SY9ncbVG
+- [unknown yet] https://elevenlabs.io/voices/m2gtxNsYBaIRqPBA5vU5
+
+Feel free to do real voice acting tough!
+
+
 ## Copyright
 
 © 2026 [Developer / Studio Name] and contributors.

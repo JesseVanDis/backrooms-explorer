@@ -1,8 +1,9 @@
 extends CharacterBody3D
+class_name Player
 
 
 const SPEED: float = 3.0
-const JUMP_VELOCITY: float = 3.0
+const JUMP_VELOCITY: float = 3.5
 const FOOTSTEP_INTERVAL: float = 0.36
 const BOB_VERTICAL_AMPLITUDE: float = 0.08
 const BOB_HORIZONTAL_AMPLITUDE: float = 0.02
@@ -11,6 +12,8 @@ const MOVEMENT_LOWERING: float = 0.15
 @onready var camera_node : Node3D = $Neck/Camera3D
 
 var _footstep_sounds: Array[AudioStream] = []
+var _jump_sounds: Array[AudioStream] = []
+var _landing_sounds: Array[AudioStream] = []
 var _footstep_timer: float = 0.0
 var _audio_player: AudioStreamPlayer3D
 var _default_camera_y: float = 0.0
@@ -26,11 +29,33 @@ func _ready() -> void:
 func apply_footsteps(sounds: Array[AudioStream]) -> void:
 	_footstep_sounds = sounds
 
+func apply_jump_sounds(sounds: Array[AudioStream]) -> void:
+	_jump_sounds = sounds
+
+func apply_landing_sounds(sounds: Array[AudioStream]) -> void:
+	_landing_sounds = sounds
+
 func _play_footstep() -> void:
 	if _footstep_sounds.is_empty():
 		return
 	_audio_player.stream = _footstep_sounds.pick_random()
 	_audio_player.pitch_scale = randf_range(0.9, 1.3)
+	_audio_player.play()
+
+func _play_jump_sound() -> void:
+	if _jump_sounds.is_empty():
+		return
+	_audio_player.stream = _jump_sounds.pick_random()
+	_audio_player.pitch_scale = randf_range(0.9, 1.0)
+	_audio_player.play()
+
+func _play_landing_sound() -> void:
+	if _landing_sounds.is_empty():
+		return
+	_audio_player.stream = _landing_sounds.pick_random()
+	# Pitch variation for landing sounds
+	_audio_player.pitch_scale = randf_range(0.8, 1.1)
+	_audio_player.volume_db = 10.0;
 	_audio_player.play()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -45,6 +70,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			camera_node.rotation.x = clamp(camera_node.rotation.x, deg_to_rad(-90), deg_to_rad(90))
 
 func _physics_process(delta: float) -> void:
+	var was_in_air: bool = not is_on_floor()
 	# Add the gravity.
 	if not is_on_floor():
 		velocity += get_gravity() * delta
@@ -52,6 +78,7 @@ func _physics_process(delta: float) -> void:
 	# Handle jump.
 	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
 		velocity.y = JUMP_VELOCITY
+		_play_jump_sound()
 
 	# Get the input direction and handle the movement/deceleration.
 	# As good practice, you should replace UI actions with custom gameplay actions.
@@ -65,6 +92,9 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0, SPEED)
 
 	move_and_slide()
+	
+	if was_in_air and is_on_floor():
+		_play_landing_sound()
 	
 	_handle_head_bob(delta)
 	_handle_footsteps(delta)
