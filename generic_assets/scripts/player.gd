@@ -2,10 +2,11 @@ extends CharacterBody3D
 
 
 const SPEED: float = 3.0
-const JUMP_VELOCITY: float = 4.5
+const JUMP_VELOCITY: float = 3.0
 const FOOTSTEP_INTERVAL: float = 0.36
-const BOB_VERTICAL_AMPLITUDE: float = 0.06
+const BOB_VERTICAL_AMPLITUDE: float = 0.08
 const BOB_HORIZONTAL_AMPLITUDE: float = 0.02
+const MOVEMENT_LOWERING: float = 0.15
 
 @onready var camera_node : Node3D = $Neck/Camera3D
 
@@ -71,14 +72,16 @@ func _physics_process(delta: float) -> void:
 func _handle_head_bob(delta: float) -> void:
 	var vertical_offset: float = 0.0
 	var horizontal_offset: float = 0.0
+	var lowering_offset: float = 0.0
 	
 	if is_on_floor() and velocity.length() > 0.1:
 		_bob_phase += delta * (PI / FOOTSTEP_INTERVAL)
 		_bob_phase = fmod(_bob_phase, PI * 2.0)
 		vertical_offset = BOB_VERTICAL_AMPLITUDE * abs(sin(_bob_phase))
 		horizontal_offset = BOB_HORIZONTAL_AMPLITUDE * sin(_bob_phase)
+		lowering_offset = -MOVEMENT_LOWERING
 	
-	camera_node.position.y = lerp(camera_node.position.y, _default_camera_y + vertical_offset, delta * 15.0)
+	camera_node.position.y = lerp(camera_node.position.y, _default_camera_y + lowering_offset + vertical_offset, delta * 15.0)
 	camera_node.position.x = lerp(camera_node.position.x, _default_camera_x + horizontal_offset, delta * 15.0)
 
 func _handle_footsteps(delta: float) -> void:
