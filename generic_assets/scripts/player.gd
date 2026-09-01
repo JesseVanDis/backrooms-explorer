@@ -3,17 +3,24 @@ extends CharacterBody3D
 
 const SPEED: float = 3.0
 const JUMP_VELOCITY: float = 4.5
-const FOOTSTEP_INTERVAL: float = 0.4
+const FOOTSTEP_INTERVAL: float = 0.36
+const BOB_VERTICAL_AMPLITUDE: float = 0.06
+const BOB_HORIZONTAL_AMPLITUDE: float = 0.02
 
 @onready var camera_node : Node3D = $Neck/Camera3D
 
 var _footstep_sounds: Array[AudioStream] = []
 var _footstep_timer: float = 0.0
 var _audio_player: AudioStreamPlayer3D
+var _default_camera_y: float = 0.0
+var _default_camera_x: float = 0.0
+var _bob_phase: float = 0.0
 
 func _ready() -> void:
 	_audio_player = AudioStreamPlayer3D.new()
 	add_child(_audio_player)
+	_default_camera_y = camera_node.position.y
+	_default_camera_x = camera_node.position.x
 
 func apply_footsteps(sounds: Array[AudioStream]) -> void:
 	_footstep_sounds = sounds
@@ -58,7 +65,21 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	
+	_handle_head_bob(delta)
 	_handle_footsteps(delta)
+
+func _handle_head_bob(delta: float) -> void:
+	var vertical_offset: float = 0.0
+	var horizontal_offset: float = 0.0
+	
+	if is_on_floor() and velocity.length() > 0.1:
+		_bob_phase += delta * (PI / FOOTSTEP_INTERVAL)
+		_bob_phase = fmod(_bob_phase, PI * 2.0)
+		vertical_offset = BOB_VERTICAL_AMPLITUDE * abs(sin(_bob_phase))
+		horizontal_offset = BOB_HORIZONTAL_AMPLITUDE * sin(_bob_phase)
+	
+	camera_node.position.y = lerp(camera_node.position.y, _default_camera_y + vertical_offset, delta * 15.0)
+	camera_node.position.x = lerp(camera_node.position.x, _default_camera_x + horizontal_offset, delta * 15.0)
 
 func _handle_footsteps(delta: float) -> void:
 	if is_on_floor() and velocity.length() > 0.1:
@@ -66,5 +87,6 @@ func _handle_footsteps(delta: float) -> void:
 		if _footstep_timer >= FOOTSTEP_INTERVAL:
 			_play_footstep()
 			_footstep_timer = 0.0
+			_bob_phase = fmod(round(_bob_phase / PI) * PI, PI * 2.0)
 	else:
 		_footstep_timer = FOOTSTEP_INTERVAL # Play footstep immediately when starting to move
