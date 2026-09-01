@@ -23,7 +23,9 @@
 
 This game uses the following third-party assets:
 
-* **[fluorescent-light-buzz.mp3](scenes/lvl_0/fluorescent-light-buzz.mp3)** ([url](https://pixabay.com/sound-effects/film-special-effects-factory-fluorescent-light-buzz-6871/)) - janbezouska (Freesound), Pixabay Content License
+* **[fluorescent light buzz ](scenes/lvl_0/fluorescent-light-buzz.mp3)** ([url](https://pixabay.com/sound-effects/film-special-effects-factory-fluorescent-light-buzz-6871/)) - janbezouska (Freesound), Pixabay Content License
+* **level 0 footsteps** ([url](https://pixabay.com/sound-effects/household-walking-footsteps-on-carpet-34094/)) - Abolla (Freesound), Pixabay Content License
+
 
 ---
 

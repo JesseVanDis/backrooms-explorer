@@ -15,6 +15,15 @@ const wall_scene_i: Resource = preload("res://scenes/lvl_0/part_wall_i.tscn")
 const wall_scene_l: Resource = preload("res://scenes/lvl_0/part_wall_l.tscn")
 const wall_scene_e: Resource = preload("res://scenes/lvl_0/part_wall_end.tscn")
 
+const FOOTSTEP_SOUNDS: Array[AudioStream] = [
+	preload("res://scenes/lvl_0/footstep_1.wav"),
+	preload("res://scenes/lvl_0/footstep_2.wav"),
+	preload("res://scenes/lvl_0/footstep_3.wav"),
+	preload("res://scenes/lvl_0/footstep_4.wav"),
+	preload("res://scenes/lvl_0/footstep_5.wav"),
+	preload("res://scenes/lvl_0/footstep_6.wav")
+]
+
 var model_floor: Model = _load_model(floor_scene)
 var model_ceiling: Model = _load_model(ceiling_scene)
 var model_ceiling_light: Model = _load_model(ceiling_light_scene)
@@ -71,13 +80,17 @@ func _ready() -> void:
 	var spawn_pos: Vector2i = _find_spawn_point()
 	
 	$Player.transform.origin = Vector3(float(spawn_pos.x) * TILE_SIZE, 0.0, float(spawn_pos.y) * TILE_SIZE)
+	
+	_setup_player_footsteps()
+
+func _setup_player_footsteps() -> void:
+	$Player/CharacterBody3D.apply_footsteps(FOOTSTEP_SOUNDS)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
 	_handle_world_generation()
 	_handle_tile_graphics()
 	_handle_static_collision_shapes()
-
 
 func _place_wall(model: Model, tile_index: Vector2i, angle: float) -> void:
 	_instantiate_model(model, tile_index, angle)
