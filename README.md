@@ -19,7 +19,7 @@ A way for 'finish' the game would be to escape the Backrooms. However it is not 
 - A link to the official wiki page will be presented as well. When clicking on it, the player will be redirected to the official wiki page inside the same phone (if possible). There may be a disclaimer somewhere that this game-level is only X% accurate due to uncertainties / unfinished work.
 - While the phone is active, the game is in a paused state, unless you are in an online session. This seems fair as in some levels require you to run IMMEDIATELY whenever you get into the level.
 - There will be M.E.G. bases, and you can trade stuff like almond water for armor and weapons.
-- The main character will be very focal. Screaming around, tearing off closed out of insanity in some levels, or talking out loud that it is very moisty, stuff like that...
+- There will be a narator, that will talk about some parts of the level whenever you enter it. Things like: "Bob is feeling watched..." ( or whatever the main character name is... ).
 
 ## Features
 
@@ -240,3 +240,27 @@ Call for contributors!
 # extensions ?
 - Access to join a large dedicated server full of other players.
 - A home. You can build/buy a home in a M.E.G. Base. **only once!**. It will leave a permanent mark on the map ( if there is room ). Destroying your home will allow you to build it elsewhere.
+
+# Suggestions
+- Navigational mechanics:
+ - Dark/blind rooms
+  - Pressing Q or E will make you use your hands to touch around.
+  - Stubbing an object shows a hit marker (blue/white). High is you hit your head, middle is hit your stomach, and Low is you hit your leg or feet.
+  - Echo device for creating a ping to help navigating dark rooms.
+ - Markers/Spraycans:
+  - Make markings to show where you have been or mark down rooms to avoid.
+ - Yarn string:
+  - To help you return, can be cut by entities or shifting rooms.
+ - Maps
+  - Instead of a simple map that draws itself and shows where your are, you need to make your own and keep note yourself. (shifting rooms will not work with maps though).
+- Base building:
+ - (deserted) MEG outposts can be used to help survive the backrooms
+ - Making base upgrades and devices to navigate the backrooms easier (use a lot of battery)
+ - Fortifications??
+- Upgrading and/or making devices need certain salvage
+ - To balance it out your character cant carry 120kg of scrap all at once... (15kg max?)
+ - Tools to help salvage/transport?
+- Equipment:
+ - Tools and devices you can take with you
+ - Hazmat or other suits for navigating certain areas easier/safely
+  - Can be tedious to crawl through certain spaces when having a hazmat suit on.  
