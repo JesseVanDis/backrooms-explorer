@@ -1,6 +1,6 @@
 [gd_resource type="ArrayMesh" format=4 uid="uid://noik808al32k"]
 
-[ext_resource type="Texture2D" path="res://assets/textures/free grass.png" id="1_mpk22"]
+[ext_resource type="Texture2D" uid="uid://8j1xy4xmb55l" path="res://assets/textures/free grass.png" id="1_mpk22"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iqv4a"]
 resource_name = "grass"
