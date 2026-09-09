@@ -20,13 +20,13 @@ const FOOTSTEP_SOUNDS: Array[AudioStream] = [
 	preload("res://scenes/lvl_0/footstep_2.wav"),
 	preload("res://scenes/lvl_0/footstep_3.wav"),
 	preload("res://scenes/lvl_0/footstep_4.wav"),
-	preload("res://scenes/lvl_0/footstep_5.wav"),
-	preload("res://scenes/lvl_0/footstep_6.wav")
+	preload("res://scenes/lvl_0/footstep_5.wav")
 ]
 
+const FOOTSTEP_START_SOUND: AudioStream = preload("res://scenes/lvl_0/footstep_start.wav")
+
 const JUMP_SOUNDS: Array[AudioStream] = [
-	preload("res://scenes/lvl_0/jump_start_1.wav"),
-	preload("res://scenes/lvl_0/jump_start_2.wav")
+	preload("res://scenes/lvl_0/jump_start_1.wav")
 ]
 
 const LANDING_SOUNDS: Array[AudioStream] = [
@@ -96,6 +96,7 @@ func _ready() -> void:
 func _setup_player_footsteps() -> void:
 	var player: Player = $Player/CharacterBody3D
 	player.apply_footsteps(FOOTSTEP_SOUNDS)
+	player.apply_footstep_start_sound(FOOTSTEP_START_SOUND)
 	player.apply_jump_sounds(JUMP_SOUNDS)
 	player.apply_landing_sounds(LANDING_SOUNDS)
 

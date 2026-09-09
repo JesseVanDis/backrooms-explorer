@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bn0dapt5avm2l"
+uid="uid://dqftofgtvcnne"
 path="res://.godot/imported/part_wall_i.blend-d25d5952bd5e9ebaa37ea93f8b8abbba.scn"
 
 [deps]
@@ -60,4 +60,4 @@ blender/animation/limit_playback=true
 blender/animation/always_sample=true
 blender/animation/group_tracks=true
 gltf/naming_version=2
-gltf/texture_map_mode=1
+gltf/texture_map_mode=0

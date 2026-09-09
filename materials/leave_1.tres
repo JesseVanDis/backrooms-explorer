@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://b72dacq23g4qy"]
+
+[ext_resource type="Texture2D" uid="uid://dwxtvrvbrju6c" path="res://assets/textures/Leaf 1_Alb.png" id="1_acekp"]
+
+[resource]
+transparency = 1
+albedo_texture = ExtResource("1_acekp")

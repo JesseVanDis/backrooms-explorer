@@ -20,6 +20,11 @@ config/icon="res://icon.svg"
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[editor]
+
+movie_writer/movie_file="/home/jesse/Downloads/backrooms_game/backrooms.ogv"
+movie_writer/fps=30
+
 [input]
 
 forward={

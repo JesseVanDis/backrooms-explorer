@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://byjxtaij4gmeo"]
 
-[ext_resource type="PackedScene" uid="uid://bn0dapt5avm2l" path="res://scenes/lvl_0/saves/part_wall_i.blend" id="1_8nkiq"]
-[ext_resource type="Material" uid="uid://6tbkpapliiuf" path="res://scenes/lvl_0/wallpaper.tres" id="2_e2n6o"]
+[ext_resource type="PackedScene" path="res://scenes/lvl_0/saves/part_wall_i.blend" id="1_8nkiq"]
+[ext_resource type="Material" path="res://scenes/lvl_0/wallpaper.tres" id="2_e2n6o"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_8nkiq"]
 size = Vector3(0.2000001, 2.3069577, 1)

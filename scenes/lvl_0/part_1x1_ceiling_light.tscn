@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://8y8epqhwryyd"]
 
-[ext_resource type="PackedScene" uid="uid://c2ax6owh0gymv" path="res://scenes/lvl_0/saves/part_1x1_ceiling_light.blend" id="1_ff6hj"]
+[ext_resource type="PackedScene" path="res://scenes/lvl_0/saves/part_1x1_ceiling_light.blend" id="1_ff6hj"]
 
 [node name="part_1x1_ceiling_light" unique_id=1814395978 instance=ExtResource("1_ff6hj")]
 

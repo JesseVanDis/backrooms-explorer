@@ -1,0 +1,42 @@
+[gd_resource type="ArrayMesh" format=4 uid="uid://noik808al32k"]
+
+[ext_resource type="Texture2D" path="res://assets/textures/free grass.png" id="1_mpk22"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iqv4a"]
+resource_name = "grass"
+transparency = 4
+cull_mode = 2
+albedo_texture = ExtResource("1_mpk22")
+metadata/_gltf_primary_texture_coord = 0
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_4earp"]
+_surfaces = [{
+"aabb": AABB(-0.18590727, -0.0062339567, -0.12188094, 0.34210125, 0.24482541, 0.31589472),
+"format": 34896613377,
+"index_count": 18,
+"index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABAAHAAUACAAJAAoACAALAAkA"),
+"name": "grass",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 12,
+"vertex_data": PackedByteArray("cx0AAMViAADT9///2gsAAH8c///aCwAAx/gAAMViAACnaQAAAAAAAHJj1uz//wAAAADW7HVFAAAazQAAiboAAJKvAACqGAAAi6sOzVHsAAD//w7N6U0AAB9bAAAStwAA")
+}]
+blend_shape_mode = 0
+
+[resource]
+resource_name = "frontrooms_0_Cube_029"
+_surfaces = [{
+"aabb": AABB(-0.18590727, -0.0062339567, -0.12188094, 0.34210125, 0.24482541, 0.31589472),
+"attribute_data": PackedByteArray("//////9//3////9//3//////////f/9/////f/9//////////3//f////3//f///"),
+"format": 34896613399,
+"index_count": 18,
+"index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABAAHAAUACAAJAAoACAALAAkA"),
+"material": SubResource("StandardMaterial3D_iqv4a"),
+"name": "grass",
+"primitive": 3,
+"uv_scale": Vector4(2, 2, 0, 0),
+"vertex_count": 12,
+"vertex_data": PackedByteArray("cx0AAMVi///T9///2gv//38c///aC///x/gAAMVi//+naQAAAACg13Jj1uz//6DXAADW7HVFoNcazQAAibqg15KvAACqGBGwi6sOzVHsEbD//w7N6U0RsB9bAAAStxGwKZb//ymW//8plv//KZb//3Or5w9zq+cPc6vnD3Or5w/kW/M45FvzOORb8zjkW/M4")
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_4earp")

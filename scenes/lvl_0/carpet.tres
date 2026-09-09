@@ -1,7 +1,7 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://dpkyn41qpdxao"]
 
-[ext_resource type="Shader" uid="uid://dh01gj5soknke" path="res://scenes/lvl_0/carpet.gdshader" id="1_q8swi"]
-[ext_resource type="Texture2D" uid="uid://drt7mp3al5rgw" path="res://generic_assets/textures/generic_noise.png" id="2_uvfj5"]
+[ext_resource type="Shader" path="res://scenes/lvl_0/carpet.gdshader" id="1_q8swi"]
+[ext_resource type="Texture2D" path="res://assets/textures/generic_noise.png" id="2_uvfj5"]
 
 [resource]
 render_priority = 0

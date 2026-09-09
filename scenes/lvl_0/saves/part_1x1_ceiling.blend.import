@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bptq2krxforpc"
+uid="uid://bn002v1fucwys"
 path="res://.godot/imported/part_1x1_ceiling.blend-5368d82d026092b6a399dc5bc78802d8.scn"
 
 [deps]
@@ -60,4 +60,4 @@ blender/animation/limit_playback=true
 blender/animation/always_sample=true
 blender/animation/group_tracks=true
 gltf/naming_version=2
-gltf/texture_map_mode=1
+gltf/texture_map_mode=0

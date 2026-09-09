@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://ctkngyu5rcixj"]
 
 [ext_resource type="Script" uid="uid://rbo2fgyyfpte" path="res://scenes/lvl_0/lvl_0.gd" id="1_j6thp"]
-[ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://generic_assets/scenes/player.tscn" id="1_rj2d8"]
+[ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://assets/models/player.tscn" id="1_rj2d8"]
 [ext_resource type="PackedScene" uid="uid://dbac8i5a3v6kp" path="res://scenes/lvl_0/part_1x1_floor.tscn" id="3_rgdx1"]
 [ext_resource type="AudioStream" uid="uid://dmf0wv5g66kt4" path="res://scenes/lvl_0/fluorescent-light-buzz.mp3" id="3_smeuj"]
 [ext_resource type="PackedScene" uid="uid://byjxtaij4gmeo" path="res://scenes/lvl_0/part_wall_i.tscn" id="4_qmsdi"]
@@ -44,9 +44,9 @@ environment = SubResource("Environment_j6thp")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.411394, 0, 1.8429631)
 
 [node name="Map" type="Node3D" parent="." unique_id=1437659456]
+visible = false
 
 [node name="editor_only_playground" parent="Map" unique_id=84726402 instance=ExtResource("3_rgdx1")]
-visible = false
 
 [node name="part_1x1_floor" parent="Map/editor_only_playground" unique_id=1597753756 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)

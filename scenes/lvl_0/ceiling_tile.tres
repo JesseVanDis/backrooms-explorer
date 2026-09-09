@@ -1,7 +1,7 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://dsiu2w42psoxk"]
 
 [ext_resource type="Shader" uid="uid://eee5s3jb685i" path="res://scenes/lvl_0/ceiling_tile.gdshader" id="1_bj0ij"]
-[ext_resource type="Texture2D" uid="uid://drt7mp3al5rgw" path="res://generic_assets/textures/generic_noise.png" id="2_ay827"]
+[ext_resource type="Texture2D" uid="uid://csj66kw2o3p1l" path="res://assets/textures/generic_noise.png" id="2_ay827"]
 
 [resource]
 render_priority = 0
