@@ -2,6 +2,11 @@ extends CharacterBody3D
 class_name Player
 
 
+enum MovementState {
+	RUNNING,
+	PUSHING
+}
+
 const SPEED: float = 3.0
 const JUMP_VELOCITY: float = 3.5
 const FOOTSTEP_INTERVAL: float = 0.36
@@ -26,6 +31,8 @@ const LANDING_SOUNDS: Array[AudioStream] = [
 	preload("res://assets/sounds/jump_end_1.wav"),
 	preload("res://assets/sounds/jump_end_2.wav")
 ]
+
+var movement_state: MovementState = MovementState.RUNNING
 
 var _footstep_sounds: Array[AudioStream] = FOOTSTEP_SOUNDS
 var _footstep_start_sound: AudioStream = FOOTSTEP_START_SOUND
@@ -118,6 +125,20 @@ func _unhandled_input(event: InputEvent) -> void:
 			camera_node.rotate_x(-event.relative.y * 0.01)
 			camera_node.rotation.x = clamp(camera_node.rotation.x, deg_to_rad(-90), deg_to_rad(90))
 
+func _get_movement_speed_multiplier() -> float:
+	match movement_state:
+		MovementState.PUSHING:
+			return 0.2
+		_:
+			return 1.0
+
+func _get_animation_speed_multiplier() -> float:
+	match movement_state:
+		MovementState.PUSHING:
+			return 0.7
+		_:
+			return 1.0
+
 func _physics_process(delta: float) -> void:
 	var was_in_air: bool = not is_on_floor()
 	# Add the gravity.
@@ -133,9 +154,10 @@ func _physics_process(delta: float) -> void:
 	# As good practice, you should replace UI actions with custom gameplay actions.
 	var input_dir: Vector2 = Input.get_vector("left", "right", "forward", "backward")
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+
 	if direction:
-		velocity.x = direction.x * SPEED
-		velocity.z = direction.z * SPEED
+		velocity.x = direction.x * SPEED * _get_movement_speed_multiplier()
+		velocity.z = direction.z * SPEED * _get_movement_speed_multiplier()
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
 		velocity.z = move_toward(velocity.z, 0, SPEED)
@@ -153,11 +175,13 @@ func _handle_head_bob(delta: float) -> void:
 	var horizontal_offset: float = 0.0
 	var lowering_offset: float = 0.0
 	
+	var multiplier: float = _get_animation_speed_multiplier()
+	
 	if is_on_floor() and velocity.length() > 0.1:
-		_bob_phase += delta * (PI / FOOTSTEP_INTERVAL)
+		_bob_phase += delta * (PI / FOOTSTEP_INTERVAL) * multiplier
 		_bob_phase = fmod(_bob_phase, PI * 2.0)
-		vertical_offset = BOB_VERTICAL_AMPLITUDE * abs(sin(_bob_phase))
-		horizontal_offset = BOB_HORIZONTAL_AMPLITUDE * sin(_bob_phase)
+		vertical_offset = BOB_VERTICAL_AMPLITUDE * abs(sin(_bob_phase)) * multiplier
+		horizontal_offset = BOB_HORIZONTAL_AMPLITUDE * sin(_bob_phase) * multiplier
 		lowering_offset = -MOVEMENT_LOWERING
 	
 	camera_node.position.y = lerp(camera_node.position.y, _default_camera_y + lowering_offset + vertical_offset, delta * 15.0)
@@ -171,9 +195,9 @@ func _handle_footsteps(delta: float) -> void:
 			_footstep_timer = 0.0
 			_bob_phase = 0.0
 			return
-		
+
 		_footstep_timer += delta
-		if _footstep_timer >= FOOTSTEP_INTERVAL:
+		if _footstep_timer >= (FOOTSTEP_INTERVAL / _get_animation_speed_multiplier()):
 			_play_footstep()
 			_footstep_timer = 0.0
 			_bob_phase = fmod(round(_bob_phase / PI) * PI, PI * 2.0)
