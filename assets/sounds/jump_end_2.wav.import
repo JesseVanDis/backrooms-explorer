@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://dolwej8pfc23d"
-path="res://.godot/imported/footstep_4.wav-592c7e73626caf075ef7ae54c19f7c87.sample"
+uid="uid://d28scjbmsf1it"
+path="res://.godot/imported/jump_end_2.wav-1bffc772ba01dd9c72bd0727272ebff5.sample"
 
 [deps]
 
-source_file="res://scenes/lvl_0/footstep_4.wav"
-dest_files=["res://.godot/imported/footstep_4.wav-592c7e73626caf075ef7ae54c19f7c87.sample"]
+source_file="res://assets/sounds/jump_end_2.wav"
+dest_files=["res://.godot/imported/jump_end_2.wav-1bffc772ba01dd9c72bd0727272ebff5.sample"]
 
 [params]
 

@@ -11,10 +11,26 @@ const MOVEMENT_LOWERING: float = 0.15
 
 @onready var camera_node : Node3D = $Neck/Camera3D
 
-var _footstep_sounds: Array[AudioStream] = []
-var _footstep_start_sound: AudioStream = null
-var _jump_sounds: Array[AudioStream] = []
-var _landing_sounds: Array[AudioStream] = []
+const FOOTSTEP_SOUNDS: Array[AudioStream] = [
+	preload("res://assets/sounds/footstep_1.wav"),
+	preload("res://assets/sounds/footstep_2.wav"),
+	preload("res://assets/sounds/footstep_3.wav"),
+	preload("res://assets/sounds/footstep_4.wav"),
+	preload("res://assets/sounds/footstep_5.wav")
+]
+const FOOTSTEP_START_SOUND: AudioStream = preload("res://assets/sounds/footstep_start.wav")
+const JUMP_SOUNDS: Array[AudioStream] = [
+	preload("res://assets/sounds/jump_start_1.wav")
+]
+const LANDING_SOUNDS: Array[AudioStream] = [
+	preload("res://assets/sounds/jump_end_1.wav"),
+	preload("res://assets/sounds/jump_end_2.wav")
+]
+
+var _footstep_sounds: Array[AudioStream] = FOOTSTEP_SOUNDS
+var _footstep_start_sound: AudioStream = FOOTSTEP_START_SOUND
+var _jump_sounds: Array[AudioStream] = JUMP_SOUNDS
+var _landing_sounds: Array[AudioStream] = LANDING_SOUNDS
 var _footstep_timer: float = 0.0
 var _audio_player: AudioStreamPlayer3D
 var _default_camera_y: float = 0.0

@@ -15,24 +15,6 @@ const wall_scene_i: Resource = preload("res://scenes/lvl_0/part_wall_i.tscn")
 const wall_scene_l: Resource = preload("res://scenes/lvl_0/part_wall_l.tscn")
 const wall_scene_e: Resource = preload("res://scenes/lvl_0/part_wall_end.tscn")
 
-const FOOTSTEP_SOUNDS: Array[AudioStream] = [
-	preload("res://scenes/lvl_0/footstep_1.wav"),
-	preload("res://scenes/lvl_0/footstep_2.wav"),
-	preload("res://scenes/lvl_0/footstep_3.wav"),
-	preload("res://scenes/lvl_0/footstep_4.wav"),
-	preload("res://scenes/lvl_0/footstep_5.wav")
-]
-
-const FOOTSTEP_START_SOUND: AudioStream = preload("res://scenes/lvl_0/footstep_start.wav")
-
-const JUMP_SOUNDS: Array[AudioStream] = [
-	preload("res://scenes/lvl_0/jump_start_1.wav")
-]
-
-const LANDING_SOUNDS: Array[AudioStream] = [
-	preload("res://scenes/lvl_0/jump_end_1.wav"),
-	preload("res://scenes/lvl_0/jump_end_2.wav")
-]
 
 var model_floor: Model = _load_model(floor_scene)
 var model_ceiling: Model = _load_model(ceiling_scene)
@@ -90,15 +72,6 @@ func _ready() -> void:
 	var spawn_pos: Vector2i = _find_spawn_point()
 	
 	$Player.transform.origin = Vector3(float(spawn_pos.x) * TILE_SIZE, 0.0, float(spawn_pos.y) * TILE_SIZE)
-	
-	_setup_player_footsteps()
-
-func _setup_player_footsteps() -> void:
-	var player: Player = $Player/CharacterBody3D
-	player.apply_footsteps(FOOTSTEP_SOUNDS)
-	player.apply_footstep_start_sound(FOOTSTEP_START_SOUND)
-	player.apply_jump_sounds(JUMP_SOUNDS)
-	player.apply_landing_sounds(LANDING_SOUNDS)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
