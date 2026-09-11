@@ -34,7 +34,11 @@ This game uses the following third-party assets:
 * **Trees** ([url](https://www.turbosquid.com/FullPreview/1386578)) - Omansh Dixit, TurboSquid's Standard 3D Model License
 * **Plant** ([url](https://www.turbosquid.com/FullPreview/1770446)) - SPACESCAN, TurboSquid's Standard 3D Model License 
 * **Plant** ([url](https://www.turbosquid.com/FullPreview/1030006)) - polyninja3d, TurboSquid's Standard 3D Model License
+* [Format this] https://www.turbosquid.com/FullPreview/1912950
+* [Format this] https://www.turbosquid.com/FullPreview/940229
+* [Format this] https://www.turbosquid.com/FullPreview/1541942
 * **Clouds shader** ([url](https://godotshaders.com/shader/realistic-spatial-clouds/)) - sebashtioon, CC0
+
 
 ---
 
