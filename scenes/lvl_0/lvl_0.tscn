@@ -44,9 +44,9 @@ environment = SubResource("Environment_j6thp")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.411394, 0, 1.8429631)
 
 [node name="Map" type="Node3D" parent="." unique_id=1437659456]
-visible = false
 
 [node name="editor_only_playground" parent="Map" unique_id=84726402 instance=ExtResource("3_rgdx1")]
+visible = false
 
 [node name="part_1x1_floor" parent="Map/editor_only_playground" unique_id=1597753756 instance=ExtResource("3_rgdx1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
