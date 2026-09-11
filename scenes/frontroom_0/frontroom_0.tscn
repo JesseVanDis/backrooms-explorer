@@ -3,6 +3,7 @@
 [ext_resource type="LightmapGIData" uid="uid://2gpusrt81l4" path="res://scenes/frontroom_0/frontroom_0.lmbake" id="1_56db3"]
 [ext_resource type="Shader" uid="uid://cp3tsmuhr3dd0" path="res://scenes/frontroom_0/frontroom_0_sky.gdshader" id="1_uy0mw"]
 [ext_resource type="PackedScene" uid="uid://dd2fgigir7jry" path="res://scenes/frontroom_0/garden.tscn" id="3_uy0mw"]
+[ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://assets/models/player.tscn" id="4_8lqa0"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uy0mw"]
 shader = ExtResource("1_uy0mw")
@@ -149,6 +150,13 @@ surface_material_override/0 = SubResource("ShaderMaterial_f4hk2")
 [node name="frontrooms_0" parent="." unique_id=1371298715 instance=ExtResource("3_uy0mw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9137387, 0, 3.38057)
 
+[node name="AreaLight3D3" type="AreaLight3D" parent="frontrooms_0" unique_id=1241896618]
+transform = Transform3D(-2.1855692e-07, 0, -1, 0, 1, 0, 1, 0, -2.1855692e-07, -13.672714, 1.4822526, -3.5344713)
+light_energy = 0.3
+light_bake_mode = 1
+area_range = 10.0
+area_size = Vector2(2.1699352, 1.11205)
+
 [node name="AreaLight3D" type="AreaLight3D" parent="frontrooms_0" unique_id=917426796]
 transform = Transform3D(1.3113416e-07, 0, 1, 0, 1, 0, -1, 0, 1.3113416e-07, -3.5561001, 1.4779526, -3.7885773)
 light_energy = 0.3
@@ -162,3 +170,6 @@ light_energy = 0.3
 light_bake_mode = 1
 area_range = 10.0
 area_size = Vector2(0.643523, 1.6085932)
+
+[node name="Player" parent="." unique_id=1091834531 instance=ExtResource("4_8lqa0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26800656, -2.3841858e-07, 0.053611755)

@@ -2,12 +2,18 @@
 
 [ext_resource type="PackedScene" uid="uid://dty5amrjwv4nn" path="res://assets/models/frontrooms_0.gltf" id="1_v7wue"]
 [ext_resource type="ArrayMesh" uid="uid://noik808al32k" path="res://assets/models/grass_0.tres" id="2_0dq8w"]
-[ext_resource type="Material" uid="uid://b72dacq23g4qy" path="res://materials/leave_1.tres" id="2_ppjf6"]
-[ext_resource type="Texture2D" uid="uid://s6ykm552qvxb" path="res://assets/textures/TexturesCom_Leaves0198_1_alphamasked_S.png" id="3_fuxr4"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_v5yuo"]
-transparency = 1
-albedo_texture = ExtResource("3_fuxr4")
+[sub_resource type="BoxShape3D" id="BoxShape3D_fuxr4"]
+size = Vector3(450.50702, 169.50749, 11.742676)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_5ddqd"]
+size = Vector3(16.211868, 0.19593719, 12.888815)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tuvue"]
+size = Vector3(0.14892077, 5.276027, 2.586734)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ppjf6"]
+size = Vector3(0.14892077, 3.1555917, 2.3970368)
 
 [sub_resource type="MultiMesh" id="MultiMesh_0dq8w"]
 transform_format = 1
@@ -17,38 +23,45 @@ buffer = PackedFloat32Array(0.462485, -0.012023303, 0.91224813, 0.9587283, 0.046
 
 [node name="frontrooms_0" unique_id=1371298715 instance=ExtResource("1_v7wue")]
 
-[node name="GrassPlatform" parent="." index="0" unique_id=1972584201]
+[node name="StaticBody3D" type="StaticBody3D" parent="." index="0" unique_id=2073121037]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1844211, -0.09796859, -2.3815534)
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=1427406345]
+transform = Transform3D(0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0.010294676, 0.94550586, 1.1025031)
+shape = SubResource("BoxShape3D_fuxr4")
+
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="StaticBody3D" index="1" unique_id=68663930]
+transform = Transform3D(0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0.010294676, 0.94550586, -2.896353)
+shape = SubResource("BoxShape3D_fuxr4")
+
+[node name="CollisionShape3D4" type="CollisionShape3D" parent="StaticBody3D" index="2" unique_id=1391446171]
+transform = Transform3D(-4.3711387e-10, 0, -0.01, 0, 0.01, 0, 0.01, 0, -4.3711387e-10, 2.2113025, 0.94550586, -0.8786094)
+shape = SubResource("BoxShape3D_fuxr4")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="3" unique_id=1345079085]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6284842, 0, 0.6948955)
+shape = SubResource("BoxShape3D_5ddqd")
+
+[node name="CollisionShape3D5" type="CollisionShape3D" parent="StaticBody3D" index="4" unique_id=585274379]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3155594, 2.735982, -1.6730411)
+shape = SubResource("BoxShape3D_tuvue")
+
+[node name="CollisionShape3D6" type="CollisionShape3D" parent="StaticBody3D" index="5" unique_id=1728714566]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3155594, 2.735982, 1.943711)
+shape = SubResource("BoxShape3D_tuvue")
+
+[node name="CollisionShape3D7" type="CollisionShape3D" parent="StaticBody3D" index="6" unique_id=1687568191]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3155594, 3.7961998, -0.05351329)
+shape = SubResource("BoxShape3D_ppjf6")
+
+[node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="." index="1" unique_id=897325064]
+multimesh = SubResource("MultiMesh_0dq8w")
+
+[node name="GrassPlatform" parent="." index="2" unique_id=1348110561]
 visible = false
 
-[node name="Cube_005" parent="Scene" parent_id_path=PackedInt32Array(1091244542) index="5" unique_id=279419804]
+[node name="Cube_002" parent="Scene" parent_id_path=PackedInt32Array(667467593) index="5" unique_id=1628591032]
 gi_lightmap_texel_scale = 2.0
 
-[node name="Cube_022" parent="Scene" parent_id_path=PackedInt32Array(1091244542) index="17" unique_id=223609133]
+[node name="Cube_005" parent="Scene" parent_id_path=PackedInt32Array(667467593) index="7" unique_id=1836247673]
 gi_lightmap_texel_scale = 2.0
-
-[node name="FENCEWOOD_004" parent="Scene" parent_id_path=PackedInt32Array(1091244542) index="22" unique_id=335874056]
-gi_lightmap_texel_scale = 2.0
-
-[node name="GrassPlatform_001" parent="Scene" parent_id_path=PackedInt32Array(1091244542) index="28" unique_id=1832963439]
-gi_lightmap_texel_scale = 2.0
-
-[node name="leaves_001" parent="Scene" parent_id_path=PackedInt32Array(1091244542) index="30" unique_id=1276842068]
-gi_mode = 2
-surface_material_override/0 = ExtResource("2_ppjf6")
-
-[node name="leaves_002" parent="Scene" parent_id_path=PackedInt32Array(1091244542) index="31" unique_id=1421367941]
-surface_material_override/0 = ExtResource("2_ppjf6")
-
-[node name="leaves_003" parent="Scene" parent_id_path=PackedInt32Array(1091244542) index="32" unique_id=1603475793]
-surface_material_override/0 = SubResource("StandardMaterial3D_v5yuo")
-
-[node name="leaves_004" parent="Scene" parent_id_path=PackedInt32Array(1091244542) index="33" unique_id=279668750]
-gi_mode = 2
-surface_material_override/0 = ExtResource("2_ppjf6")
-
-[node name="leaves_005" parent="Scene" parent_id_path=PackedInt32Array(1091244542) index="34" unique_id=1737671071]
-gi_mode = 2
-surface_material_override/0 = ExtResource("2_ppjf6")
-
-[node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="." index="3" unique_id=897325064]
-multimesh = SubResource("MultiMesh_0dq8w")
