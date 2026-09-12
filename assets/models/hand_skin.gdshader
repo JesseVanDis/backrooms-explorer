@@ -43,7 +43,7 @@ uniform sampler2D specular_map;
 
 group_uniforms Normal;
 
-uniform float normal_strength : hint_range(0.0, 2.0) = 1.3;
+uniform float normal_strength : hint_range(0.0, 2.0) = 0.6;
 
 
 // Flip the green channel if the normal map appears
@@ -68,7 +68,7 @@ uniform float bump_distance : hint_range(0.0, 1.0) = 0.1;
 
 group_uniforms Skin;
 
-uniform float subsurface_strength : hint_range(0.0, 1.0) = 0.7;
+uniform float subsurface_strength : hint_range(0.0, 1.0) = 0.0;
 
 uniform vec3 subsurface_color : source_color =
     vec3(1.0, 0.20, 0.12);
@@ -88,13 +88,13 @@ group_uniforms Surface;
 
 
 // Global multiplier for the specular map.
-uniform float specular_strength : hint_range(0.0, 1.0) = 1.0;
+uniform float specular_strength : hint_range(0.0, 1.0) = 0.22;
 
 
 // Base roughness.
 // This is exposed because the exact Blender Math node
 // operation was not included in the export.
-uniform float base_roughness : hint_range(0.0, 1.0) = 0.35;
+uniform float base_roughness : hint_range(0.0, 1.0) = 0.7;
 
 
 // How much the specular map affects roughness.
