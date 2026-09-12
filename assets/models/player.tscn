@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://ccyky7e256pn4"]
 
 [ext_resource type="Script" uid="uid://e0meeo45d2ya" path="res://assets/scripts/player.gd" id="1_l7vax"]
+[ext_resource type="PackedScene" uid="uid://b0ix8rklm4lx3" path="res://assets/models/hand.gltf" id="2_ormyk"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_khlrb"]
 radius = 0.3
@@ -15,6 +16,9 @@ height = 1.8
 [node name="CharacterBody3D" type="CharacterBody3D" parent="." unique_id=763029811]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9348949, 0)
 script = ExtResource("1_l7vax")
+
+[node name="hand" parent="CharacterBody3D" unique_id=1604106543 instance=ExtResource("2_ormyk")]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, -0.61312497, -0.31529284, -0.8757189)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="CharacterBody3D" unique_id=479480019]
 cast_shadow = 0
