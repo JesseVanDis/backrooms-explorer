@@ -1,8 +1,9 @@
 shader_type spatial;
-render_mode sss_mode_skin, cull_back;
+render_mode sss_mode_skin, cull_back, depth_draw_always;
 
 uniform sampler2D normal_texture : hint_normal;
 uniform sampler2D skin_texture : source_color;
+uniform sampler2D alpha_texture : source_color;
 uniform sampler2D height_texture;
 uniform sampler2D specular_map;  // Black = 100% specular, White = 0% specular
 
@@ -32,6 +33,7 @@ vec3 apply_brightness_contrast(vec3 color, float brightness, float contrast) {
 void fragment() {
 	vec3 normal_tex = texture(normal_texture, UV).rgb;
 	vec3 skin_tex = texture(skin_texture, UV).rgb;
+	float alpha = texture(alpha_texture, UV).r;
 	float height = texture(height_texture, UV).r;
 	float specular_tex = texture(specular_map, UV).r;
 
@@ -75,4 +77,5 @@ void fragment() {
 
 	// BACKLIGHT provides a reasonable approximation of Translucent BSDF in Godot.
 	BACKLIGHT = subsurface_color * translucency;
+	ALPHA = alpha;
 }

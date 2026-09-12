@@ -1,0 +1,28 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cbs7xiqee32nl"]
+
+[ext_resource type="Shader" uid="uid://ktvnrnlqlmdy" path="res://assets/materials/hand_skin.gdshader" id="1_dobmv"]
+[ext_resource type="Texture2D" uid="uid://dw3vqh4qaq5rs" path="res://assets/textures/Hand_3D_ALPHA.jpg" id="2_vc2hh"]
+[ext_resource type="Texture2D" uid="uid://bbfioahsk1mxi" path="res://assets/textures/Hand_3D_BUMP.jpg" id="3_vv584"]
+[ext_resource type="Texture2D" uid="uid://cax533bkpsxt8" path="res://assets/textures/Hand_3D_NRM.jpg" id="4_tfyvc"]
+[ext_resource type="Texture2D" uid="uid://dsmcmyw5dowxv" path="res://assets/textures/Hand_3D_COLOR.jpg" id="5_0mrgq"]
+[ext_resource type="Texture2D" uid="uid://btqec7lwomqel" path="res://assets/textures/Hand_3D_SPEC.jpg" id="6_oprpu"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_dobmv")
+shader_parameter/normal_texture = ExtResource("4_tfyvc")
+shader_parameter/skin_texture = ExtResource("5_0mrgq")
+shader_parameter/alpha_texture = ExtResource("2_vc2hh")
+shader_parameter/height_texture = ExtResource("3_vv584")
+shader_parameter/specular_map = ExtResource("6_oprpu")
+shader_parameter/normal_strength = 0.6
+shader_parameter/flip_normal_y = false
+shader_parameter/bump_strength = 0.15
+shader_parameter/bump_distance = 0.1
+shader_parameter/subsurface_strength = 0.0
+shader_parameter/subsurface_color = Color(1, 0.2, 0.12, 1)
+shader_parameter/subsurface_depth = 1.0
+shader_parameter/translucency = 0.1
+shader_parameter/specular_strength = 0.22
+shader_parameter/base_roughness = 0.7
+shader_parameter/specular_roughness_effect = 0.5
