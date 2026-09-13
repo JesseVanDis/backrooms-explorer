@@ -28,10 +28,11 @@ mesh = SubResource("CapsuleMesh_khlrb")
 shape = SubResource("CapsuleShape3D_knwgh")
 
 [node name="_Hands" parent="CharacterBody3D" unique_id=1296432070 instance=ExtResource("2_ormyk")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.20765606, 0.22809827, -0.34405)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.17700005, -0.15072721)
+visible = false
 
 [node name="_HandsAppearStartingPos" type="Marker3D" parent="CharacterBody3D" unique_id=1934598597]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.22426045, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08074331, 0)
 
 [node name="_Neck" type="Node3D" parent="CharacterBody3D" unique_id=532610939]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5330651, 0)

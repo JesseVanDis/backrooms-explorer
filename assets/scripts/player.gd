@@ -13,7 +13,7 @@ const FOOTSTEP_INTERVAL: float = 0.36
 const BOB_VERTICAL_AMPLITUDE: float = 0.08
 const BOB_HORIZONTAL_AMPLITUDE: float = 0.02
 const MOVEMENT_LOWERING: float = 0.15
-const HANDS_APPEAR_DURATION: float = 0.5
+const HANDS_APPEAR_DURATION: float = 0.3
 
 @onready var _node_camera : Node3D = $_Neck/Camera3D
 @onready var _node_hands : Node3D = $_Hands
@@ -112,14 +112,14 @@ func _on_movement_state_changed() -> void:
 		_hands_tween = create_tween()
 		_hands_tween.set_parallel(true)
 		_hands_tween.tween_property(_node_hands, "position", _hands_default_position, HANDS_APPEAR_DURATION).from(_node_hands_center.position)
-		_hands_tween.tween_property(_get_hands_material(), "shader_parameter/opacity", 1.0, HANDS_APPEAR_DURATION).from(0.0)
+		_hands_tween.tween_method(_get_hands_material().set_shader_parameter.bind("opacity"), 0.0, 1.0, HANDS_APPEAR_DURATION)
 		_node_animation_player.play(ANIM_NAME)
 		_node_animation_player.seek(0.0, true)
 	else:
 		_hands_tween = create_tween()
 		_hands_tween.set_parallel(true)
 		_hands_tween.tween_property(_node_hands, "position", _node_hands_center.position, HANDS_APPEAR_DURATION)
-		_hands_tween.tween_property(_get_hands_material(), "shader_parameter/opacity", 0.0, HANDS_APPEAR_DURATION)
+		_hands_tween.tween_method(_get_hands_material().set_shader_parameter.bind("opacity"), 1.0, 0.0, HANDS_APPEAR_DURATION)
 		_hands_tween.set_parallel(false)
 		_hands_tween.tween_callback(func(): _node_hands.visible = false)
 		_node_animation_player.play(ANIM_NAME, -1, -1.0, true)

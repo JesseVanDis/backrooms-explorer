@@ -30,4 +30,4 @@ godot --path . --export-release "Windows Desktop" ./build/debug/windows/backgroo
 - When changing the parsing tools, only invoke 'parse_assets.sh' to verify the changes.
 - Do not abbreviate function and variable names, with the exception of: `dt`
 - Do not do anything with(in) the nodes of any imported objects. Only operate on nodes that are set by Godot itself.
-
+- **Always** add a `push_error(...)` on error cases, such as a null check.  

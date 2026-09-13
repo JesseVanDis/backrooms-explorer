@@ -26,3 +26,4 @@ shader_parameter/translucency = 0.1
 shader_parameter/specular_strength = 0.22
 shader_parameter/base_roughness = 0.7
 shader_parameter/specular_roughness_effect = 0.5
+shader_parameter/opacity = 1.0
