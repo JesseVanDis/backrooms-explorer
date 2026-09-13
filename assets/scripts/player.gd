@@ -51,18 +51,16 @@ var _footstep_timer: float = 0.0
 var _audio_player: AudioStreamPlayer3D
 
 # Animations
-var _default_camera_y: float = 0.0
-var _default_camera_x: float = 0.0
+var _camera_default_position: Vector3 = Vector3.ZERO
+var _hands_default_position: Vector3 = Vector3.ZERO
 var _bob_phase: float = 0.0
 var _is_moving: bool = false
 var _hands_tween: Tween
-var _hands_default_position: Vector3 = Vector3.ZERO
 
 func _ready() -> void:
 	_audio_player = AudioStreamPlayer3D.new()
 	add_child(_audio_player)
-	_default_camera_y = _node_camera.position.y
-	_default_camera_x = _node_camera.position.x
+	_camera_default_position = _node_camera.position
 	_hands_default_position = _node_hands.position
 
 static func find_player(tree: SceneTree) -> Player:
@@ -253,8 +251,8 @@ func _handle_head_bob(delta: float) -> void:
 		horizontal_offset = BOB_HORIZONTAL_AMPLITUDE * sin(_bob_phase) * multiplier
 		lowering_offset = -MOVEMENT_LOWERING
 	
-	_node_camera.position.y = lerp(_node_camera.position.y, _default_camera_y + lowering_offset + vertical_offset, delta * 15.0)
-	_node_camera.position.x = lerp(_node_camera.position.x, _default_camera_x + horizontal_offset, delta * 15.0)
+	_node_camera.position.y = lerp(_node_camera.position.y, _camera_default_position.y + lowering_offset + vertical_offset, delta * 15.0)
+	_node_camera.position.x = lerp(_node_camera.position.x, _camera_default_position.x + horizontal_offset, delta * 15.0)
 
 func _handle_footsteps(delta: float) -> void:
 	if is_on_floor() and velocity.length() > 0.1:
