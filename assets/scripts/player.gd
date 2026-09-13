@@ -105,44 +105,29 @@ func _on_movement_state_changed() -> void:
 	
 	if _hands_tween:
 		_hands_tween.kill()
+	_hands_tween = null
 	
 	if movement_state == MovementState.PUSHING:
 		_node_hands.visible = true
 		_hands_tween = create_tween()
 		_hands_tween.set_parallel(true)
 		_hands_tween.tween_property(_node_hands, "position", _hands_default_position, HANDS_APPEAR_DURATION).from(_node_hands_center.position)
-		
-		# Get material to animate shader parameter
-		var hand_mesh: MeshInstance3D = _node_hands as MeshInstance3D
-		if not hand_mesh:
-			hand_mesh = _node_hands.find_child("*", true) as MeshInstance3D
-		
-		if hand_mesh:
-			var mat: ShaderMaterial = hand_mesh.get_surface_override_material(0)
-			if mat:
-				_hands_tween.tween_property(mat, "shader_parameter/opacity", 1.0, HANDS_APPEAR_DURATION).from(0.0)
-				
+		_hands_tween.tween_property(_get_hands_material(), "shader_parameter/opacity", 1.0, HANDS_APPEAR_DURATION).from(0.0)
 		_node_animation_player.play(ANIM_NAME)
 		_node_animation_player.seek(0.0, true)
 	else:
 		_hands_tween = create_tween()
 		_hands_tween.set_parallel(true)
 		_hands_tween.tween_property(_node_hands, "position", _node_hands_center.position, HANDS_APPEAR_DURATION)
-		
-		var hand_mesh: MeshInstance3D = _node_hands as MeshInstance3D
-		if not hand_mesh:
-			hand_mesh = _node_hands.find_child("*", true) as MeshInstance3D
-			
-		if hand_mesh:
-			var mat: ShaderMaterial = hand_mesh.get_surface_override_material(0)
-			if mat:
-				_hands_tween.tween_property(mat, "shader_parameter/opacity", 0.0, HANDS_APPEAR_DURATION)
-		
+		_hands_tween.tween_property(_get_hands_material(), "shader_parameter/opacity", 0.0, HANDS_APPEAR_DURATION)
 		_hands_tween.set_parallel(false)
 		_hands_tween.tween_callback(func(): _node_hands.visible = false)
-		
 		_node_animation_player.play(ANIM_NAME, -1, -1.0, true)
 		_node_animation_player.seek(FRAME_10_TIME, true)
+
+func _get_hands_material() -> ShaderMaterial:
+	var hand_mesh: MeshInstance3D = UtilsMesh.find_mesh_recursive(_node_hands)
+	return hand_mesh.get_surface_override_material(0) as ShaderMaterial
 
 func _process(_delta: float) -> void:
 	if _node_animation_player == null or not _node_animation_player.is_playing():

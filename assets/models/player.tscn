@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://ccyky7e256pn4"]
 
 [ext_resource type="Script" uid="uid://e0meeo45d2ya" path="res://assets/scripts/player.gd" id="1_l7vax"]
-[ext_resource type="PackedScene" uid="uid://baxdhli3jmlo1" path="res://assets/models/hands.blend" id="2_ormyk"]
+[ext_resource type="PackedScene" uid="uid://cos6ltyy7wpm1" path="res://assets/models/hands.tscn" id="2_ormyk"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_khlrb"]
 radius = 0.3
@@ -28,7 +28,7 @@ mesh = SubResource("CapsuleMesh_khlrb")
 shape = SubResource("CapsuleShape3D_knwgh")
 
 [node name="_Hands" parent="CharacterBody3D" unique_id=1296432070 instance=ExtResource("2_ormyk")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23134303, -0.3162334)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.20765606, 0.22809827, -0.34405)
 
 [node name="_HandsAppearStartingPos" type="Marker3D" parent="CharacterBody3D" unique_id=1934598597]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.22426045, 0)
