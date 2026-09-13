@@ -13,8 +13,12 @@ const FOOTSTEP_INTERVAL: float = 0.36
 const BOB_VERTICAL_AMPLITUDE: float = 0.08
 const BOB_HORIZONTAL_AMPLITUDE: float = 0.02
 const MOVEMENT_LOWERING: float = 0.15
+const HANDS_APPEAR_DURATION: float = 0.5
 
-@onready var camera_node : Node3D = $Neck/Camera3D
+@onready var _node_camera : Node3D = $_Neck/Camera3D
+@onready var _node_hands : Node3D = $_Hands
+@onready var _node_hands_center : Node3D = $_HandsAppearStartingPos
+@onready var _node_animation_player : AnimationPlayer = $_Hands/AnimationPlayer
 
 const FOOTSTEP_SOUNDS: Array[AudioStream] = [
 	preload("res://assets/sounds/footstep_1.wav"),
@@ -32,24 +36,34 @@ const LANDING_SOUNDS: Array[AudioStream] = [
 	preload("res://assets/sounds/jump_end_2.wav")
 ]
 
-var movement_state: MovementState = MovementState.RUNNING
+var movement_state: MovementState = MovementState.RUNNING:
+	set(value):
+		if movement_state != value:
+			movement_state = value
+			_on_movement_state_changed()
 
+# Sounds
 var _footstep_sounds: Array[AudioStream] = FOOTSTEP_SOUNDS
 var _footstep_start_sound: AudioStream = FOOTSTEP_START_SOUND
 var _jump_sounds: Array[AudioStream] = JUMP_SOUNDS
 var _landing_sounds: Array[AudioStream] = LANDING_SOUNDS
 var _footstep_timer: float = 0.0
 var _audio_player: AudioStreamPlayer3D
+
+# Animations
 var _default_camera_y: float = 0.0
 var _default_camera_x: float = 0.0
 var _bob_phase: float = 0.0
 var _is_moving: bool = false
+var _hands_tween: Tween
+var _hands_default_position: Vector3 = Vector3.ZERO
 
 func _ready() -> void:
 	_audio_player = AudioStreamPlayer3D.new()
 	add_child(_audio_player)
-	_default_camera_y = camera_node.position.y
-	_default_camera_x = camera_node.position.x
+	_default_camera_y = _node_camera.position.y
+	_default_camera_x = _node_camera.position.x
+	_hands_default_position = _node_hands.position
 
 static func find_player(tree: SceneTree) -> Player:
 	# Try to find the player in the scene tree via group
@@ -78,8 +92,78 @@ func apply_footstep_start_sound(sound: AudioStream) -> void:
 func apply_jump_sounds(sounds: Array[AudioStream]) -> void:
 	_jump_sounds = sounds
 
-func apply_landing_sounds(sounds: Array[AudioStream]) -> void:
-	_landing_sounds = sounds
+func _on_movement_state_changed() -> void:
+	if _node_hands == null or _node_animation_player == null:
+		return
+		
+	var anim_list: PackedStringArray = _node_animation_player.get_animation_list()
+	if anim_list.is_empty():
+		return
+	var ANIM_NAME: String = anim_list[0]
+	const FPS: float = 30.0
+	const FRAME_10_TIME: float = 10.0 / FPS
+	
+	if _hands_tween:
+		_hands_tween.kill()
+	
+	if movement_state == MovementState.PUSHING:
+		_node_hands.visible = true
+		_hands_tween = create_tween()
+		_hands_tween.set_parallel(true)
+		_hands_tween.tween_property(_node_hands, "position", _hands_default_position, HANDS_APPEAR_DURATION).from(_node_hands_center.position)
+		
+		# Get material to animate shader parameter
+		var hand_mesh: MeshInstance3D = _node_hands as MeshInstance3D
+		if not hand_mesh:
+			hand_mesh = _node_hands.find_child("*", true) as MeshInstance3D
+		
+		if hand_mesh:
+			var mat: ShaderMaterial = hand_mesh.get_surface_override_material(0)
+			if mat:
+				_hands_tween.tween_property(mat, "shader_parameter/opacity", 1.0, HANDS_APPEAR_DURATION).from(0.0)
+				
+		_node_animation_player.play(ANIM_NAME)
+		_node_animation_player.seek(0.0, true)
+	else:
+		_hands_tween = create_tween()
+		_hands_tween.set_parallel(true)
+		_hands_tween.tween_property(_node_hands, "position", _node_hands_center.position, HANDS_APPEAR_DURATION)
+		
+		var hand_mesh: MeshInstance3D = _node_hands as MeshInstance3D
+		if not hand_mesh:
+			hand_mesh = _node_hands.find_child("*", true) as MeshInstance3D
+			
+		if hand_mesh:
+			var mat: ShaderMaterial = hand_mesh.get_surface_override_material(0)
+			if mat:
+				_hands_tween.tween_property(mat, "shader_parameter/opacity", 0.0, HANDS_APPEAR_DURATION)
+		
+		_hands_tween.set_parallel(false)
+		_hands_tween.tween_callback(func(): _node_hands.visible = false)
+		
+		_node_animation_player.play(ANIM_NAME, -1, -1.0, true)
+		_node_animation_player.seek(FRAME_10_TIME, true)
+
+func _process(_delta: float) -> void:
+	if _node_animation_player == null or not _node_animation_player.is_playing():
+		return
+		
+	var current_anim: String = _node_animation_player.current_animation
+	if current_anim == "":
+		return
+		
+	const FPS: float = 30.0
+	const FRAME_10_TIME: float = 10.0 / FPS
+	var CURRENT_TIME: float = _node_animation_player.current_animation_position
+	
+	if movement_state == MovementState.PUSHING:
+		if CURRENT_TIME >= FRAME_10_TIME:
+			_node_animation_player.pause()
+			_node_animation_player.seek(FRAME_10_TIME, true)
+	else:
+		if CURRENT_TIME <= 0.0:
+			_node_animation_player.stop()
+			_node_hands.visible = false
 
 func _play_footstep() -> void:
 	if _footstep_sounds.is_empty():
@@ -122,8 +206,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		if event is InputEventMouseMotion:
 			rotate_y(-event.relative.x * 0.01)
-			camera_node.rotate_x(-event.relative.y * 0.01)
-			camera_node.rotation.x = clamp(camera_node.rotation.x, deg_to_rad(-90), deg_to_rad(90))
+			_node_camera.rotate_x(-event.relative.y * 0.01)
+			_node_camera.rotation.x = clamp(_node_camera.rotation.x, deg_to_rad(-90), deg_to_rad(90))
 
 func _get_movement_speed_multiplier() -> float:
 	match movement_state:
@@ -184,8 +268,8 @@ func _handle_head_bob(delta: float) -> void:
 		horizontal_offset = BOB_HORIZONTAL_AMPLITUDE * sin(_bob_phase) * multiplier
 		lowering_offset = -MOVEMENT_LOWERING
 	
-	camera_node.position.y = lerp(camera_node.position.y, _default_camera_y + lowering_offset + vertical_offset, delta * 15.0)
-	camera_node.position.x = lerp(camera_node.position.x, _default_camera_x + horizontal_offset, delta * 15.0)
+	_node_camera.position.y = lerp(_node_camera.position.y, _default_camera_y + lowering_offset + vertical_offset, delta * 15.0)
+	_node_camera.position.x = lerp(_node_camera.position.x, _default_camera_x + horizontal_offset, delta * 15.0)
 
 func _handle_footsteps(delta: float) -> void:
 	if is_on_floor() and velocity.length() > 0.1:

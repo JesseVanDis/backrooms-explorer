@@ -25,8 +25,9 @@ var model_wall_i: Model = _load_model(wall_scene_i)
 var model_wall_l: Model = _load_model(wall_scene_l)
 var model_wall_e: Model = _load_model(wall_scene_e)
 
-@onready var map_node: Node3D = $Map
-# @onready var lightmap_gi: LightmapGI = $LightmapGI
+@onready var _node_map: Node3D = $Map
+# @onready var _node_lightmap_gi: LightmapGI = $LightmapGI
+
 
 class Model:
 	var id: int
@@ -152,8 +153,8 @@ func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
 	chunk.global_pos = Vector2(x0, y0)
 	chunk.static_body_3d = StaticBody3D.new()
 	chunk.tiles = Node3D.new()
-	map_node.add_child(chunk.static_body_3d)
-	map_node.add_child(chunk.tiles)
+	_node_map.add_child(chunk.static_body_3d)
+	_node_map.add_child(chunk.tiles)
 	chunk.static_body_3d.name = "Chunk_static_body_%d_%d" % [chunk_index.x, chunk_index.y]
 	chunk.tiles.name = "Chunk_%d_%d" % [chunk_index.x, chunk_index.y]
 	chunks[chunk_index] = chunk
@@ -230,8 +231,8 @@ func _remove_chunk(chunk_index: Vector2i) -> void:
 	var chunk_collisions: StaticBody3D = chunks[chunk_index].static_body_3d
 	var chunk_name: String = chunk_node.name
 	var chunk_collisions_name: String = chunk_collisions.name
-	map_node.remove_child(chunk_node)
-	map_node.remove_child(chunk_collisions)
+	_node_map.remove_child(chunk_node)
+	_node_map.remove_child(chunk_collisions)
 	chunk_node.queue_free()
 	
 	# Clean up collision shapes that were moved to the global StaticBody3D ( not tested ) 

@@ -1,8 +1,8 @@
 extends Node3D
 
 
-@onready var _moving_box_1: RigidBody3D = $MovingBox1
-@onready var _moving_box_2: RigidBody3D = $MovingBox2
+@onready var _node_moving_box_1: RigidBody3D = $MovingBox1
+@onready var _node_moving_box_2: RigidBody3D = $MovingBox2
 var _player: Player
 
 
@@ -21,9 +21,9 @@ func _update_player_speed() -> void:
 	
 	var is_near_box: bool = false
 	
-	if _player.global_position.distance_to(_moving_box_1.global_position) < DETECTION_DISTANCE:
+	if _player.global_position.distance_to(_node_moving_box_1.global_position) < DETECTION_DISTANCE:
 		is_near_box = true
-	elif _player.global_position.distance_to(_moving_box_2.global_position) < DETECTION_DISTANCE:
+	elif _player.global_position.distance_to(_node_moving_box_2.global_position) < DETECTION_DISTANCE:
 		is_near_box = true
 		
 	if is_near_box:
