@@ -13,7 +13,7 @@ const FOOTSTEP_INTERVAL: float = 0.36
 const BOB_VERTICAL_AMPLITUDE: float = 0.08
 const BOB_HORIZONTAL_AMPLITUDE: float = 0.02
 const MOVEMENT_LOWERING: float = 0.15
-const HANDS_APPEAR_DURATION: float = 0.3
+const HANDS_APPEAR_DURATION: float = 0.1
 
 @onready var _node_camera : Node3D = $_Neck/Camera3D
 @onready var _node_hands : Node3D = $_Hands
@@ -36,11 +36,7 @@ const LANDING_SOUNDS: Array[AudioStream] = [
 	preload("res://assets/sounds/jump_end_2.wav")
 ]
 
-var movement_state: MovementState = MovementState.RUNNING:
-	set(value):
-		if movement_state != value:
-			movement_state = value
-			_on_movement_state_changed()
+var movement_state: MovementState = MovementState.RUNNING
 
 # Sounds
 var _footstep_sounds: Array[AudioStream] = FOOTSTEP_SOUNDS
@@ -90,38 +86,52 @@ func apply_footstep_start_sound(sound: AudioStream) -> void:
 func apply_jump_sounds(sounds: Array[AudioStream]) -> void:
 	_jump_sounds = sounds
 
-func _on_movement_state_changed() -> void:
-	if _node_hands == null or _node_animation_player == null:
+
+func _show_hands() -> void:
+	var anim_list: PackedStringArray = _node_animation_player.get_animation_list()
+	if anim_list.is_empty():
+		push_error("Animation list is empty")
+		return
+	var anim_name: String = anim_list[0]
+	
+	if _hands_tween:
+		_hands_tween.kill()
+	
+	_node_hands.visible = true
+	_hands_tween = create_tween()
+	_hands_tween.set_parallel(true)
+	_hands_tween.tween_property(_node_hands, "position", _hands_default_position, HANDS_APPEAR_DURATION).from(_node_hands_center.position)
+	_hands_tween.tween_method(_get_hands_material().set_shader_parameter.bind("opacity"), 0.0, 1.0, HANDS_APPEAR_DURATION)
+	_node_animation_player.play(anim_name)
+	_node_animation_player.seek(0.0, true)
+
+func _hide_hands() -> void:
+	if _node_hands == null:
+		push_error("_node_hands is null")
+		return
+	if _node_animation_player == null:
+		push_error("_node_animation_player is null")
 		return
 		
 	var anim_list: PackedStringArray = _node_animation_player.get_animation_list()
 	if anim_list.is_empty():
+		push_error("Animation list is empty")
 		return
-	var ANIM_NAME: String = anim_list[0]
+	var anim_name: String = anim_list[0]
 	const FPS: float = 30.0
 	const FRAME_10_TIME: float = 10.0 / FPS
 	
 	if _hands_tween:
 		_hands_tween.kill()
-	_hands_tween = null
-	
-	if movement_state == MovementState.PUSHING:
-		_node_hands.visible = true
-		_hands_tween = create_tween()
-		_hands_tween.set_parallel(true)
-		_hands_tween.tween_property(_node_hands, "position", _hands_default_position, HANDS_APPEAR_DURATION).from(_node_hands_center.position)
-		_hands_tween.tween_method(_get_hands_material().set_shader_parameter.bind("opacity"), 0.0, 1.0, HANDS_APPEAR_DURATION)
-		_node_animation_player.play(ANIM_NAME)
-		_node_animation_player.seek(0.0, true)
-	else:
-		_hands_tween = create_tween()
-		_hands_tween.set_parallel(true)
-		_hands_tween.tween_property(_node_hands, "position", _node_hands_center.position, HANDS_APPEAR_DURATION)
-		_hands_tween.tween_method(_get_hands_material().set_shader_parameter.bind("opacity"), 1.0, 0.0, HANDS_APPEAR_DURATION)
-		_hands_tween.set_parallel(false)
-		_hands_tween.tween_callback(func(): _node_hands.visible = false)
-		_node_animation_player.play(ANIM_NAME, -1, -1.0, true)
-		_node_animation_player.seek(FRAME_10_TIME, true)
+		
+	_hands_tween = create_tween()
+	_hands_tween.set_parallel(true)
+	_hands_tween.tween_property(_node_hands, "position", _node_hands_center.position, HANDS_APPEAR_DURATION)
+	_hands_tween.tween_method(_get_hands_material().set_shader_parameter.bind("opacity"), 1.0, 0.0, HANDS_APPEAR_DURATION)
+	_hands_tween.set_parallel(false)
+	_hands_tween.tween_callback(func(): _node_hands.visible = false)
+	_node_animation_player.play(anim_name, -1, -1.0, true)
+	_node_animation_player.seek(FRAME_10_TIME, true)
 
 func _get_hands_material() -> ShaderMaterial:
 	var hand_mesh: MeshInstance3D = UtilsMesh.find_mesh_recursive(_node_hands)
@@ -137,14 +147,14 @@ func _process(_delta: float) -> void:
 		
 	const FPS: float = 30.0
 	const FRAME_10_TIME: float = 10.0 / FPS
-	var CURRENT_TIME: float = _node_animation_player.current_animation_position
+	var current_time: float = _node_animation_player.current_animation_position
 	
 	if movement_state == MovementState.PUSHING:
-		if CURRENT_TIME >= FRAME_10_TIME:
+		if current_time >= FRAME_10_TIME:
 			_node_animation_player.pause()
 			_node_animation_player.seek(FRAME_10_TIME, true)
 	else:
-		if CURRENT_TIME <= 0.0:
+		if current_time <= 0.0:
 			_node_animation_player.stop()
 			_node_hands.visible = false
 
@@ -236,6 +246,13 @@ func _physics_process(delta: float) -> void:
 	
 	_handle_head_bob(delta)
 	_handle_footsteps(delta)
+	_handle_hands_visibility()
+
+func _handle_hands_visibility() -> void:
+	if movement_state == MovementState.PUSHING and _is_moving:
+		_show_hands()
+	else:
+		_hide_hands()
 
 func _handle_head_bob(delta: float) -> void:
 	var vertical_offset: float = 0.0

@@ -8,16 +8,16 @@ var _player: Player
 
 func _ready() -> void:
 	_player = Player.find_player(get_tree())
+	if _player == null:
+		push_error("Player not found in scene tree")
 
 
 func _physics_process(_dt: float) -> void:
-	if _player == null:
-		return
 	_update_player_speed()
 
 
 func _update_player_speed() -> void:
-	const DETECTION_DISTANCE: float = 2.0
+	const DETECTION_DISTANCE: float = 0.8
 	
 	var is_near_box: bool = false
 	
