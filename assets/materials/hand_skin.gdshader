@@ -24,6 +24,8 @@ uniform float specular_strength : hint_range(0.0, 1.0) = 0.22;
 uniform float base_roughness : hint_range(0.0, 1.0) = 0.7;
 uniform float specular_roughness_effect : hint_range(0.0, 1.0) = 0.5;  // 0 = specular map does not affect roughness, 1 = black specular areas become much smoother
 
+uniform float opacity : hint_range(0.0, 1.0) = 1.0;
+
 vec3 apply_brightness_contrast(vec3 color, float brightness, float contrast) {
 	color += brightness;
 	color = (color - 0.5) * (1.0 + contrast) + 0.5;
@@ -77,5 +79,5 @@ void fragment() {
 
 	// BACKLIGHT provides a reasonable approximation of Translucent BSDF in Godot.
 	BACKLIGHT = subsurface_color * translucency;
-	ALPHA = alpha;
+	ALPHA = alpha * opacity;
 }

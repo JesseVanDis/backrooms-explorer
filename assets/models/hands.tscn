@@ -1,12 +1,5 @@
-[gd_scene format=3 uid="uid://c2kc7g618aw78"]
+[gd_scene format=3 uid="uid://cos6ltyy7wpm1"]
 
-[ext_resource type="PackedScene" uid="uid://b0ix8rklm4lx3" path="res://assets/models/hands.gltf" id="1_qkek6"]
-[ext_resource type="Material" uid="uid://cbs7xiqee32nl" path="res://assets/materials/hand_skin.tres" id="2_dpncg"]
+[ext_resource type="PackedScene" uid="uid://baxdhli3jmlo1" path="res://assets/models/hands.blend" id="1_c54j8"]
 
-[node name="hand" unique_id=1604106543 instance=ExtResource("1_qkek6")]
-
-[node name="Hand_3D_002" parent="left/Skeleton3D" parent_id_path=PackedInt32Array(261197867) index="0" unique_id=206465443]
-surface_material_override/0 = ExtResource("2_dpncg")
-
-[node name="Hand_3D_001" parent="right/Skeleton3D" parent_id_path=PackedInt32Array(261453601) index="0" unique_id=422582226]
-surface_material_override/0 = ExtResource("2_dpncg")
+[node name="hands" unique_id=1296432070 instance=ExtResource("1_c54j8")]

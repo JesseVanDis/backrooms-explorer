@@ -29,4 +29,5 @@ godot --path . --export-release "Windows Desktop" ./build/debug/windows/backgroo
 - Always ask for permission when you change something in any .md file.
 - When changing the parsing tools, only invoke 'parse_assets.sh' to verify the changes.
 - Do not abbreviate function and variable names, with the exception of: `dt`
+- Do not do anything with(in) the nodes of any imported objects. Only operate on nodes that are set by Godot itself.
 

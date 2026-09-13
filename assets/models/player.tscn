@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://ccyky7e256pn4"]
 
 [ext_resource type="Script" uid="uid://e0meeo45d2ya" path="res://assets/scripts/player.gd" id="1_l7vax"]
-[ext_resource type="PackedScene" uid="uid://c2kc7g618aw78" path="res://assets/models/hands.tscn" id="2_ormyk"]
+[ext_resource type="PackedScene" uid="uid://baxdhli3jmlo1" path="res://assets/models/hands.blend" id="2_ormyk"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_khlrb"]
 radius = 0.3
@@ -17,9 +17,6 @@ height = 1.8
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9348949, 0)
 script = ExtResource("1_l7vax")
 
-[node name="hands" parent="CharacterBody3D" unique_id=1604106543 instance=ExtResource("2_ormyk")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.148, -0.238)
-
 [node name="MeshInstance3D" type="MeshInstance3D" parent="CharacterBody3D" unique_id=479480019]
 transform = Transform3D(0.5, 0, 0, 0, 1, 0, 0, 0, 0.5, 0, 0, 0)
 cast_shadow = 0
@@ -30,7 +27,13 @@ mesh = SubResource("CapsuleMesh_khlrb")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D" unique_id=349531905]
 shape = SubResource("CapsuleShape3D_knwgh")
 
-[node name="Neck" type="Node3D" parent="CharacterBody3D" unique_id=532610939]
+[node name="_Hands" parent="CharacterBody3D" unique_id=1296432070 instance=ExtResource("2_ormyk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23134303, -0.3162334)
+
+[node name="_HandsAppearStartingPos" type="Marker3D" parent="CharacterBody3D" unique_id=1934598597]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.22426045, 0)
+
+[node name="_Neck" type="Node3D" parent="CharacterBody3D" unique_id=532610939]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5330651, 0)
 
-[node name="Camera3D" type="Camera3D" parent="CharacterBody3D/Neck" unique_id=201933631]
+[node name="Camera3D" type="Camera3D" parent="CharacterBody3D/_Neck" unique_id=201933631]
