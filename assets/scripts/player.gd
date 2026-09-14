@@ -14,6 +14,8 @@ const HANDS_APPEAR_DURATION: float = 0.1
 @onready var _node_wield : Node3D = $_Wield
 
 @export var max_fall_speed: float = 0.0
+@export var initial_yaw: float = 0.0
+@export var initial_pitch: float = 0.0
 
 const FOOTSTEP_SOUNDS: Array[AudioStream] = [
 	preload("res://assets/sounds/footstep_1.wav"),
@@ -110,6 +112,9 @@ func _ready() -> void:
 		push_error("_node_camera is null")
 		return
 		
+	rotation.y = deg_to_rad(initial_yaw)
+	_node_camera.rotation.x = deg_to_rad(initial_pitch)
+	
 	_audio_player = AudioStreamPlayer3D.new()
 	add_child(_audio_player)
 	_camera_default_position = _node_camera.position
