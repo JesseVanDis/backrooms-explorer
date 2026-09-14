@@ -11,6 +11,7 @@ const MOVEMENT_LOWERING: float = 0.15
 const HANDS_APPEAR_DURATION: float = 0.1
 
 @onready var _node_camera : Node3D = $_Neck/Camera3D
+@onready var _node_wield : Node3D = $_Wield
 
 const FOOTSTEP_SOUNDS: Array[AudioStream] = [
 	preload("res://assets/sounds/footstep_1.wav"),
@@ -98,7 +99,9 @@ var _bob_phase: float = 0.0
 var _is_moving: bool = false
 
 var wieldable: Wieldable = Wieldable.NONE
+var wield_aim_target: Node3D = null
 var _wieldable_old: Wieldable = Wieldable.NONE
+var _smoothed_target_pos: Vector3 = Vector3.ZERO
 
 func _ready() -> void:
 	if _node_camera == null:
@@ -150,8 +153,24 @@ func _physics_process(delta: float) -> void:
 		_play_landing_sound()
 	
 	_handle_wieldable()
+	_handle_wield_orientation(delta)
 	_handle_head_bob(delta)
 	_handle_footsteps(delta)
+
+func _handle_wield_orientation(delta: float) -> void:
+	if _node_wield == null:
+		push_error("_node_wield is null")
+		return
+		
+	var target_pos: Vector3 = _node_wield.global_position + (-global_transform.basis.z * 2.0) # Default target point is some distance in front of the character
+	if wield_aim_target != null:
+		target_pos = wield_aim_target.global_position
+		target_pos.y = _node_wield.global_position.y # yaw only
+	
+	const LERP_SPEED: float = 10.0
+	_smoothed_target_pos = _smoothed_target_pos.lerp(target_pos, delta * LERP_SPEED)
+	if !_node_wield.global_position.is_equal_approx(_smoothed_target_pos):
+		_node_wield.look_at(_smoothed_target_pos, Vector3.UP)
 
 func _play_footstep() -> void:
 	if _footstep_sounds.is_empty():
@@ -230,7 +249,6 @@ func _handle_wieldable() -> void:
 					
 		WieldState.DEQUIPING:
 			var old_wieldable: WieldableData = _wieldables[_wieldable_old]
-			print("Playing: " + str(old_wieldable.is_playing_animation()))
 			if !old_wieldable.is_playing_animation():
 				if old_wieldable.node:
 					old_wieldable.node.visible = false
@@ -245,6 +263,7 @@ func _handle_wieldable() -> void:
 			else:
 				_wield_state = WieldState.NONE
 			_wieldable_old = wieldable
+			wield_aim_target = null
 			
 		WieldState.EQUIPING:
 			var new_wieldable: WieldableData = _wieldables[wieldable]
