@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://nnflwbo4kywf"]
 
-[node name="MenuLoading" type="Node2D" unique_id=1225244931]
+[node name="_Screen" type="Node2D" unique_id=1225244931]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1510347362]
 

@@ -24,6 +24,14 @@ func _physics_process(_dt: float) -> void:
 	_handle_loading_lvl_0()
 	_handle_level_transition()
 
+# When falling trough the tunnel towards lvl_0 of the backrooms
+const Y_START: float = -5.0
+const Y_END: float = -10.0
+const FOG_DENSITY_START: float = 0.0
+const FOG_DENSITY_END: float = 0.1
+const SKY_AFFECT_START: float = 0.0
+const SKY_AFFECT_END: float = 1.0
+const OPEN_LVL_0_TRIGGER_Y: float = -15.0
 
 func _update_environment_effects() -> void:
 	if _player == null:
@@ -32,15 +40,7 @@ func _update_environment_effects() -> void:
 	if _node_world_environment.environment == null:
 		push_error("WorldEnvironment environment is null")
 		return
-	
-	# When falling trough the tunnel towards lvl_0 of the backrooms
-	const Y_START: float = -10.0
-	const Y_END: float = -230.0
-	const FOG_DENSITY_START: float = 0.0
-	const FOG_DENSITY_END: float = 0.1
-	const SKY_AFFECT_START: float = 0.0
-	const SKY_AFFECT_END: float = 1.0
-	
+		
 	var t: float = clampf(remap(_player.global_position.y, Y_START, Y_END, 0.0, 1.0), 0.0, 1.0)
 	_node_world_environment.environment.fog_density = lerpf(FOG_DENSITY_START, FOG_DENSITY_END, t)
 	_node_world_environment.environment.fog_sky_affect = lerpf(SKY_AFFECT_START, SKY_AFFECT_END, t)
@@ -104,11 +104,9 @@ func _handle_level_transition() -> void:
 	if _player == null:
 		return
 	
-	const TRIGGER_Y: float = -100.0
-	
-	if _player.global_position.y < TRIGGER_Y:
+	if _player.global_position.y < OPEN_LVL_0_TRIGGER_Y:
 		if _loading_screen == null:
-			_loading_screen = UtilsScreen.fade_in_loading_screen(get_tree(), func() -> void: _fade_in_complete = true)
+			_loading_screen = UtilsScreen.fade_in_screen(get_tree(), "res://scenes/frontroom_0/transition_frontrooms_lvl_0.tscn", func() -> void: _fade_in_complete = true)
 		if _loading_lvl_0_state == 0:
 			_loading_lvl_0_state = 1
 		if _loading_lvl_0_state == 4 and _fade_in_complete:

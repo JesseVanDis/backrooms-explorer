@@ -25,10 +25,9 @@ static func fade_in(root_node: Node, duration: float, callback: Callable) -> voi
 	tween.tween_callback(callback)
 
 
-static func fade_in_loading_screen(tree: SceneTree, callback: Callable) -> Node:
+static func fade_in_screen(tree: SceneTree, screen_scene_path: String, callback: Callable) -> Node:
 	const DURATION = 0.3
-	const LOADING_SCREEN_PATH: String = "res://scenes/menu_loading/menu_loading.tscn"
-	var loading_scene: PackedScene = load(LOADING_SCREEN_PATH)
+	var loading_scene: PackedScene = load(screen_scene_path)
 	if loading_scene == null:
 		push_error("Failed to load loading screen scene")
 		callback.call()
@@ -64,11 +63,7 @@ static func fade_out(root_node: Node, duration: float, callback: Callable) -> vo
 	tween.tween_callback(callback)
 
 
-static func fade_out_loading_screen(tree: SceneTree) -> void:
+static func fade_out_screen(tree: SceneTree) -> void:
 	const DURATION = 0.3
-	var loading_screen: Node = tree.root.get_node_or_null("MenuLoading")
-	if loading_screen == null:
-		# It's okay if it's not there
-		return
-	
+	var loading_screen: Node = tree.root.get_node_or_null("_Screen")
 	fade_out(loading_screen, DURATION, loading_screen.queue_free)

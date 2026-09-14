@@ -77,7 +77,7 @@ func initialized() -> bool:
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	UtilsScreen.fade_out_loading_screen(get_tree())
+	UtilsScreen.fade_out_screen(get_tree())
 		
 	# Initial generation
 	_get_or_create_chunk(Vector2i(0, 0), false)
@@ -308,7 +308,7 @@ func _handle_tile_graphics() -> void:
 			graphic.queue_free() # gets remove from the parent automatically
 		placed_tile.graphics = {}
 	
-	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, 5)
+	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, 50)
 
 func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_cb: Callable, remove_cb: Callable, max_tiles_to_handle: int = 0) -> void:
 	var player_pos_3d: Vector3 = $Player.transform.origin
@@ -332,6 +332,10 @@ func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_cb: Ca
 				tiles_visible.append(tile_index)
 				tiles_no_longer_visible.erase(tile_index)
 	
+	# iterate from player outwards
+	var sort_by_distance = func(a, b): return a.distance_squared_to(Vector2i(player_pos)) < b.distance_squared_to(Vector2i(player_pos))
+	tiles_visible.sort_custom(sort_by_distance)
+
 	# remove out-of-range tile first
 	for tile_index: Vector2i in tiles_no_longer_visible.keys():
 		if placed_tiles.has(tile_index):
