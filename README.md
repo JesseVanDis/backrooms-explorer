@@ -73,7 +73,7 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | **Mechanics**              | -            |
 | - Running                  | 100%         |
 | - Jumping                  | 100%         |
-| - Moving in between levels | 0            |
+| - Moving in between levels | 30%          |
 | **Scenes**                 | -            |
 | - frontrooms               | 50%          |
 | - lvl 0                    | 10%          |

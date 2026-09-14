@@ -5,6 +5,9 @@ extends Node3D
 @onready var _node_moving_box_2: RigidBody3D = $MovingBox2
 @onready var _node_world_environment: WorldEnvironment = $WorldEnvironment
 var _player: Player
+const LVL_0_PATH: String = "res://scenes/lvl_0/lvl_0.tscn"
+var _loading_lvl_0_state: int = 0
+var _lvl_0: Node = null
 
 
 func _ready() -> void:
@@ -16,6 +19,8 @@ func _ready() -> void:
 func _physics_process(_dt: float) -> void:
 	_update_player_speed()
 	_update_environment_effects()
+	_handle_loading_lvl_0()
+	_handle_level_transition()
 
 
 func _update_environment_effects() -> void:
@@ -55,3 +60,55 @@ func _update_player_speed() -> void:
 	else:
 		_player.wieldable = Player.Wieldable.NONE
 		_player.wield_aim_target = null
+
+
+func _handle_loading_lvl_0() -> void:
+	match _loading_lvl_0_state:
+		1: 
+			var err: Error = ResourceLoader.load_threaded_request(LVL_0_PATH)
+			if err != OK:
+				push_error("Failed to start asynchronous loading of lvl_0: " + str(err))
+				return
+			_loading_lvl_0_state = 2
+			
+		2:
+			var progress: Array[float] = []
+			var status: ResourceLoader.ThreadLoadStatus = ResourceLoader.load_threaded_get_status(LVL_0_PATH, progress)
+			
+			match status:
+				ResourceLoader.THREAD_LOAD_LOADED:
+					var packed_scene: PackedScene = ResourceLoader.load_threaded_get(LVL_0_PATH) as PackedScene
+					if packed_scene == null:
+						push_error("Loaded resource is not a PackedScene")
+						return
+					_lvl_0 = packed_scene.instantiate()
+					print("Initializing lvl_0...")
+					_lvl_0.initialize_async()
+					_loading_lvl_0_state = 3
+
+				ResourceLoader.THREAD_LOAD_FAILED:
+					push_error("Failed to load lvl_0 asynchronously")
+					_loading_lvl_0_state = 1 # Allow retry if possible, or just log error
+				ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+					push_error("Invalid resource path for lvl_0")
+					_loading_lvl_0_state = 1
+		3:
+			if _lvl_0.initialized():
+				print("Initializing lvl_0... done")
+				_loading_lvl_0_state = 4
+				
+
+func _handle_level_transition() -> void:
+	if _player == null:
+		return
+	
+	const TRIGGER_Y: float = -100.0
+	
+	if _player.global_position.y < TRIGGER_Y:
+		if _loading_lvl_0_state == 0:
+			_loading_lvl_0_state = 1
+		if _loading_lvl_0_state == 4:
+			print("Switching to lvl_0")
+			get_tree().current_scene.queue_free()
+			get_tree().root.add_child(_lvl_0)
+			get_tree().current_scene = _lvl_0

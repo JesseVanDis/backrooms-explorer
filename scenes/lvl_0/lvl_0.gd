@@ -64,10 +64,23 @@ var chunks: Dictionary = {}        # Vector2i(chunk index) -> Chunk
 var placed_tiles: Dictionary = {}  # Vector2i(tile index)  -> PlacedTile
 #var rendered_chunks: Dictionary = {} # Vector2i -> Node3D
 
+func initialize_async() -> void:
+	initialized()
+
+func initialized() -> bool:
+	var chunk1 = _get_or_create_chunk(Vector2i(0, 0), true)
+	var chunk2 = _get_or_create_chunk(Vector2i(-1, -1), true)
+	var chunk3 = _get_or_create_chunk(Vector2i(-1, 0), true)
+	var chunk4 = _get_or_create_chunk(Vector2i(0, -1), true)
+	return chunk1 && chunk2 && chunk3 && chunk4
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	# Initial generation
 	_get_or_create_chunk(Vector2i(0, 0), false)
+	_get_or_create_chunk(Vector2i(-1, -1), false)
+	_get_or_create_chunk(Vector2i(-1, 0), false)
+	_get_or_create_chunk(Vector2i(0, -1), false)
 	
 	# Find a spawn point (white pixel)
 	var spawn_pos: Vector2i = _find_spawn_point()
@@ -119,7 +132,14 @@ func _start_chunk_generation(chunk_index: Vector2i) -> void:
 	
 func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
 	if chunks.has(chunk_index):
-		return chunks[chunk_index]
+		var cached_chunk = chunks[chunk_index]
+		if _node_map:
+			if cached_chunk.static_body_3d.get_parent() != _node_map:
+				_node_map.add_child(cached_chunk.static_body_3d)
+			if cached_chunk.tiles.get_parent() != _node_map:
+				_node_map.add_child(cached_chunk.tiles)
+		return cached_chunk
+		
 	var x0: int = chunk_index.x * CHUNK_SIZE
 	var y0: int = chunk_index.y * CHUNK_SIZE
 	
@@ -153,8 +173,9 @@ func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
 	chunk.global_pos = Vector2(x0, y0)
 	chunk.static_body_3d = StaticBody3D.new()
 	chunk.tiles = Node3D.new()
-	_node_map.add_child(chunk.static_body_3d)
-	_node_map.add_child(chunk.tiles)
+	if _node_map:
+		_node_map.add_child(chunk.static_body_3d)
+		_node_map.add_child(chunk.tiles)
 	chunk.static_body_3d.name = "Chunk_static_body_%d_%d" % [chunk_index.x, chunk_index.y]
 	chunk.tiles.name = "Chunk_%d_%d" % [chunk_index.x, chunk_index.y]
 	chunks[chunk_index] = chunk

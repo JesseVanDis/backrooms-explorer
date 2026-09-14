@@ -95,18 +95,22 @@ func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
+	var retval: Pixel = Pixel.INVALID
 	if pass_index < NUM_PASSES_IN_GEN_BIOMES:
-		return _gen_biomes(pass_index, ctx)
+		retval = _gen_biomes(pass_index, ctx)
 	else:
 		var biome_pass_index: int = pass_index - NUM_PASSES_IN_GEN_BIOMES
 		match pp.biome_c:
 			Pixel.BIOME_DEFAULT:
-				return _gen_biome_default(biome_pass_index, ctx)
+				retval = _gen_biome_default(biome_pass_index, ctx)
 			Pixel.BIOME_PILLARS:
-				return _gen_biome_pillars(biome_pass_index, ctx)
+				retval = _gen_biome_pillars(biome_pass_index, ctx)
 	
-	return Pixel.INVALID
-
+	# force empty area at spawn point
+	if (ctx.x * ctx.x) < 100 && (ctx.y * ctx.y) < 100 && retval != Pixel.INVALID && pp.tile_c == Pixel.TILE_WALL:
+		retval = pp.biome_c | Pixel.TILE_EMPTY
+	return retval
+	
 func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	var num_neighbour_walls: int = 0;
