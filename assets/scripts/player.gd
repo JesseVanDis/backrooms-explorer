@@ -35,9 +35,11 @@ static func _frame_index_to_time(index: int) -> float:
 class AnimationRange:
 	var from: int = 0
 	var to: int = 0
-	func _init(p_from: int, p_to: int):
+	var speed: float = 0
+	func _init(p_from: int, p_to: int, p_speed: float = 1.0):
 		from = p_from
 		to = p_to
+		speed = p_speed
 
 class Animations:
 	var equip: AnimationRange = AnimationRange.new(0,0)
@@ -47,20 +49,24 @@ class WieldableData:
 	var node: Node3D = null
 	var animations: Animations = Animations.new()
 	var animation_player: AnimationPlayer = null
+	var _animation_name: String = ""
 
-	func _init(p_wield_node: Node, p_equip: AnimationRange, p_dequip: AnimationRange) -> void:
+	func _init(p_wield_node: Node3D, p_equip: AnimationRange, p_dequip: AnimationRange) -> void:
 		node = p_wield_node
 		animations.equip = p_equip
 		animations.dequip = p_dequip
 		if p_wield_node:
+			p_wield_node.visible = false
 			animation_player = UtilsNode.find_animation_player_recursive(p_wield_node)
+			var anim_list: PackedStringArray = animation_player.get_animation_list()
+			_animation_name = anim_list[0]
 	
 	func play_animation(range: AnimationRange) -> bool:
 		if animation_player:
 			if range.from <= range.to:
-				animation_player.play_section("", Player._frame_index_to_time(range.from), Player._frame_index_to_time(range.to))
+				animation_player.play_section(_animation_name, Player._frame_index_to_time(range.from), Player._frame_index_to_time(range.to), -1,  range.speed, false)
 			else:
-				animation_player.play_section_backwards("", Player._frame_index_to_time(range.from), Player._frame_index_to_time(range.to))
+				animation_player.play_section(_animation_name, Player._frame_index_to_time(range.from), Player._frame_index_to_time(range.to), -1, -range.speed, true)
 			return true
 		return false
 	
@@ -74,8 +80,8 @@ class WieldableData:
 enum Wieldable {NONE, PUSH}
 
 @onready var _wieldables: Dictionary = {
-	Wieldable.NONE: WieldableData.new(null, 			AnimationRange.new(0,0), 	AnimationRange.new(0,0)),
-	Wieldable.PUSH: WieldableData.new($_Wield/_Push, 	AnimationRange.new(0,40), 	AnimationRange.new(40,0))
+	Wieldable.NONE: WieldableData.new(null, 			AnimationRange.new(0,0,1), 		AnimationRange.new(0,0,1)),
+	Wieldable.PUSH: WieldableData.new($_Wield/_Push, 	AnimationRange.new(0,40,1), 	AnimationRange.new(40,0,1))
 }
 
 # Sounds
@@ -92,7 +98,7 @@ var _bob_phase: float = 0.0
 var _is_moving: bool = false
 
 var wieldable: Wieldable = Wieldable.NONE
-var _wieldable_previous_frame: Wieldable = Wieldable.NONE
+var _wieldable_old: Wieldable = Wieldable.NONE
 
 func _ready() -> void:
 	if _node_camera == null:
@@ -207,22 +213,13 @@ func _get_animation_speed_multiplier() -> float:
 
 enum WieldState {NONE, DEQUIPING, EQUIPING_START, EQUIPING}
 
-var _wield_old_wieldable: Wieldable = Wieldable.NONE
 var _wield_state: WieldState = WieldState.NONE
 func _handle_wieldable() -> void:
-	
-	#var anim_list: PackedStringArray = _node_animation_player.get_animation_list()
-	#if anim_list.is_empty():
-		#push_error("Animation list is empty")
-		#return
-	#var anim_name: String = anim_list[0]
-	#_node_animation_player.play(anim_name, -1, -1.0, true)
-	
+		
 	match _wield_state:
 		WieldState.NONE:
-			if _wieldable_previous_frame != wieldable:
-				_wield_old_wieldable = _wieldable_previous_frame
-				var old_wieldable: WieldableData = _wieldables[_wield_old_wieldable]
+			if _wieldable_old != wieldable:
+				var old_wieldable: WieldableData = _wieldables[_wieldable_old]
 				if old_wieldable.play_animation(old_wieldable.animations.dequip):
 					_wield_state = WieldState.DEQUIPING
 				else:
@@ -231,7 +228,7 @@ func _handle_wieldable() -> void:
 					_wield_state = WieldState.EQUIPING_START
 					
 		WieldState.DEQUIPING:
-			var old_wieldable: WieldableData = _wieldables[_wield_old_wieldable]
+			var old_wieldable: WieldableData = _wieldables[_wieldable_old]
 			if !old_wieldable.is_playing_animation():
 				if old_wieldable.node:
 					old_wieldable.node.visible = false
@@ -245,14 +242,13 @@ func _handle_wieldable() -> void:
 				_wield_state = WieldState.EQUIPING
 			else:
 				_wield_state = WieldState.NONE
-			_wield_old_wieldable = wieldable
+			_wieldable_old = wieldable
 			
 		WieldState.EQUIPING:
 			var new_wieldable: WieldableData = _wieldables[wieldable]
 			if !new_wieldable.is_playing_animation():
 				_wield_state = WieldState.NONE
 	
-	_wieldable_previous_frame = wieldable
 
 func _handle_head_bob(delta: float) -> void:
 	var vertical_offset: float = 0.0
