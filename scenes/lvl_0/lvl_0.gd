@@ -76,7 +76,7 @@ func initialized() -> bool:
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	_handle_loading_screen_fade_out()
+	UtilsScreen.fade_out_loading_screen(get_tree())
 	
 	# Initial generation
 	_get_or_create_chunk(Vector2i(0, 0), false)
@@ -84,10 +84,10 @@ func _ready() -> void:
 	_get_or_create_chunk(Vector2i(-1, 0), false)
 	_get_or_create_chunk(Vector2i(0, -1), false)
 	
-	# Find a spawn point (white pixel)
-	var spawn_pos: Vector2i = _find_spawn_point()
-	
-	$Player.transform.origin = Vector3(float(spawn_pos.x) * TILE_SIZE, 0.0, float(spawn_pos.y) * TILE_SIZE)
+	## Find a spawn point (white pixel)
+	#var spawn_pos: Vector2i = _find_spawn_point()
+	#
+	#$Player.transform.origin = Vector3(float(spawn_pos.x) * TILE_SIZE, 0.0, float(spawn_pos.y) * TILE_SIZE)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
@@ -402,23 +402,3 @@ func _load_model(tile: Resource) -> Model:
 
 func _get_center_chunk_pos(chunk_index: Vector2i) -> Vector2:
 	return Vector2((float(chunk_index.x * CHUNK_SIZE)) + CHUNK_SIZE/2.0, (float(chunk_index.y * CHUNK_SIZE)) + CHUNK_SIZE / 2.0)
-
-
-func _handle_loading_screen_fade_out() -> void:
-	var loading_screen: Node = get_tree().root.get_node_or_null("MenuLoading")
-	if loading_screen == null:
-		# It's okay if it's not there, maybe we started directly in lvl_0
-		return
-	
-	var canvas_layer: CanvasLayer = loading_screen.get_node("CanvasLayer")
-	if canvas_layer == null:
-		push_error("CanvasLayer not found in loading screen")
-		loading_screen.queue_free()
-		return
-	
-	var tween: Tween = create_tween()
-	for child in canvas_layer.get_children():
-		if "modulate" in child:
-			tween.parallel().tween_property(child, "modulate:a", 0.0, 1.0)
-	
-	tween.tween_callback(loading_screen.queue_free)

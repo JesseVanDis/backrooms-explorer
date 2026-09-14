@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://byjxtaij4gmeo" path="res://scenes/lvl_0/part_wall_i.tscn" id="4_qmsdi"]
 [ext_resource type="PackedScene" uid="uid://8y8epqhwryyd" path="res://scenes/lvl_0/part_1x1_ceiling_light.tscn" id="5_63adb"]
 [ext_resource type="PackedScene" uid="uid://dausxfxho355c" path="res://scenes/lvl_0/part_1x1_ceiling.tscn" id="6_mkhuw"]
+[ext_resource type="PackedScene" uid="uid://3lboeybp8vsi" path="res://scenes/lvl_0/entry_tube.tscn" id="8_qmsdi"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -41,7 +42,7 @@ script = ExtResource("1_j6thp")
 environment = SubResource("Environment_j6thp")
 
 [node name="Player" parent="." unique_id=1091834531 instance=ExtResource("1_rj2d8")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.411394, 0, 1.8429631)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 200, 0)
 
 [node name="Map" type="Node3D" parent="." unique_id=1437659456]
 
@@ -148,3 +149,6 @@ stream = ExtResource("3_smeuj")
 volume_db = -21.85
 autoplay = true
 parameters/looping = true
+
+[node name="entry_tube" parent="." unique_id=431533070 instance=ExtResource("8_qmsdi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 244, 0)
