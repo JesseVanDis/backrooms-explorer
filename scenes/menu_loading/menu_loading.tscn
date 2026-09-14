@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://nnflwbo4kywf"]
+
+[node name="MenuLoading" type="Node2D" unique_id=1225244931]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1510347362]
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer" unique_id=743238214]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="CanvasLayer" unique_id=876706767]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -73.0
+offset_right = 230.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 40
+text = "BACKROOMS EXPLORER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Label2" type="Label" parent="CanvasLayer" unique_id=1577353237]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = 7.0
+offset_right = 230.0
+offset_bottom = 86.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 29
+text = "Loading..."
+horizontal_alignment = 1
+vertical_alignment = 1
