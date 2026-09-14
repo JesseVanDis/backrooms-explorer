@@ -3,6 +3,10 @@
 [ext_resource type="PackedScene" uid="uid://dty5amrjwv4nn" path="res://assets/models/frontrooms_0.gltf" id="1_v7wue"]
 [ext_resource type="ArrayMesh" uid="uid://noik808al32k" path="res://assets/models/grass_0.tres" id="2_0dq8w"]
 [ext_resource type="Script" uid="uid://dk0vlo6pbu4hg" path="res://assets/scripts/door.gd" id="3_0dq8w"]
+[ext_resource type="Material" uid="uid://bysq1tmv358b6" path="res://scenes/frontroom_0/frontroom_0_tunnel_to_lvl_0.tres" id="4_fuxr4"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7exjd"]
+size = Vector3(2.2035074, 252.1785, 4.518306)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_nn1bg"]
 size = Vector3(672.36694, 2341.6106, 2406.2495)
@@ -29,7 +33,7 @@ size = Vector3(1, 1.5, 1)
 size = Vector3(5.277025, 2.956192, 0.9740404)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_8jfx0"]
-size = Vector3(2.0000002, 22.5636, 2.8250108)
+size = Vector3(2.7746744, 0.7262764, 0.76658344)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fuxr4"]
 size = Vector3(450.50702, 169.50749, 11.742676)
@@ -57,7 +61,27 @@ buffer = PackedFloat32Array(0.462485, -0.012023303, 0.91224813, 0.9587283, 0.046
 
 [node name="frontrooms_0" unique_id=1371298715 instance=ExtResource("1_v7wue")]
 
-[node name="StaticBody3D" type="StaticBody3D" parent="." index="0" unique_id=2073121037]
+[node name="StaticBody3D_tunnel_to_lvl0" type="StaticBody3D" parent="." index="0" unique_id=962075502]
+collision_layer = 8
+collision_mask = 8
+
+[node name="tunnel_to_lvl0_CollisionShape3D22" type="CollisionShape3D" parent="StaticBody3D_tunnel_to_lvl0" index="0" unique_id=1555997720]
+transform = Transform3D(1, 0, 3.5859583e-07, 0, 1, 0, -3.5859583e-07, 0, 1, -11.4506035, -126.07497, -4.1141195)
+shape = SubResource("BoxShape3D_7exjd")
+
+[node name="tunnel_to_lvl0_CollisionShape3D23" type="CollisionShape3D" parent="StaticBody3D_tunnel_to_lvl0" index="1" unique_id=1677880186]
+transform = Transform3D(1, 0, 3.5859583e-07, 0, 1, 0, -3.5859583e-07, 0, 1, -7.204091, -126.07497, -4.1141195)
+shape = SubResource("BoxShape3D_7exjd")
+
+[node name="tunnel_to_lvl0_CollisionShape3D24" type="CollisionShape3D" parent="StaticBody3D_tunnel_to_lvl0" index="2" unique_id=1522093983]
+transform = Transform3D(3.1488443e-07, 0, -1, 0, 1, 0, 1, 0, 3.1488443e-07, -9.530632, -126.07497, -1.875205)
+shape = SubResource("BoxShape3D_7exjd")
+
+[node name="tunnel_to_lvl0_CollisionShape3D25" type="CollisionShape3D" parent="StaticBody3D_tunnel_to_lvl0" index="3" unique_id=786167788]
+transform = Transform3D(3.1488443e-07, 0, -1, 0, 1, 0, 1, 0, 3.1488443e-07, -9.530632, -126.075165, -6.427718)
+shape = SubResource("BoxShape3D_7exjd")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." index="1" unique_id=2073121037]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1844211, -0.09796859, -2.3815534)
 collision_layer = 3
 
@@ -94,7 +118,7 @@ transform = Transform3D(-0.26370493, 0, -3.9818342e-08, 0, 0.2637049, 0, 3.98183
 shape = SubResource("BoxShape3D_r7txx")
 
 [node name="CollisionShape3D13" type="CollisionShape3D" parent="StaticBody3D" index="8" unique_id=5365246]
-transform = Transform3D(1.409626, 0, 1.2202871e-06, 0, 0.03279569, 0, -5.05486e-07, 0, 0.37134054, -10.644672, 0.5059968, -2.3383405)
+transform = Transform3D(1, 0, 3.5859583e-07, 0, 1, 0, -3.5859583e-07, 0, 1, -10.679045, 0.5326395, -2.4939477)
 shape = SubResource("BoxShape3D_8jfx0")
 
 [node name="CollisionShape3D2" type="CollisionShape3D" parent="StaticBody3D" index="9" unique_id=1427406345]
@@ -145,25 +169,33 @@ shape = SubResource("BoxShape3D_tuvue")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3155594, 3.7961998, -0.05351329)
 shape = SubResource("BoxShape3D_ppjf6")
 
-[node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="." index="1" unique_id=897325064]
+[node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="." index="2" unique_id=897325064]
 multimesh = SubResource("MultiMesh_0dq8w")
 
-[node name="GrassPlatform" parent="." index="2" unique_id=9503856]
+[node name="GrassPlatform" parent="." index="3" unique_id=947211216]
 visible = false
 
-[node name="Cube_002" parent="Scene" parent_id_path=PackedInt32Array(516858842) index="7" unique_id=1211624401]
+[node name="Cube_002" parent="Scene" parent_id_path=PackedInt32Array(738140962) index="7" unique_id=1248580069]
 gi_lightmap_texel_scale = 2.0
 
-[node name="Cube_005" parent="Scene" parent_id_path=PackedInt32Array(516858842) index="9" unique_id=403672731]
+[node name="Cube_005" parent="Scene" parent_id_path=PackedInt32Array(738140962) index="9" unique_id=208196538]
 gi_lightmap_texel_scale = 2.0
 
-[node name="Door" parent="Scene" parent_id_path=PackedInt32Array(516858842) index="22" unique_id=402254780]
+[node name="Door" parent="Scene" parent_id_path=PackedInt32Array(738140962) index="22" unique_id=625827398]
 script = ExtResource("3_0dq8w")
 open_clockwise = false
 mesh_rotation_degrees = 90.0
 
-[node name="Door3" parent="Scene" parent_id_path=PackedInt32Array(516858842) index="24" unique_id=330309379]
+[node name="Door3" parent="Scene" parent_id_path=PackedInt32Array(738140962) index="24" unique_id=1304578058]
 script = ExtResource("3_0dq8w")
 
-[node name="Sofa" parent="Scene" parent_id_path=PackedInt32Array(516858842) index="55" unique_id=2007118395]
+[node name="Sofa" parent="Scene" parent_id_path=PackedInt32Array(738140962) index="53" unique_id=1513186345]
 gi_lightmap_texel_scale = 1.5
+
+[node name="Cube" parent="." index="5" unique_id=497417556]
+gi_mode = 0
+surface_material_override/0 = ExtResource("4_fuxr4")
+
+[node name="Cube_001" parent="." index="6" unique_id=733887995]
+gi_mode = 0
+surface_material_override/0 = ExtResource("4_fuxr4")

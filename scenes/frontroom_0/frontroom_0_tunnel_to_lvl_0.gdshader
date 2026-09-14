@@ -3,7 +3,7 @@ shader_type spatial;
 varying float y_pos;
 
 void vertex() {
-	y_pos = VERTEX.y;
+	y_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).y;
 }
 
 void fragment() {

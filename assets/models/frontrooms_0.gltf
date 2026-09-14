@@ -21,6 +21,8 @@
 			"name":"Scene",
 			"nodes":[
 				0,
+				82,
+				83,
 				84
 			]
 		}
@@ -486,32 +488,6 @@
 				-4.035289764404297,
 				0.07249303162097931,
 				-1.4950644969940186
-			]
-		},
-		{
-			"name":"Empty.001",
-			"scale":[
-				2.129495859146118,
-				2.129495859146118,
-				2.129495859146118
-			],
-			"translation":[
-				10.041095733642578,
-				0,
-				-17.54275131225586
-			]
-		},
-		{
-			"name":"Empty.002",
-			"scale":[
-				3.6898205280303955,
-				3.6898205280303955,
-				3.6898205280303955
-			],
-			"translation":[
-				19.184480667114258,
-				0,
-				-17.54275131225586
 			]
 		},
 		{
@@ -1137,8 +1113,8 @@
 		},
 		{
 			"children":[
-				70,
-				71
+				68,
+				69
 			],
 			"mesh":63,
 			"name":"TVSet",
@@ -1165,7 +1141,7 @@
 		},
 		{
 			"children":[
-				73
+				71
 			],
 			"mesh":65,
 			"name":"UpperWindow",
@@ -1181,7 +1157,7 @@
 		},
 		{
 			"children":[
-				75
+				73
 			],
 			"mesh":67,
 			"name":"UpperWindow.001",
@@ -1197,7 +1173,7 @@
 		},
 		{
 			"children":[
-				77
+				75
 			],
 			"mesh":69,
 			"name":"UpperWindow.003",
@@ -1213,7 +1189,7 @@
 		},
 		{
 			"children":[
-				79
+				77
 			],
 			"mesh":71,
 			"name":"UpperWindow.006",
@@ -1351,18 +1327,34 @@
 				65,
 				66,
 				67,
-				68,
-				69,
+				70,
 				72,
 				74,
 				76,
 				78,
+				79,
 				80,
-				81,
-				82,
-				83
+				81
 			],
 			"name":"Scene"
+		},
+		{
+			"mesh":75,
+			"name":"Cube",
+			"translation":[
+				-9.04420280456543,
+				-0.9320330619812012,
+				-4.596518039703369
+			]
+		},
+		{
+			"mesh":76,
+			"name":"Cube.001",
+			"translation":[
+				-9.04420280456543,
+				-12.765890121459961,
+				-4.596518039703369
+			]
 		}
 	],
 	"materials":[
@@ -3745,6 +3737,36 @@
 					"material":49
 				}
 			]
+		},
+		{
+			"name":"Cube",
+			"primitives":[
+				{
+					"attributes":{
+						"POSITION":467,
+						"NORMAL":468,
+						"TEXCOORD_0":469,
+						"TEXCOORD_1":470
+					},
+					"indices":471,
+					"material":12
+				}
+			]
+		},
+		{
+			"name":"Cube.039",
+			"primitives":[
+				{
+					"attributes":{
+						"POSITION":472,
+						"NORMAL":473,
+						"TEXCOORD_0":474,
+						"TEXCOORD_1":475
+					},
+					"indices":471,
+					"material":12
+				}
+			]
 		}
 	],
 	"textures":[
@@ -4110,7 +4132,7 @@
 		},
 		{
 			"sampler":0,
-			"source":87
+			"source":33
 		},
 		{
 			"sampler":0,
@@ -4572,11 +4594,6 @@
 			"mimeType":"image/jpeg",
 			"name":"Wood013_1K_Color",
 			"uri":"../textures/Wood013_1K_Color.jpg"
-		},
-		{
-			"mimeType":"image/png",
-			"name":"Wood013_1K_Roughness",
-			"uri":"../textures/Wood013_1K_Roughness.png"
 		}
 	],
 	"accessors":[
@@ -8383,6 +8400,80 @@
 			"componentType":5123,
 			"count":528,
 			"type":"SCALAR"
+		},
+		{
+			"bufferView":467,
+			"componentType":5126,
+			"count":16,
+			"max":[
+				0.7421716451644897,
+				1,
+				1.6654988527297974
+			],
+			"min":[
+				-1.3300580978393555,
+				-10.833856582641602,
+				-0.7421716451644897
+			],
+			"type":"VEC3"
+		},
+		{
+			"bufferView":468,
+			"componentType":5126,
+			"count":16,
+			"type":"VEC3"
+		},
+		{
+			"bufferView":469,
+			"componentType":5126,
+			"count":16,
+			"type":"VEC2"
+		},
+		{
+			"bufferView":470,
+			"componentType":5126,
+			"count":16,
+			"type":"VEC2"
+		},
+		{
+			"bufferView":471,
+			"componentType":5123,
+			"count":24,
+			"type":"SCALAR"
+		},
+		{
+			"bufferView":472,
+			"componentType":5126,
+			"count":16,
+			"max":[
+				0.7421716451644897,
+				1,
+				1.6654988527297974
+			],
+			"min":[
+				-1.3300580978393555,
+				-239.43087768554688,
+				-0.7421716451644897
+			],
+			"type":"VEC3"
+		},
+		{
+			"bufferView":473,
+			"componentType":5126,
+			"count":16,
+			"type":"VEC3"
+		},
+		{
+			"bufferView":474,
+			"componentType":5126,
+			"count":16,
+			"type":"VEC2"
+		},
+		{
+			"bufferView":475,
+			"componentType":5126,
+			"count":16,
+			"type":"VEC2"
 		}
 	],
 	"bufferViews":[
@@ -11187,6 +11278,60 @@
 			"byteLength":1056,
 			"byteOffset":36812912,
 			"target":34963
+		},
+		{
+			"buffer":0,
+			"byteLength":192,
+			"byteOffset":36813968,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":192,
+			"byteOffset":36814160,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":128,
+			"byteOffset":36814352,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":128,
+			"byteOffset":36814480,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":48,
+			"byteOffset":36814608,
+			"target":34963
+		},
+		{
+			"buffer":0,
+			"byteLength":192,
+			"byteOffset":36814656,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":192,
+			"byteOffset":36814848,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":128,
+			"byteOffset":36815040,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":128,
+			"byteOffset":36815168,
+			"target":34962
 		}
 	],
 	"samplers":[
@@ -11197,7 +11342,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":36813968,
+			"byteLength":36815296,
 			"uri":"frontrooms_0.bin"
 		}
 	]
