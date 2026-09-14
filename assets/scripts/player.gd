@@ -66,7 +66,7 @@ class WieldableData:
 			if range.from <= range.to:
 				animation_player.play_section(_animation_name, Player._frame_index_to_time(range.from), Player._frame_index_to_time(range.to), -1,  range.speed, false)
 			else:
-				animation_player.play_section(_animation_name, Player._frame_index_to_time(range.from), Player._frame_index_to_time(range.to), -1, -range.speed, true)
+				animation_player.play_section(_animation_name, Player._frame_index_to_time(range.to), Player._frame_index_to_time(range.from), -1, -range.speed, true)
 			return true
 		return false
 	
@@ -81,7 +81,7 @@ enum Wieldable {NONE, PUSH}
 
 @onready var _wieldables: Dictionary = {
 	Wieldable.NONE: WieldableData.new(null, 			AnimationRange.new(0,0,1), 		AnimationRange.new(0,0,1)),
-	Wieldable.PUSH: WieldableData.new($_Wield/_Push, 	AnimationRange.new(0,40,1), 	AnimationRange.new(40,0,1))
+	Wieldable.PUSH: WieldableData.new($_Wield/_Push, 	AnimationRange.new(0,40,5), 	AnimationRange.new(40,0,5))
 }
 
 # Sounds
@@ -221,6 +221,7 @@ func _handle_wieldable() -> void:
 			if _wieldable_old != wieldable:
 				var old_wieldable: WieldableData = _wieldables[_wieldable_old]
 				if old_wieldable.play_animation(old_wieldable.animations.dequip):
+					print("Play dequip (" + str(old_wieldable.animations.dequip.from) + " " + str(old_wieldable.animations.dequip.to) + ")")
 					_wield_state = WieldState.DEQUIPING
 				else:
 					if old_wieldable.node:
@@ -229,6 +230,7 @@ func _handle_wieldable() -> void:
 					
 		WieldState.DEQUIPING:
 			var old_wieldable: WieldableData = _wieldables[_wieldable_old]
+			print("Playing: " + str(old_wieldable.is_playing_animation()))
 			if !old_wieldable.is_playing_animation():
 				if old_wieldable.node:
 					old_wieldable.node.visible = false
