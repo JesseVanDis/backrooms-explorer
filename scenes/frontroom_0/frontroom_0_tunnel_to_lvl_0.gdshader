@@ -8,7 +8,7 @@ void vertex() {
 
 void fragment() {
 	float factor = clamp((y_pos * 0.1) + 1.0, 0.0, 1.0);
-	ALBEDO = mix(vec3(0.0), vec3(1.0, 1.0, 1.0), factor);
+	ALBEDO = mix(vec3(0.0), vec3(0.3), factor);
 	SPECULAR = 0.0;
 }
 

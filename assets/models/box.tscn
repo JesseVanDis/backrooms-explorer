@@ -3,3 +3,6 @@
 [ext_resource type="PackedScene" uid="uid://giixkepmc5qq" path="res://assets/models/box.gltf" id="1_1s7ri"]
 
 [node name="box" unique_id=998870341 instance=ExtResource("1_1s7ri")]
+
+[node name="BoxesOBJ_001" parent="Scene" parent_id_path=PackedInt32Array(1565060881) index="0" unique_id=847687666]
+gi_mode = 2

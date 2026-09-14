@@ -21,6 +21,10 @@ background_mode = 2
 sky = SubResource("Sky_56db3")
 ambient_light_source = 3
 reflected_light_source = 2
+fog_enabled = true
+fog_light_color = Color(0, 0, 0, 1)
+fog_density = 0.0
+fog_sky_affect = 0.0
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_khlrb"]
 size = Vector2(400, 400)

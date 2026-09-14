@@ -172,30 +172,30 @@ shape = SubResource("BoxShape3D_ppjf6")
 [node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="." index="2" unique_id=897325064]
 multimesh = SubResource("MultiMesh_0dq8w")
 
-[node name="GrassPlatform" parent="." index="3" unique_id=947211216]
+[node name="GrassPlatform" parent="." index="3" unique_id=1548624596]
 visible = false
 
-[node name="Cube_002" parent="Scene" parent_id_path=PackedInt32Array(738140962) index="7" unique_id=1248580069]
+[node name="Cube_002" parent="Scene" parent_id_path=PackedInt32Array(1400602258) index="7" unique_id=1073392693]
 gi_lightmap_texel_scale = 2.0
 
-[node name="Cube_005" parent="Scene" parent_id_path=PackedInt32Array(738140962) index="9" unique_id=208196538]
+[node name="Cube_005" parent="Scene" parent_id_path=PackedInt32Array(1400602258) index="9" unique_id=1246205173]
 gi_lightmap_texel_scale = 2.0
 
-[node name="Door" parent="Scene" parent_id_path=PackedInt32Array(738140962) index="22" unique_id=625827398]
+[node name="Door" parent="Scene" parent_id_path=PackedInt32Array(1400602258) index="22" unique_id=933682931]
 script = ExtResource("3_0dq8w")
 open_clockwise = false
 mesh_rotation_degrees = 90.0
 
-[node name="Door3" parent="Scene" parent_id_path=PackedInt32Array(738140962) index="24" unique_id=1304578058]
+[node name="Door3" parent="Scene" parent_id_path=PackedInt32Array(1400602258) index="24" unique_id=509709407]
 script = ExtResource("3_0dq8w")
 
-[node name="Sofa" parent="Scene" parent_id_path=PackedInt32Array(738140962) index="53" unique_id=1513186345]
+[node name="Sofa" parent="Scene" parent_id_path=PackedInt32Array(1400602258) index="53" unique_id=676664265]
 gi_lightmap_texel_scale = 1.5
 
-[node name="Cube" parent="." index="5" unique_id=497417556]
+[node name="Cube" parent="." index="5" unique_id=500903768]
 gi_mode = 0
 surface_material_override/0 = ExtResource("4_fuxr4")
 
-[node name="Cube_001" parent="." index="6" unique_id=733887995]
+[node name="Cube_001" parent="." index="6" unique_id=180038959]
 gi_mode = 0
 surface_material_override/0 = ExtResource("4_fuxr4")
