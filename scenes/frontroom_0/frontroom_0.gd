@@ -6,7 +6,7 @@ extends Node3D
 @onready var _node_world_environment: WorldEnvironment = $WorldEnvironment
 var _player: Player
 const LVL_0_PATH: String = "res://scenes/lvl_0/lvl_0.tscn"
-var _loading_lvl_0_state: int = 0
+var _loading_lvl_0_state: int = 1
 var _lvl_0: Node = null
 var _loading_screen: Node = null
 var _fade_in_complete: bool = false

@@ -267,7 +267,11 @@ func _remove_chunk(chunk_index: Vector2i) -> void:
 	get_tree().call_group("col_" + chunk_collisions_name, "queue_free")
 	chunks.erase(chunk_index)
 
-var _last_tiles_where_collision_is_needed: Dictionary # Vector2i, bool   ( bool not used. treat as std::set )
+class HandleTilesCache:
+	var last_tiles_where_needed: Dictionary # Vector2i, bool   ( bool not used. treat as std::set )
+	var placed_tiles: Dictionary # Vector2i, bool   ( bool not used. treat as std::set )
+
+var _collision_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 func _handle_static_collision_shapes() -> void:
 	var create = func(placed_tile: PlacedTile, chunk: Chunk):
 		for model: Model in placed_tile.models.values():
@@ -285,10 +289,9 @@ func _handle_static_collision_shapes() -> void:
 			collision_shape.queue_free() # automatically removes it from the scene as well.
 		placed_tile.collision_shapes = {}
 		
-	_handle_tiles_in_radius(2, _last_tiles_where_collision_is_needed, create, remove)
+	_handle_tiles_in_radius(2, _collision_tiles_cache, create, remove)
 
-
-var _last_tiles_where_graphics_is_needed: Dictionary # Vector2i, bool   ( bool not used. treat as std::set )
+var _graphic_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 func _handle_tile_graphics() -> void:
 	var create = func(placed_tile: PlacedTile, chunk: Chunk):
 		for model: Model in placed_tile.models.values():
@@ -299,15 +302,15 @@ func _handle_tile_graphics() -> void:
 				graphic.rotate_y(placed_tile.angle)
 				chunk.tiles.add_child(graphic)
 				placed_tile.graphics[model.id] = graphic
-
+	
 	var remove = func(placed_tile: PlacedTile):
 		for graphic: Node3D in placed_tile.graphics.values():
 			graphic.queue_free() # gets remove from the parent automatically
 		placed_tile.graphics = {}
 	
-	_handle_tiles_in_radius(VIEW_DISTANCE, _last_tiles_where_graphics_is_needed, create, remove)
+	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, 5)
 
-func _handle_tiles_in_radius(radius: int, cache: Dictionary, create_cb: Callable, remove_cb: Callable) -> void:
+func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_cb: Callable, remove_cb: Callable, max_tiles_to_handle: int = 0) -> void:
 	var player_pos_3d: Vector3 = $Player.transform.origin
 	var player_pos: Vector2 = Vector2(player_pos_3d.x, player_pos_3d.z)
 	var tile_index_of_player = Vector2i(int(player_pos.x), int(player_pos.y))
@@ -319,7 +322,7 @@ func _handle_tiles_in_radius(radius: int, cache: Dictionary, create_cb: Callable
 	var y1 = tile_index_of_player.y + radius
 	
 	var tiles_visible: Array[Vector2i] = []
-	var tiles_no_longer_visible = cache.duplicate()
+	var tiles_no_longer_visible = cache.last_tiles_where_needed.duplicate()
 	
 	for y in range(y0, y1):
 		for x in range(x0, x1):
@@ -328,24 +331,31 @@ func _handle_tiles_in_radius(radius: int, cache: Dictionary, create_cb: Callable
 				var tile_index = Vector2i(x, y)
 				tiles_visible.append(tile_index)
 				tiles_no_longer_visible.erase(tile_index)
-
-	# remove collision tile first
+	
+	# remove out-of-range tile first
 	for tile_index: Vector2i in tiles_no_longer_visible.keys():
 		if placed_tiles.has(tile_index):
 			var placed_tile: PlacedTile = placed_tiles[tile_index]
 			remove_cb.call(placed_tile)
+			cache.placed_tiles[tile_index] = false
 	
-	cache.clear()
+	var num_tiles_handled: int = 0
+	cache.last_tiles_where_needed.clear()
 	for tile_index: Vector2i in tiles_visible:
-		cache[tile_index] = true
+		cache.last_tiles_where_needed[tile_index] = true
 		if placed_tiles.has(tile_index):
 			var placed_tile: PlacedTile = placed_tiles[tile_index]
 			var chunk_index = _get_chunk_index(tile_index)
 			if chunks.has(chunk_index):
-				var chunk: Chunk = chunks[chunk_index]
-				#var tile_pos: Vector3 = Vector3(float(tile_index.x) * TILE_SIZE, 0.0, float(tile_index.y) * TILE_SIZE)
-				create_cb.call(placed_tile, chunk)
-				
+				if (!cache.placed_tiles.has(tile_index)) || cache.placed_tiles[tile_index] == false:
+					var chunk: Chunk = chunks[chunk_index]
+					#var tile_pos: Vector3 = Vector3(float(tile_index.x) * TILE_SIZE, 0.0, float(tile_index.y) * TILE_SIZE)
+					create_cb.call(placed_tile, chunk)
+					num_tiles_handled = num_tiles_handled + 1
+					cache.placed_tiles[tile_index] = true
+					if max_tiles_to_handle > 0 && num_tiles_handled > max_tiles_to_handle:
+						break
+
 
 func _handle_world_generation() -> void:
 	var player_pos_3d: Vector3 = $Player.transform.origin
