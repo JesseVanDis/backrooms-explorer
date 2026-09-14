@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://bysq1tmv358b6"]
+
+[ext_resource type="Shader" uid="uid://g31d12ndmjqv" path="res://scenes/frontroom_0/frontroom_0_tunnel_to_lvl_0.gdshader" id="1_6r1gu"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_6r1gu")
