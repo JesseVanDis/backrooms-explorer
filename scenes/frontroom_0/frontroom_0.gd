@@ -6,8 +6,11 @@ extends Node3D
 @onready var _node_world_environment: WorldEnvironment = $WorldEnvironment
 var _player: Player
 const LVL_0_PATH: String = "res://scenes/lvl_0/lvl_0.tscn"
+const LOADING_SCREEN_PATH: String = "res://scenes/menu_loading/menu_loading.tscn"
 var _loading_lvl_0_state: int = 0
 var _lvl_0: Node = null
+var _loading_screen: Node = null
+var _fade_in_complete: bool = false
 
 
 func _ready() -> void:
@@ -64,7 +67,37 @@ func _update_player_speed() -> void:
 
 func _handle_loading_lvl_0() -> void:
 	match _loading_lvl_0_state:
-		1: 
+		1:
+			var loading_scene: PackedScene = load(LOADING_SCREEN_PATH)
+			if loading_scene == null:
+				push_error("Failed to load loading screen scene")
+				return
+			
+			_loading_screen = loading_scene.instantiate()
+			if _loading_screen == null:
+				push_error("Failed to instantiate loading screen")
+				return
+			
+			# Find the CanvasLayer to set its opacity
+			var canvas_layer: CanvasLayer = _loading_screen.get_node("CanvasLayer")
+			if canvas_layer == null:
+				push_error("CanvasLayer not found in loading screen")
+				# If we can't find the layer, we just continue without fade
+				_fade_in_complete = true
+			else:
+				# Initialize transparent
+				for child in canvas_layer.get_children():
+					if "modulate" in child:
+						child.modulate.a = 0.0
+				
+				var tween: Tween = create_tween()
+				for child in canvas_layer.get_children():
+					if "modulate" in child:
+						tween.parallel().tween_property(child, "modulate:a", 1.0, 1.0)
+				tween.tween_callback(func() -> void: _fade_in_complete = true)
+			
+			get_tree().root.add_child(_loading_screen)
+			
 			var err: Error = ResourceLoader.load_threaded_request(LVL_0_PATH)
 			if err != OK:
 				push_error("Failed to start asynchronous loading of lvl_0: " + str(err))
@@ -107,8 +140,9 @@ func _handle_level_transition() -> void:
 	if _player.global_position.y < TRIGGER_Y:
 		if _loading_lvl_0_state == 0:
 			_loading_lvl_0_state = 1
-		if _loading_lvl_0_state == 4:
+		if _loading_lvl_0_state == 4 and _fade_in_complete:
 			print("Switching to lvl_0")
 			get_tree().current_scene.queue_free()
+			# Note: _loading_screen is already a child of root, so it stays when current_scene is freed
 			get_tree().root.add_child(_lvl_0)
 			get_tree().current_scene = _lvl_0
