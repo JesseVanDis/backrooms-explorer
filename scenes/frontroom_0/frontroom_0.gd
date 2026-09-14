@@ -7,7 +7,7 @@ var _player: Player
 
 
 func _ready() -> void:
-	_player = Player.find_player(get_tree())
+	_player = UtilsNode.find_player(get_tree())
 	if _player == null:
 		push_error("Player not found in scene tree")
 
@@ -27,6 +27,6 @@ func _update_player_speed() -> void:
 		is_near_box = true
 		
 	if is_near_box:
-		_player.movement_state = Player.MovementState.PUSHING
+		_player.wieldable = Player.Wieldable.PUSH
 	else:
-		_player.movement_state = Player.MovementState.RUNNING
+		_player.wieldable = Player.Wieldable.NONE

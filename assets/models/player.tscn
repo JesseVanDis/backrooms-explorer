@@ -24,15 +24,13 @@ ignore_occlusion_culling = true
 gi_mode = 0
 mesh = SubResource("CapsuleMesh_khlrb")
 
+[node name="_Wield" type="Node3D" parent="CharacterBody3D" unique_id=1686719495]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35387945, -0.26405966)
+
+[node name="_Push" parent="CharacterBody3D/_Wield" unique_id=1296432070 instance=ExtResource("2_ormyk")]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D" unique_id=349531905]
 shape = SubResource("CapsuleShape3D_knwgh")
-
-[node name="_Hands" parent="CharacterBody3D" unique_id=1296432070 instance=ExtResource("2_ormyk")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.17700005, -0.15072721)
-visible = false
-
-[node name="_HandsAppearStartingPos" type="Marker3D" parent="CharacterBody3D" unique_id=1934598597]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08074331, 0)
 
 [node name="_Neck" type="Node3D" parent="CharacterBody3D" unique_id=532610939]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5330651, 0)

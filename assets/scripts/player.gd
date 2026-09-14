@@ -2,11 +2,6 @@ extends CharacterBody3D
 class_name Player
 
 
-enum MovementState {
-	RUNNING,
-	PUSHING
-}
-
 const SPEED: float = 3.0
 const JUMP_VELOCITY: float = 3.5
 const FOOTSTEP_INTERVAL: float = 0.36
@@ -16,9 +11,6 @@ const MOVEMENT_LOWERING: float = 0.15
 const HANDS_APPEAR_DURATION: float = 0.1
 
 @onready var _node_camera : Node3D = $_Neck/Camera3D
-@onready var _node_hands : Node3D = $_Hands
-@onready var _node_hands_center : Node3D = $_HandsAppearStartingPos
-@onready var _node_animation_player : AnimationPlayer = $_Hands/AnimationPlayer
 
 const FOOTSTEP_SOUNDS: Array[AudioStream] = [
 	preload("res://assets/sounds/footstep_1.wav"),
@@ -36,7 +28,55 @@ const LANDING_SOUNDS: Array[AudioStream] = [
 	preload("res://assets/sounds/jump_end_2.wav")
 ]
 
-var movement_state: MovementState = MovementState.RUNNING
+static func _frame_index_to_time(index: int) -> float:
+	const ANIMATION_FRAMES_PER_SECOND: float = 24
+	return float(index) / ANIMATION_FRAMES_PER_SECOND
+
+class AnimationRange:
+	var from: int = 0
+	var to: int = 0
+	func _init(p_from: int, p_to: int):
+		from = p_from
+		to = p_to
+
+class Animations:
+	var equip: AnimationRange = AnimationRange.new(0,0)
+	var dequip: AnimationRange = AnimationRange.new(0,0)
+
+class WieldableData:
+	var node: Node3D = null
+	var animations: Animations = Animations.new()
+	var animation_player: AnimationPlayer = null
+
+	func _init(p_wield_node: Node, p_equip: AnimationRange, p_dequip: AnimationRange) -> void:
+		node = p_wield_node
+		animations.equip = p_equip
+		animations.dequip = p_dequip
+		if p_wield_node:
+			animation_player = UtilsNode.find_animation_player_recursive(p_wield_node)
+	
+	func play_animation(range: AnimationRange) -> bool:
+		if animation_player:
+			if range.from <= range.to:
+				animation_player.play_section("", Player._frame_index_to_time(range.from), Player._frame_index_to_time(range.to))
+			else:
+				animation_player.play_section_backwards("", Player._frame_index_to_time(range.from), Player._frame_index_to_time(range.to))
+			return true
+		return false
+	
+	func is_playing_animation() -> bool:
+		if animation_player:
+			return animation_player.is_playing()
+		else:
+			return false
+
+
+enum Wieldable {NONE, PUSH}
+
+@onready var _wieldables: Dictionary = {
+	Wieldable.NONE: WieldableData.new(null, 			AnimationRange.new(0,0), 	AnimationRange.new(0,0)),
+	Wieldable.PUSH: WieldableData.new($_Wield/_Push, 	AnimationRange.new(0,40), 	AnimationRange.new(40,0))
+}
 
 # Sounds
 var _footstep_sounds: Array[AudioStream] = FOOTSTEP_SOUNDS
@@ -48,34 +88,20 @@ var _audio_player: AudioStreamPlayer3D
 
 # Animations
 var _camera_default_position: Vector3 = Vector3.ZERO
-var _hands_default_position: Vector3 = Vector3.ZERO
 var _bob_phase: float = 0.0
 var _is_moving: bool = false
-var _hands_tween: Tween
+
+var wieldable: Wieldable = Wieldable.NONE
+var _wieldable_previous_frame: Wieldable = Wieldable.NONE
 
 func _ready() -> void:
+	if _node_camera == null:
+		push_error("_node_camera is null")
+		return
+		
 	_audio_player = AudioStreamPlayer3D.new()
 	add_child(_audio_player)
 	_camera_default_position = _node_camera.position
-	_hands_default_position = _node_hands.position
-
-static func find_player(tree: SceneTree) -> Player:
-	# Try to find the player in the scene tree via group
-	var player: Player = tree.get_first_node_in_group("player")
-	if player:
-		return player
-	
-	# Fallback: search by class if group is not set
-	var players: Array[Node] = tree.get_nodes_in_group("player")
-	if not players.is_empty():
-		return players[0] as Player
-		
-	# Last resort: deep search
-	for node in tree.get_root().find_children("*", "CharacterBody3D", true, false):
-		if node is Player:
-			return node as Player
-			
-	return null
 
 func apply_footsteps(sounds: Array[AudioStream]) -> void:
 	_footstep_sounds = sounds
@@ -85,78 +111,41 @@ func apply_footstep_start_sound(sound: AudioStream) -> void:
 
 func apply_jump_sounds(sounds: Array[AudioStream]) -> void:
 	_jump_sounds = sounds
-
-
-func _show_hands() -> void:
-	var anim_list: PackedStringArray = _node_animation_player.get_animation_list()
-	if anim_list.is_empty():
-		push_error("Animation list is empty")
-		return
-	var anim_name: String = anim_list[0]
 	
-	if _hands_tween:
-		_hands_tween.kill()
-	
-	_node_hands.visible = true
-	_hands_tween = create_tween()
-	_hands_tween.set_parallel(true)
-	_hands_tween.tween_property(_node_hands, "position", _hands_default_position, HANDS_APPEAR_DURATION).from(_node_hands_center.position)
-	_hands_tween.tween_method(_get_hands_material().set_shader_parameter.bind("opacity"), 0.0, 1.0, HANDS_APPEAR_DURATION)
-	_node_animation_player.play(anim_name)
-	_node_animation_player.seek(0.0, true)
-
-func _hide_hands() -> void:
-	if _node_hands == null:
-		push_error("_node_hands is null")
-		return
-	if _node_animation_player == null:
-		push_error("_node_animation_player is null")
-		return
-		
-	var anim_list: PackedStringArray = _node_animation_player.get_animation_list()
-	if anim_list.is_empty():
-		push_error("Animation list is empty")
-		return
-	var anim_name: String = anim_list[0]
-	const FPS: float = 30.0
-	const FRAME_10_TIME: float = 10.0 / FPS
-	
-	if _hands_tween:
-		_hands_tween.kill()
-		
-	_hands_tween = create_tween()
-	_hands_tween.set_parallel(true)
-	_hands_tween.tween_property(_node_hands, "position", _node_hands_center.position, HANDS_APPEAR_DURATION)
-	_hands_tween.tween_method(_get_hands_material().set_shader_parameter.bind("opacity"), 1.0, 0.0, HANDS_APPEAR_DURATION)
-	_hands_tween.set_parallel(false)
-	_hands_tween.tween_callback(func(): _node_hands.visible = false)
-	_node_animation_player.play(anim_name, -1, -1.0, true)
-	_node_animation_player.seek(FRAME_10_TIME, true)
-
-func _get_hands_material() -> ShaderMaterial:
-	var hand_mesh: MeshInstance3D = UtilsMesh.find_mesh_recursive(_node_hands)
-	return hand_mesh.get_surface_override_material(0) as ShaderMaterial
-
 func _process(_delta: float) -> void:
-	if _node_animation_player == null or not _node_animation_player.is_playing():
-		return
-		
-	var current_anim: String = _node_animation_player.current_animation
-	if current_anim == "":
-		return
-		
-	const FPS: float = 30.0
-	const FRAME_10_TIME: float = 10.0 / FPS
-	var current_time: float = _node_animation_player.current_animation_position
-	
-	if movement_state == MovementState.PUSHING:
-		if current_time >= FRAME_10_TIME:
-			_node_animation_player.pause()
-			_node_animation_player.seek(FRAME_10_TIME, true)
+	pass
+
+func _physics_process(delta: float) -> void:
+	var was_in_air: bool = not is_on_floor()
+	# Add the gravity.
+	if not is_on_floor():
+		velocity += get_gravity() * delta
+
+	# Handle jump.
+	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
+		velocity.y = JUMP_VELOCITY
+		_play_jump_sound()
+
+	# Get the input direction and handle the movement/deceleration.
+	# As good practice, you should replace UI actions with custom gameplay actions.
+	var input_dir: Vector2 = Input.get_vector("left", "right", "forward", "backward")
+	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+
+	if direction:
+		velocity.x = direction.x * SPEED * _get_movement_speed_multiplier()
+		velocity.z = direction.z * SPEED * _get_movement_speed_multiplier()
 	else:
-		if current_time <= 0.0:
-			_node_animation_player.stop()
-			_node_hands.visible = false
+		velocity.x = move_toward(velocity.x, 0, SPEED)
+		velocity.z = move_toward(velocity.z, 0, SPEED)
+
+	move_and_slide()
+	
+	if was_in_air and is_on_floor():
+		_play_landing_sound()
+	
+	_handle_wieldable()
+	_handle_head_bob(delta)
+	_handle_footsteps(delta)
 
 func _play_footstep() -> void:
 	if _footstep_sounds.is_empty():
@@ -203,56 +192,67 @@ func _unhandled_input(event: InputEvent) -> void:
 			_node_camera.rotation.x = clamp(_node_camera.rotation.x, deg_to_rad(-90), deg_to_rad(90))
 
 func _get_movement_speed_multiplier() -> float:
-	match movement_state:
-		MovementState.PUSHING:
+	match wieldable:
+		Wieldable.PUSH:
 			return 0.2
 		_:
 			return 1.0
 
 func _get_animation_speed_multiplier() -> float:
-	match movement_state:
-		MovementState.PUSHING:
+	match wieldable:
+		Wieldable.PUSH:
 			return 0.7
 		_:
 			return 1.0
 
-func _physics_process(delta: float) -> void:
-	var was_in_air: bool = not is_on_floor()
-	# Add the gravity.
-	if not is_on_floor():
-		velocity += get_gravity() * delta
+enum WieldState {NONE, DEQUIPING, EQUIPING_START, EQUIPING}
 
-	# Handle jump.
-	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
-		_play_jump_sound()
-
-	# Get the input direction and handle the movement/deceleration.
-	# As good practice, you should replace UI actions with custom gameplay actions.
-	var input_dir: Vector2 = Input.get_vector("left", "right", "forward", "backward")
-	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-
-	if direction:
-		velocity.x = direction.x * SPEED * _get_movement_speed_multiplier()
-		velocity.z = direction.z * SPEED * _get_movement_speed_multiplier()
-	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
-		velocity.z = move_toward(velocity.z, 0, SPEED)
-
-	move_and_slide()
+var _wield_old_wieldable: Wieldable = Wieldable.NONE
+var _wield_state: WieldState = WieldState.NONE
+func _handle_wieldable() -> void:
 	
-	if was_in_air and is_on_floor():
-		_play_landing_sound()
+	#var anim_list: PackedStringArray = _node_animation_player.get_animation_list()
+	#if anim_list.is_empty():
+		#push_error("Animation list is empty")
+		#return
+	#var anim_name: String = anim_list[0]
+	#_node_animation_player.play(anim_name, -1, -1.0, true)
 	
-	_handle_head_bob(delta)
-	_handle_footsteps(delta)
-	_handle_hands_visibility()
-
-func _handle_hands_visibility() -> void:
-	if movement_state == MovementState.PUSHING and _is_moving:
-		_show_hands()
-	else:
-		_hide_hands()
+	match _wield_state:
+		WieldState.NONE:
+			if _wieldable_previous_frame != wieldable:
+				_wield_old_wieldable = _wieldable_previous_frame
+				var old_wieldable: WieldableData = _wieldables[_wield_old_wieldable]
+				if old_wieldable.play_animation(old_wieldable.animations.dequip):
+					_wield_state = WieldState.DEQUIPING
+				else:
+					if old_wieldable.node:
+						old_wieldable.node.visible = false
+					_wield_state = WieldState.EQUIPING_START
+					
+		WieldState.DEQUIPING:
+			var old_wieldable: WieldableData = _wieldables[_wield_old_wieldable]
+			if !old_wieldable.is_playing_animation():
+				if old_wieldable.node:
+					old_wieldable.node.visible = false
+				_wield_state = WieldState.EQUIPING_START
+				
+		WieldState.EQUIPING_START:		
+			var new_wieldable: WieldableData = _wieldables[wieldable]
+			if new_wieldable.node:
+				new_wieldable.node.visible = true
+			if new_wieldable.play_animation(new_wieldable.animations.equip):
+				_wield_state = WieldState.EQUIPING
+			else:
+				_wield_state = WieldState.NONE
+			_wield_old_wieldable = wieldable
+			
+		WieldState.EQUIPING:
+			var new_wieldable: WieldableData = _wieldables[wieldable]
+			if !new_wieldable.is_playing_animation():
+				_wield_state = WieldState.NONE
+	
+	_wieldable_previous_frame = wieldable
 
 func _handle_head_bob(delta: float) -> void:
 	var vertical_offset: float = 0.0

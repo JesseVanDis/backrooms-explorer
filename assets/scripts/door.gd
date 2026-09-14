@@ -22,7 +22,7 @@ func _ready() -> void:
 
 func get_player() -> Player:
 	if not _player:
-		_player = Player.find_player(get_tree())
+		_player = UtilsNode.find_player(get_tree())
 	return _player
 
 func _process(delta: float) -> void:
