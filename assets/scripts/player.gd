@@ -15,6 +15,7 @@ const HANDS_APPEAR_DURATION: float = 0.1
 @onready var _node_animation_player: AnimationPlayer = $AnimationPlayer
 
 @export var max_fall_speed: float = 0.0
+@export var initial_velocity: Vector3 = Vector3.ZERO
 @export var initial_yaw: float = 0.0
 @export var initial_pitch: float = 0.0
 
@@ -116,6 +117,7 @@ func _ready() -> void:
 		
 	rotation.y = deg_to_rad(initial_yaw)
 	_node_camera.rotation.x = deg_to_rad(initial_pitch)
+	velocity = initial_velocity
 	
 	_audio_player = AudioStreamPlayer3D.new()
 	add_child(_audio_player)

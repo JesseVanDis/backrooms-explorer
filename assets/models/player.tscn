@@ -15,21 +15,21 @@ tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0)
 
 [sub_resource type="Animation" id="Animation_jffvu"]
 resource_name = "lvl_0_landing"
-length = 3.0000000000000004
+length = 3.0
 tracks/0/type = "position_3d"
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/path = NodePath(".")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
-tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1, 1.7551067, -1.3944671, 0, 2, 1, 1.7551067, -1.3944671, 0, 3, 1, 0, 0, 0)
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 0.2, 1, 1.7551067, -1.0757419, 0, 0.26666665, 1, 1.7551067, -0.9239289, 0, 0.33851683, 1, 1.7551067, -1.0757419, 0, 1.4, 1, 1.7551067, -1.0757419, 0, 3, 1, 0, 0, 0)
 tracks/1/type = "rotation_3d"
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/path = NodePath(".")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
-tracks/1/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1, 1, 0, 0, -0.70710677, 0.70710677, 2, 1, 0, 0, -0.70710677, 0.70710677, 3, 1, 0, 0, 0, 1)
+tracks/1/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 0.2, 1, 0, 0, -0.70710677, 0.70710677, 1.4, 1, 0, 0, -0.70710677, 0.70710677, 3, 1, 0, 0, 0, 1)
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_8d03m"]
 _data = {
@@ -56,6 +56,7 @@ libraries/ = SubResource("AnimationLibrary_8d03m")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=479480019]
 transform = Transform3D(0.5, 0, 0, 0, 1, 0, 0, 0, 0.5, 0, 0, 0)
+visible = false
 cast_shadow = 0
 ignore_occlusion_culling = true
 gi_mode = 0

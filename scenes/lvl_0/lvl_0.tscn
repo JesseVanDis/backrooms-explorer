@@ -44,6 +44,7 @@ environment = SubResource("Environment_j6thp")
 [node name="Player" parent="." unique_id=1091834531 instance=ExtResource("1_rj2d8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, 0)
 max_fall_speed = 15.0
+initial_velocity = Vector3(0, -10, 0)
 initial_pitch = -90.0
 
 [node name="Map" type="Node3D" parent="." unique_id=1437659456]
