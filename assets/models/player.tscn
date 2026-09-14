@@ -3,6 +3,40 @@
 [ext_resource type="Script" uid="uid://e0meeo45d2ya" path="res://assets/scripts/player.gd" id="1_l7vax"]
 [ext_resource type="PackedScene" uid="uid://cos6ltyy7wpm1" path="res://assets/models/hands.tscn" id="2_ormyk"]
 
+[sub_resource type="Animation" id="Animation_ormyk"]
+length = 0.001
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0)
+
+[sub_resource type="Animation" id="Animation_jffvu"]
+resource_name = "lvl_0_landing"
+length = 3.0000000000000004
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1, 1.7551067, -1.3944671, 0, 2, 1, 1.7551067, -1.3944671, 0, 3, 1, 0, 0, 0)
+tracks/1/type = "rotation_3d"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1, 1, 0, 0, -0.70710677, 0.70710677, 2, 1, 0, 0, -0.70710677, 0.70710677, 3, 1, 0, 0, 0, 1)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_8d03m"]
+_data = {
+&"RESET": SubResource("Animation_ormyk"),
+&"lvl_0_landing": SubResource("Animation_jffvu")
+}
+
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_khlrb"]
 radius = 0.3
 height = 1.8
@@ -15,6 +49,10 @@ height = 1.8
 collision_layer = 9
 collision_mask = 9
 script = ExtResource("1_l7vax")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=778263681]
+root_node = NodePath("../_Neck/Camera3D")
+libraries/ = SubResource("AnimationLibrary_8d03m")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=479480019]
 transform = Transform3D(0.5, 0, 0, 0, 1, 0, 0, 0, 0.5, 0, 0, 0)

@@ -12,6 +12,7 @@ const HANDS_APPEAR_DURATION: float = 0.1
 
 @onready var _node_camera : Node3D = $_Neck/Camera3D
 @onready var _node_wield : Node3D = $_Wield
+@onready var _node_animation_player: AnimationPlayer = $AnimationPlayer
 
 @export var max_fall_speed: float = 0.0
 @export var initial_yaw: float = 0.0
@@ -106,6 +107,7 @@ var wieldable: Wieldable = Wieldable.NONE
 var wield_aim_target: Node3D = null
 var _wieldable_old: Wieldable = Wieldable.NONE
 var _smoothed_target_pos: Vector3 = Vector3.ZERO
+var _requested_animation: String = ""
 
 func _ready() -> void:
 	if _node_camera == null:
@@ -128,6 +130,9 @@ func apply_footstep_start_sound(sound: AudioStream) -> void:
 func apply_jump_sounds(sounds: Array[AudioStream]) -> void:
 	_jump_sounds = sounds
 	
+func request_animation(animation_name: String) -> void:
+	_requested_animation = animation_name
+
 func _process(_delta: float) -> void:
 	pass
 
@@ -155,12 +160,16 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
 		velocity.z = move_toward(velocity.z, 0, SPEED)
-
+	
 	move_and_slide()
 	
 	if was_in_air and is_on_floor():
 		_play_landing_sound()
 	
+	if not _requested_animation.is_empty():
+		_node_animation_player.play(_requested_animation)
+		_requested_animation = ""
+
 	_handle_wieldable()
 	_handle_wield_orientation(delta)
 	_handle_head_bob(delta)

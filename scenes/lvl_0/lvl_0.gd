@@ -26,7 +26,8 @@ var model_wall_l: Model = _load_model(wall_scene_l)
 var model_wall_e: Model = _load_model(wall_scene_e)
 
 @onready var _node_map: Node3D = $Map
-# @onready var _node_lightmap_gi: LightmapGI = $LightmapGI
+
+var _did_hit_floor = false
 
 
 class Model:
@@ -77,7 +78,7 @@ func initialized() -> bool:
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	UtilsScreen.fade_out_loading_screen(get_tree())
-	
+		
 	# Initial generation
 	_get_or_create_chunk(Vector2i(0, 0), false)
 	_get_or_create_chunk(Vector2i(-1, -1), false)
@@ -86,9 +87,17 @@ func _ready() -> void:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
+	_handle_player_landing()
 	_handle_world_generation()
 	_handle_tile_graphics()
 	_handle_static_collision_shapes()
+
+func _handle_player_landing() -> void:
+	var player: Player = $Player
+	if player:
+		if !_did_hit_floor && player.is_on_floor():
+			player.request_animation("lvl_0_landing")
+			_did_hit_floor = true
 
 func _place_wall(model: Model, tile_index: Vector2i, angle: float) -> void:
 	_instantiate_model(model, tile_index, angle)
