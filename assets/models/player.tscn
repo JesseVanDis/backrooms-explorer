@@ -43,7 +43,7 @@ height = 1.8
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_knwgh"]
 radius = 0.3
-height = 1.8
+height = 1.5469726
 
 [node name="CharacterBody3D" type="CharacterBody3D" unique_id=763029811]
 collision_layer = 9
@@ -68,6 +68,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23269928, 0)
 [node name="_Push" parent="_Wield" unique_id=1296432070 instance=ExtResource("2_ormyk")]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=349531905]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12651366, 0)
 shape = SubResource("CapsuleShape3D_knwgh")
 
 [node name="_Neck" type="Node3D" parent="." unique_id=532610939]

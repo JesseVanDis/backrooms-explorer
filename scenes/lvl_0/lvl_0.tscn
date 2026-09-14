@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://8y8epqhwryyd" path="res://scenes/lvl_0/part_1x1_ceiling_light.tscn" id="5_63adb"]
 [ext_resource type="PackedScene" uid="uid://dausxfxho355c" path="res://scenes/lvl_0/part_1x1_ceiling.tscn" id="6_mkhuw"]
 [ext_resource type="PackedScene" uid="uid://3lboeybp8vsi" path="res://scenes/lvl_0/entry_tube.tscn" id="8_qmsdi"]
+[ext_resource type="PackedScene" uid="uid://giixkepmc5qq" path="res://assets/models/box.gltf" id="9_63adb"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -34,6 +35,12 @@ fog_light_color = Color(0.28764337, 0.24979874, 0, 1)
 fog_density = 1.0
 fog_depth_begin = 40.0
 fog_depth_end = 60.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_khlrb"]
+size = Vector3(0.6553345, 0.62701416, 0.8041992)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_f4hk2"]
+size = Vector3(7.057373, 7.6053467, 1)
 
 [node name="lvl_0" type="Node3D" unique_id=1577277307]
 script = ExtResource("1_j6thp")
@@ -155,3 +162,24 @@ parameters/looping = true
 
 [node name="entry_tube" parent="." unique_id=431533070 instance=ExtResource("8_qmsdi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.31, 0)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=21189907]
+transform = Transform3D(-0.6117623, 0.7910417, -3.457753e-08, 0, -4.371139e-08, -1, -0.7910417, -0.6117623, 2.674098e-08, 3.2632046, 0.28376234, 1.2538795)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1798941479]
+transform = Transform3D(1, 0, 1.7763568e-15, 0, 1, 0, 0, 0, 1, -0.12744331, 3.5636752, 0.097900555)
+shape = SubResource("BoxShape3D_khlrb")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="StaticBody3D" unique_id=1413527696]
+transform = Transform3D(0.86673236, 0.4987737, -2.1802087e-08, -0.4987737, 0.86673236, 5.8253136e-09, 2.180208e-08, 5.825312e-09, 1, -1.1982951, 1.3099065, 0.0979007)
+shape = SubResource("BoxShape3D_khlrb")
+
+[node name="box2" parent="StaticBody3D" unique_id=811570403 instance=ExtResource("9_63adb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.12792563, 3.1431215, -1.4901161e-07)
+
+[node name="box" parent="StaticBody3D" unique_id=998870341 instance=ExtResource("9_63adb")]
+transform = Transform3D(-0.85816574, 0, -0.5133728, 0.5133728, -4.371139e-08, -0.85816574, -2.2440236e-08, -1, 3.7511615e-08, -1.2265072, 1.3249304, 0.40380847)
+
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="StaticBody3D" unique_id=530382544]
+transform = Transform3D(0.70710677, -0.70710677, 3.090862e-08, 0.70710677, 0.70710677, 1.2802772e-08, -3.090862e-08, 1.2802778e-08, 1, -1.5868654, 2.4288433, -2.5260518)
+shape = SubResource("BoxShape3D_f4hk2")
