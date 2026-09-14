@@ -75,6 +75,7 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | - Jumping                  | 100%         |
 | - Moving in between levels | 0            |
 | **Scenes**                 | -            |
+| - frontrooms               | 50%          |
 | - lvl 0                    | 10%          |
 | - lvl 1                    | 0            |
 
