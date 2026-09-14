@@ -76,7 +76,7 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 | - Moving in between levels | 30%          |
 | **Scenes**                 | -            |
 | - frontrooms               | 50%          |
-| - lvl 0                    | 10%          |
+| - lvl 0                    | 15%          |
 | - lvl 1                    | 0            |
 
 ### V0.0.2

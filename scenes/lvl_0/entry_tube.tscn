@@ -3,10 +3,11 @@
 [ext_resource type="PackedScene" uid="uid://e2ovc5lk7ton" path="res://scenes/lvl_0/saves/entry_tube.gltf" id="1_bvybr"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hdu1w"]
-albedo_color = Color(0, 0, 0, 1)
+albedo_color = Color(0.5529556, 0.55295557, 0.55295557, 1)
 metallic_specular = 0.0
 
 [node name="entry_tube" unique_id=431533070 instance=ExtResource("1_bvybr")]
 
 [node name="Cube_001" parent="." index="0" unique_id=1339440881]
+transform = Transform3D(-1, -8.742278e-08, 0, 8.742278e-08, -1, 0, 0, 0, 1, 0, 1, 0)
 surface_material_override/0 = SubResource("StandardMaterial3D_hdu1w")

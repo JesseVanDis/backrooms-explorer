@@ -83,11 +83,6 @@ func _ready() -> void:
 	_get_or_create_chunk(Vector2i(-1, -1), false)
 	_get_or_create_chunk(Vector2i(-1, 0), false)
 	_get_or_create_chunk(Vector2i(0, -1), false)
-	
-	## Find a spawn point (white pixel)
-	#var spawn_pos: Vector2i = _find_spawn_point()
-	#
-	#$Player.transform.origin = Vector3(float(spawn_pos.x) * TILE_SIZE, 0.0, float(spawn_pos.y) * TILE_SIZE)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
@@ -304,7 +299,7 @@ func _handle_tile_graphics() -> void:
 	_handle_tiles_in_radius(VIEW_DISTANCE, _last_tiles_where_graphics_is_needed, create, remove)
 
 func _handle_tiles_in_radius(radius: int, cache: Dictionary, create_cb: Callable, remove_cb: Callable) -> void:
-	var player_pos_3d: Vector3 = $Player/CharacterBody3D.transform.origin
+	var player_pos_3d: Vector3 = $Player.transform.origin
 	var player_pos: Vector2 = Vector2(player_pos_3d.x, player_pos_3d.z)
 	var tile_index_of_player = Vector2i(int(player_pos.x), int(player_pos.y))
 	#print("player tile index: " + str(tile_index_of_player))
@@ -344,7 +339,7 @@ func _handle_tiles_in_radius(radius: int, cache: Dictionary, create_cb: Callable
 				
 
 func _handle_world_generation() -> void:
-	var player_pos_3d: Vector3 = $Player/CharacterBody3D.transform.origin
+	var player_pos_3d: Vector3 = $Player.transform.origin
 	var player_pos: Vector2 = Vector2(player_pos_3d.x, player_pos_3d.z)
 	# print("Player pos: " + str(player_pos))
 	

@@ -13,6 +13,8 @@ const HANDS_APPEAR_DURATION: float = 0.1
 @onready var _node_camera : Node3D = $_Neck/Camera3D
 @onready var _node_wield : Node3D = $_Wield
 
+@export var max_fall_speed: float = 0.0
+
 const FOOTSTEP_SOUNDS: Array[AudioStream] = [
 	preload("res://assets/sounds/footstep_1.wav"),
 	preload("res://assets/sounds/footstep_2.wav"),
@@ -129,6 +131,8 @@ func _physics_process(delta: float) -> void:
 	# Add the gravity.
 	if not is_on_floor():
 		velocity += get_gravity() * delta
+		if max_fall_speed > 0.0:
+			velocity.y = max(velocity.y, -max_fall_speed)
 
 	# Handle jump.
 	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
