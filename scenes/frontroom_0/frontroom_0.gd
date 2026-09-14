@@ -67,10 +67,6 @@ func _update_player_speed() -> void:
 func _handle_loading_lvl_0() -> void:
 	match _loading_lvl_0_state:
 		1:
-			_loading_screen = UtilsScreen.fade_in_loading_screen(get_tree(), func() -> void: _fade_in_complete = true)
-			if _loading_screen == null:
-				return
-			
 			var err: Error = ResourceLoader.load_threaded_request(LVL_0_PATH)
 			if err != OK:
 				push_error("Failed to start asynchronous loading of lvl_0: " + str(err))
@@ -111,6 +107,8 @@ func _handle_level_transition() -> void:
 	const TRIGGER_Y: float = -100.0
 	
 	if _player.global_position.y < TRIGGER_Y:
+		if _loading_screen == null:
+			_loading_screen = UtilsScreen.fade_in_loading_screen(get_tree(), func() -> void: _fade_in_complete = true)
 		if _loading_lvl_0_state == 0:
 			_loading_lvl_0_state = 1
 		if _loading_lvl_0_state == 4 and _fade_in_complete:
