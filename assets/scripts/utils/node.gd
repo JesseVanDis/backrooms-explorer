@@ -24,6 +24,17 @@ static func find_animation_player_recursive(root_node: Node) -> AnimationPlayer:
 			
 	return null
 
+static func find_camera_recursive(root_node: Node) -> Camera3D:
+	if root_node is Camera3D:
+		return root_node
+	
+	for child in root_node.get_children():
+		var result: Camera3D = find_camera_recursive(child)
+		if result:
+			return result
+			
+	return null
+
 static func find_player(tree: SceneTree) -> Player:
 	# Try to find the player in the scene tree via group
 	var player: Player = tree.get_first_node_in_group("player")

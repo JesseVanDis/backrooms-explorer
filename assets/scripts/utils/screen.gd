@@ -24,7 +24,6 @@ static func fade_in(root_node: Node, duration: float, callback: Callable) -> voi
 	
 	tween.tween_callback(callback)
 
-
 static func fade_in_screen(tree: SceneTree, screen_scene_path: String, callback: Callable) -> Node:
 	const DURATION = 0.3
 	var loading_scene: PackedScene = load(screen_scene_path)

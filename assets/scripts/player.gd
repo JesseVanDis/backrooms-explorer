@@ -10,7 +10,7 @@ const BOB_HORIZONTAL_AMPLITUDE: float = 0.02
 const MOVEMENT_LOWERING: float = 0.15
 const HANDS_APPEAR_DURATION: float = 0.1
 
-@onready var _node_camera : Node3D = $_Neck/Camera3D
+@onready var _node_camera : Camera3D = null
 @onready var _node_wield : Node3D = $_Wield
 @onready var _node_animation_player: AnimationPlayer = $AnimationPlayer
 
@@ -111,6 +111,7 @@ var _smoothed_target_pos: Vector3 = Vector3.ZERO
 var _requested_animation: String = ""
 
 func _ready() -> void:
+	_node_camera = UtilsNode.find_camera_recursive(self)
 	if _node_camera == null:
 		push_error("_node_camera is null")
 		return

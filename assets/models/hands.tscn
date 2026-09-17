@@ -5,5 +5,5 @@
 
 [node name="hands" unique_id=1296432070 instance=ExtResource("1_c54j8")]
 
-[node name="Hand_3D" parent="armature/Skeleton3D" parent_id_path=PackedInt32Array(681413135) index="0" unique_id=1896180192]
+[node name="Hand_3D" parent="armature/Skeleton3D" parent_id_path=PackedInt32Array(1931792690) index="0" unique_id=523107888]
 surface_material_override/0 = ExtResource("2_dpncg")
