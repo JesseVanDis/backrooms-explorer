@@ -11,7 +11,6 @@ const MOVEMENT_LOWERING: float = 0.15
 const HANDS_APPEAR_DURATION: float = 0.1
 
 @onready var _node_camera : Camera3D = null
-@onready var _node_wield : Node3D = $_Wield
 @onready var _node_animation_player: AnimationPlayer = $AnimationPlayer
 
 @export var max_fall_speed: float = 0.0
@@ -53,17 +52,14 @@ class Animations:
 	var dequip: AnimationRange = AnimationRange.new(0,0)
 
 class WieldableData:
-	var node: Node3D = null
 	var animations: Animations = Animations.new()
 	var animation_player: AnimationPlayer = null
 	var _animation_name: String = ""
 
 	func _init(p_wield_node: Node3D, p_equip: AnimationRange, p_dequip: AnimationRange) -> void:
-		node = p_wield_node
 		animations.equip = p_equip
 		animations.dequip = p_dequip
 		if p_wield_node:
-			p_wield_node.visible = false
 			animation_player = UtilsNode.find_animation_player_recursive(p_wield_node)
 			var anim_list: PackedStringArray = animation_player.get_animation_list()
 			_animation_name = anim_list[0]
@@ -88,7 +84,7 @@ enum Wieldable {NONE, PUSH}
 
 @onready var _wieldables: Dictionary = {
 	Wieldable.NONE: WieldableData.new(null, 			AnimationRange.new(0,0,1), 		AnimationRange.new(0,0,1)),
-	Wieldable.PUSH: WieldableData.new($_Wield/_Push, 	AnimationRange.new(0,40,5), 	AnimationRange.new(40,0,5))
+	Wieldable.PUSH: WieldableData.new($_Hands, 	AnimationRange.new(0,40,5), 	AnimationRange.new(40,0,5))
 }
 
 # Sounds
@@ -105,9 +101,7 @@ var _bob_phase: float = 0.0
 var _is_moving: bool = false
 
 var wieldable: Wieldable = Wieldable.NONE
-var wield_aim_target: Node3D = null
 var _wieldable_old: Wieldable = Wieldable.NONE
-var _smoothed_target_pos: Vector3 = Vector3.ZERO
 var _requested_animation: String = ""
 
 func _ready() -> void:
@@ -174,24 +168,8 @@ func _physics_process(delta: float) -> void:
 		_requested_animation = ""
 
 	_handle_wieldable()
-	_handle_wield_orientation(delta)
 	_handle_head_bob(delta)
 	_handle_footsteps(delta)
-
-func _handle_wield_orientation(delta: float) -> void:
-	if _node_wield == null:
-		push_error("_node_wield is null")
-		return
-		
-	var target_pos: Vector3 = _node_wield.global_position + (-global_transform.basis.z * 2.0) # Default target point is some distance in front of the character
-	if wield_aim_target != null:
-		target_pos = wield_aim_target.global_position
-		target_pos.y = _node_wield.global_position.y # yaw only
-	
-	const LERP_SPEED: float = 10.0
-	_smoothed_target_pos = _smoothed_target_pos.lerp(target_pos, delta * LERP_SPEED)
-	if !_node_wield.global_position.is_equal_approx(_smoothed_target_pos):
-		_node_wield.look_at(_smoothed_target_pos, Vector3.UP)
 
 func _play_footstep() -> void:
 	if _footstep_sounds.is_empty():
@@ -264,27 +242,20 @@ func _handle_wieldable() -> void:
 					print("Play dequip (" + str(old_wieldable.animations.dequip.from) + " " + str(old_wieldable.animations.dequip.to) + ")")
 					_wield_state = WieldState.DEQUIPING
 				else:
-					if old_wieldable.node:
-						old_wieldable.node.visible = false
 					_wield_state = WieldState.EQUIPING_START
 					
 		WieldState.DEQUIPING:
 			var old_wieldable: WieldableData = _wieldables[_wieldable_old]
 			if !old_wieldable.is_playing_animation():
-				if old_wieldable.node:
-					old_wieldable.node.visible = false
 				_wield_state = WieldState.EQUIPING_START
 				
 		WieldState.EQUIPING_START:		
 			var new_wieldable: WieldableData = _wieldables[wieldable]
-			if new_wieldable.node:
-				new_wieldable.node.visible = true
 			if new_wieldable.play_animation(new_wieldable.animations.equip):
 				_wield_state = WieldState.EQUIPING
 			else:
 				_wield_state = WieldState.NONE
 			_wieldable_old = wieldable
-			wield_aim_target = null
 			
 		WieldState.EQUIPING:
 			var new_wieldable: WieldableData = _wieldables[wieldable]
