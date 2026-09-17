@@ -11,7 +11,6 @@ const MOVEMENT_LOWERING: float = 0.15
 const HANDS_APPEAR_DURATION: float = 0.1
 
 @onready var _node_camera : Camera3D = null
-@onready var _node_animation_player: AnimationPlayer = $AnimationPlayer
 
 @export var max_fall_speed: float = 0.0
 @export var initial_velocity: Vector3 = Vector3.ZERO
@@ -56,11 +55,11 @@ class WieldableData:
 	var animation_player: AnimationPlayer = null
 	var _animation_name: String = ""
 
-	func _init(p_wield_node: Node3D, p_equip: AnimationRange, p_dequip: AnimationRange) -> void:
+	func _init(_self_node: Node3D, p_equip: AnimationRange, p_dequip: AnimationRange) -> void:
 		animations.equip = p_equip
 		animations.dequip = p_dequip
-		if p_wield_node:
-			animation_player = UtilsNode.find_animation_player_recursive(p_wield_node)
+		if _self_node:
+			animation_player = UtilsNode.find_animation_player_recursive(_self_node)
 			var anim_list: PackedStringArray = animation_player.get_animation_list()
 			_animation_name = anim_list[0]
 	
@@ -80,11 +79,12 @@ class WieldableData:
 			return false
 
 
-enum Wieldable {NONE, PUSH}
+enum Wieldable {NONE, PUSH, LVL_0_HITGROUND}
 
 @onready var _wieldables: Dictionary = {
-	Wieldable.NONE: WieldableData.new(null, 			AnimationRange.new(0,0,1), 		AnimationRange.new(0,0,1)),
-	Wieldable.PUSH: WieldableData.new($_Hands, 	AnimationRange.new(0,40,5), 	AnimationRange.new(40,0,5))
+	Wieldable.NONE: 			WieldableData.new(self, AnimationRange.new(0,0,1), AnimationRange.new(0,0,1)),
+	Wieldable.PUSH: 			WieldableData.new(self, AnimationRange.new(0,40,5), AnimationRange.new(40,0,5)),
+	Wieldable.LVL_0_HITGROUND: 	WieldableData.new(self, AnimationRange.new(40,80,1), AnimationRange.new(0,0,1))
 }
 
 # Sounds
@@ -102,7 +102,6 @@ var _is_moving: bool = false
 
 var wieldable: Wieldable = Wieldable.NONE
 var _wieldable_old: Wieldable = Wieldable.NONE
-var _requested_animation: String = ""
 
 func _ready() -> void:
 	_node_camera = UtilsNode.find_camera_recursive(self)
@@ -127,9 +126,6 @@ func apply_footstep_start_sound(sound: AudioStream) -> void:
 func apply_jump_sounds(sounds: Array[AudioStream]) -> void:
 	_jump_sounds = sounds
 	
-func request_animation(animation_name: String) -> void:
-	_requested_animation = animation_name
-
 func _process(_delta: float) -> void:
 	pass
 
@@ -163,10 +159,6 @@ func _physics_process(delta: float) -> void:
 	if was_in_air and is_on_floor():
 		_play_landing_sound()
 	
-	if not _requested_animation.is_empty():
-		_node_animation_player.play(_requested_animation)
-		_requested_animation = ""
-
 	_handle_wieldable()
 	_handle_head_bob(delta)
 	_handle_footsteps(delta)

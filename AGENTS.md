@@ -32,3 +32,4 @@ godot --path . --export-release "Windows Desktop" ./build/debug/windows/backgroo
 - Do not do anything with(in) the nodes of any imported objects. Only operate on nodes that are set by Godot itself.
 - *When* checking if something is null, **Always** add a `push_error(...)` in case it is null.  
 - Avoid `preload()` gd scripts.
+- Do not correct any code that is not related to the current task.

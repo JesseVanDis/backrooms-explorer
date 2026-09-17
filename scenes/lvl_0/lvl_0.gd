@@ -92,11 +92,12 @@ func _process(_delta: float) -> void:
 	_handle_tile_graphics()
 	_handle_static_collision_shapes()
 
+
 func _handle_player_landing() -> void:
 	var player: Player = $Player
 	if player:
 		if !_did_hit_floor && player.is_on_floor():
-			player.request_animation("lvl_0_landing")
+			player.wieldable = Player.Wieldable.LVL_0_HITGROUND
 			_did_hit_floor = true
 
 func _place_wall(model: Model, tile_index: Vector2i, angle: float) -> void:

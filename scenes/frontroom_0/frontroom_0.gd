@@ -17,7 +17,6 @@ func _ready() -> void:
 	if _player == null:
 		push_error("Player not found in scene tree")
 
-
 func _physics_process(_dt: float) -> void:
 	_update_player_speed()
 	_update_environment_effects()
@@ -35,6 +34,7 @@ const OPEN_LVL_0_TRIGGER_Y: float = -15.0
 
 func _update_environment_effects() -> void:
 	if _player == null:
+		push_error("Player is null")
 		return
 	
 	if _node_world_environment.environment == null:
