@@ -9,7 +9,7 @@ height = 1.8
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_knwgh"]
 radius = 0.3
-height = 1.5469726
+height = 1.5
 
 [node name="CharacterBody3D" type="CharacterBody3D" unique_id=763029811]
 collision_layer = 9
