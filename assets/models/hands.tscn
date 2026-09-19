@@ -5,8 +5,49 @@
 
 [node name="hands" unique_id=1296432070 instance=ExtResource("1_c54j8")]
 
-[node name="Hand_3D" parent="armature/Skeleton3D" parent_id_path=PackedInt32Array(227486793) index="0" unique_id=1209927925]
+[node name="Skeleton3D" parent="armature" parent_id_path=PackedInt32Array(1622286287) index="0" unique_id=1318835429]
+bones/0/position = Vector3(-0.123904556, 0.003937143, -0.00211722)
+bones/0/rotation = Quaternion(-0.5676938, 0, 0, 0.8232398)
+bones/1/rotation = Quaternion(0.07373533, 1.1888478e-07, 8.789936e-09, 0.99727786)
+bones/2/rotation = Quaternion(-0.08242141, -1.0694528e-14, -1.9650793e-08, 0.9965976)
+bones/3/rotation = Quaternion(0.0025312542, 0.0059272875, -0.40435225, 0.9145807)
+bones/4/rotation = Quaternion(-0.07277002, -0.033756707, 0.36984774, 0.9256229)
+bones/5/rotation = Quaternion(-0.1214395, -0.009085843, 0.030514196, 0.9920881)
+bones/6/rotation = Quaternion(-0.09244326, -0.0051680845, 0.011429492, 0.995639)
+bones/8/rotation = Quaternion(-0.23761997, -0.008097181, 0.096456036, 0.9665234)
+bones/9/rotation = Quaternion(-0.16393474, -1.6505615e-05, 0.0037179752, 0.9864642)
+bones/10/rotation = Quaternion(-0.079205915, -0.0035791094, 0.016933989, 0.99670804)
+bones/12/rotation = Quaternion(-0.15639667, 0.048086077, -0.23329343, 0.95854163)
+bones/13/rotation = Quaternion(-0.175776, 0.017381338, -0.018176543, 0.98410887)
+bones/14/rotation = Quaternion(-0.10473637, 0.020017525, -0.022869354, 0.99403554)
+bones/15/rotation = Quaternion(-0.069420666, -0.057540238, 0.5634852, 0.8211908)
+bones/16/rotation = Quaternion(-0.055804864, 0.12708628, -0.48855594, 0.8614221)
+bones/17/rotation = Quaternion(-0.16606961, 0.034200355, -0.069819726, 0.98304456)
+bones/18/rotation = Quaternion(-0.1278947, 0.015651712, -0.024503142, 0.9913615)
+bones/19/rotation = Quaternion(-0.28403002, 0.083283305, -0.4593351, 0.8374976)
+bones/20/rotation = Quaternion(-0.01206958, -0.17076398, 0.2988079, 0.93883324)
+bones/22/position = Vector3(0.123904556, 0.003937143, -0.00211722)
+bones/22/rotation = Quaternion(-0.5676938, 0, 0, 0.8232398)
+bones/23/rotation = Quaternion(0.07373533, -1.1888478e-07, -8.789936e-09, 0.99727786)
+bones/26/rotation = Quaternion(-0.07277002, 0.033756707, -0.36984774, 0.9256229)
+bones/27/rotation = Quaternion(-0.1214395, 0.009085843, -0.030514196, 0.9920881)
+bones/28/rotation = Quaternion(-0.09244326, 0.0051680845, -0.011429492, 0.995639)
+bones/30/rotation = Quaternion(-0.23761997, 0.008097181, -0.096456036, 0.9665234)
+bones/31/rotation = Quaternion(-0.16393474, 1.6505615e-05, -0.0037179752, 0.9864642)
+bones/32/rotation = Quaternion(-0.079205915, 0.0035791094, -0.016933989, 0.99670804)
+bones/34/rotation = Quaternion(-0.15639667, -0.048086077, 0.23329343, 0.95854163)
+bones/35/rotation = Quaternion(-0.175776, -0.017381338, 0.018176543, 0.98410887)
+bones/36/rotation = Quaternion(-0.10473637, -0.020017525, 0.022869354, 0.99403554)
+bones/37/rotation = Quaternion(-0.069420666, 0.057540238, -0.5634852, 0.8211908)
+bones/38/rotation = Quaternion(-0.055804864, -0.12708628, 0.48855594, 0.8614221)
+bones/39/rotation = Quaternion(-0.16606961, -0.034200355, 0.069819726, 0.98304456)
+bones/40/rotation = Quaternion(-0.1278947, -0.015651712, 0.024503142, 0.9913615)
+bones/41/rotation = Quaternion(-0.28403002, -0.083283305, 0.4593351, 0.8374976)
+bones/42/rotation = Quaternion(-0.01206958, 0.17076398, -0.2988079, 0.93883324)
+bones/43/rotation = Quaternion(0.0896366, 0.06843789, -0.14495467, 0.9829902)
+
+[node name="Hand_3D" parent="armature/Skeleton3D" index="0" unique_id=1273098455]
 surface_material_override/0 = ExtResource("2_dpncg")
 
-[node name="Plane" parent="." index="2" unique_id=1304375255]
+[node name="Plane" parent="." index="2" unique_id=1153140678]
 visible = false

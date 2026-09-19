@@ -13,9 +13,10 @@ static func fade_in(root_node: Node, duration: float, callback: Callable) -> voi
 		callback.call()
 		return
 
-	for child in canvas_layer.get_children():
-		if "modulate" in child:
-			child.modulate.a = 0.0
+	for child: Node in canvas_layer.get_children():
+		var child_canvas_item: CanvasItem = child as CanvasItem
+		if child_canvas_item:
+			child_canvas_item.modulate.a = 0.0
 	
 	var tween: Tween = root_node.create_tween()
 	for child in canvas_layer.get_children():

@@ -7,7 +7,7 @@ extends Node3D
 var _player: Player
 const LVL_0_PATH: String = "res://scenes/lvl_0/lvl_0.tscn"
 var _loading_lvl_0_state: int = 1
-var _lvl_0: Node = null
+var _lvl_0: Lvl_0 = null
 var _loading_screen: Node = null
 var _fade_in_complete: bool = false
 
@@ -57,9 +57,9 @@ func _update_player_speed() -> void:
 		push_node = _node_moving_box_2
 		
 	if push_node != null:
-		_player.wieldable = Player.Wieldable.PUSH
+		_player.active_wieldable = Player.Wieldable.PUSH
 	else:
-		_player.wieldable = Player.Wieldable.NONE
+		_player.active_wieldable = Player.Wieldable.NONE
 
 
 func _handle_loading_lvl_0() -> void:
@@ -81,7 +81,7 @@ func _handle_loading_lvl_0() -> void:
 					if packed_scene == null:
 						push_error("Loaded resource is not a PackedScene")
 						return
-					_lvl_0 = packed_scene.instantiate()
+					_lvl_0 = packed_scene.instantiate() as Lvl_0
 					print("Initializing lvl_0...")
 					_lvl_0.initialize_async()
 					_loading_lvl_0_state = 3

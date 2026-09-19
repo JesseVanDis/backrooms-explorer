@@ -1,3 +1,4 @@
+class_name Lvl_0
 extends Node3D
 
 const TILE_SIZE: float = 1.0
@@ -6,15 +7,14 @@ const GENERATION_THRESHOLD: float = CHUNK_SIZE
 const REMOVAL_THRESHOLD: float = 200.0
 const VIEW_DISTANCE: int = 60
 
-const floor_scene: Resource = preload("res://scenes/lvl_0/part_1x1_floor.tscn")
-const ceiling_scene: Resource = preload("res://scenes/lvl_0/part_1x1_ceiling.tscn")
-const ceiling_light_scene: Resource = preload("res://scenes/lvl_0/part_1x1_ceiling_light.tscn")
-const wall_scene_x: Resource = preload("res://scenes/lvl_0/part_wall_x.tscn")
-const wall_scene_t: Resource = preload("res://scenes/lvl_0/part_wall_t.tscn")
-const wall_scene_i: Resource = preload("res://scenes/lvl_0/part_wall_i.tscn")
-const wall_scene_l: Resource = preload("res://scenes/lvl_0/part_wall_l.tscn")
-const wall_scene_e: Resource = preload("res://scenes/lvl_0/part_wall_end.tscn")
-
+const floor_scene: PackedScene = preload("res://scenes/lvl_0/part_1x1_floor.tscn")
+const ceiling_scene: PackedScene = preload("res://scenes/lvl_0/part_1x1_ceiling.tscn")
+const ceiling_light_scene: PackedScene = preload("res://scenes/lvl_0/part_1x1_ceiling_light.tscn")
+const wall_scene_x: PackedScene = preload("res://scenes/lvl_0/part_wall_x.tscn")
+const wall_scene_t: PackedScene = preload("res://scenes/lvl_0/part_wall_t.tscn")
+const wall_scene_i: PackedScene = preload("res://scenes/lvl_0/part_wall_i.tscn")
+const wall_scene_l: PackedScene = preload("res://scenes/lvl_0/part_wall_l.tscn")
+const wall_scene_e: PackedScene = preload("res://scenes/lvl_0/part_wall_end.tscn")
 
 var model_floor: Model = _load_model(floor_scene)
 var model_ceiling: Model = _load_model(ceiling_scene)
@@ -26,9 +26,9 @@ var model_wall_l: Model = _load_model(wall_scene_l)
 var model_wall_e: Model = _load_model(wall_scene_e)
 
 @onready var _node_map: Node3D = $Map
+@onready var _player: Player = UtilsNode.find_player(get_tree())
 
-var _did_hit_floor = false
-
+var _did_hit_floor: bool = false
 
 class Model:
 	var id: int
@@ -69,10 +69,10 @@ func initialize_async() -> void:
 	initialized()
 
 func initialized() -> bool:
-	var chunk1 = _get_or_create_chunk(Vector2i(0, 0), true)
-	var chunk2 = _get_or_create_chunk(Vector2i(-1, -1), true)
-	var chunk3 = _get_or_create_chunk(Vector2i(-1, 0), true)
-	var chunk4 = _get_or_create_chunk(Vector2i(0, -1), true)
+	var chunk1: Chunk = _get_or_create_chunk(Vector2i(0, 0), true)
+	var chunk2: Chunk = _get_or_create_chunk(Vector2i(-1, -1), true)
+	var chunk3: Chunk = _get_or_create_chunk(Vector2i(-1, 0), true)
+	var chunk4: Chunk = _get_or_create_chunk(Vector2i(0, -1), true)
 	return chunk1 && chunk2 && chunk3 && chunk4
 
 # Called when the node enters the scene tree for the first time.
@@ -97,14 +97,14 @@ func _handle_player_landing() -> void:
 	var player: Player = $Player
 	if player:
 		if !_did_hit_floor && player.is_on_floor():
-			player.wieldable = Player.Wieldable.LVL_0_HITGROUND
+			player.active_wieldable = Player.Wieldable.LVL_0_HITGROUND
 			_did_hit_floor = true
 
 func _place_wall(model: Model, tile_index: Vector2i, angle: float) -> void:
 	_instantiate_model(model, tile_index, angle)
 
 func _get_pixel_at(x: int, y: int) -> MapGenerator.Pixel:
-	var chunk_index: Vector2i = Vector2i(int(floor(float(x) / CHUNK_SIZE)), int(floor(float(y) / CHUNK_SIZE)))
+	var chunk_index: Vector2i = Vector2i(int(floorf(float(x) / CHUNK_SIZE)), int(floorf(float(y) / CHUNK_SIZE)))
 	if ! chunks.has(chunk_index):
 		return MapGenerator.Pixel.INVALID
 	var chunk: Chunk = _get_or_create_chunk(chunk_index, false)
@@ -139,7 +139,7 @@ func _start_chunk_generation(chunk_index: Vector2i) -> void:
 	
 func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
 	if chunks.has(chunk_index):
-		var cached_chunk = chunks[chunk_index]
+		var cached_chunk: Chunk = chunks[chunk_index]
 		if _node_map:
 			if cached_chunk.static_body_3d.get_parent() != _node_map:
 				_node_map.add_child(cached_chunk.static_body_3d)
@@ -193,7 +193,7 @@ func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
 	print("converting pixels to models for chunk[" + str(chunk_index) + "]... done")
 	return chunk
 
-func _instantiate_model(model: Model, tile_index: Vector2i, angle: float):
+func _instantiate_model(model: Model, tile_index: Vector2i, angle: float) -> void:
 	var placed_tile: PlacedTile
 	if placed_tiles.has(tile_index):
 		placed_tile = placed_tiles[tile_index]
@@ -274,19 +274,19 @@ class HandleTilesCache:
 
 var _collision_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 func _handle_static_collision_shapes() -> void:
-	var create = func(placed_tile: PlacedTile, chunk: Chunk):
+	var create: Callable = func(placed_tile: PlacedTile, chunk: Chunk) -> void:
 		for model: Model in placed_tile.models.values():
 			if (model.collision != null) && (! placed_tile.collision_shapes.has(model.id)):
 				#print("Collision '" + str(model.id) + "' place!")
 				var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
-				var collision_shape = model.collision.duplicate()
+				var collision_shape: CollisionShape3D = model.collision.duplicate()
 				collision_shape.transform.origin = tile_pos
 				collision_shape.rotate_y(placed_tile.angle)
 				chunk.static_body_3d.add_child(collision_shape)
 				placed_tile.collision_shapes[model.id] = collision_shape
 				
-	var remove = func(placed_tile: PlacedTile):
-		for collision_shape in placed_tile.collision_shapes.values():
+	var remove: Callable = func(placed_tile: PlacedTile) -> void:
+		for collision_shape: CollisionShape3D in placed_tile.collision_shapes.values():
 			collision_shape.queue_free() # automatically removes it from the scene as well.
 		placed_tile.collision_shapes = {}
 		
@@ -294,17 +294,17 @@ func _handle_static_collision_shapes() -> void:
 
 var _graphic_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 func _handle_tile_graphics() -> void:
-	var create = func(placed_tile: PlacedTile, chunk: Chunk):
+	var create: Callable = func(placed_tile: PlacedTile, chunk: Chunk) -> void:
 		for model: Model in placed_tile.models.values():
 			if ! placed_tile.graphics.has(model.id):
 				var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
-				var graphic = model.graphic.duplicate()
+				var graphic: Node3D = model.graphic.duplicate()
 				graphic.transform.origin = tile_pos
 				graphic.rotate_y(placed_tile.angle)
 				chunk.tiles.add_child(graphic)
 				placed_tile.graphics[model.id] = graphic
 	
-	var remove = func(placed_tile: PlacedTile):
+	var remove: Callable = func(placed_tile: PlacedTile) -> void:
 		for graphic: Node3D in placed_tile.graphics.values():
 			graphic.queue_free() # gets remove from the parent automatically
 		placed_tile.graphics = {}
@@ -312,29 +312,29 @@ func _handle_tile_graphics() -> void:
 	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, 50)
 
 func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_cb: Callable, remove_cb: Callable, max_tiles_to_handle: int = 0) -> void:
-	var player_pos_3d: Vector3 = $Player.transform.origin
+	var player_pos_3d: Vector3 = _player.transform.origin
 	var player_pos: Vector2 = Vector2(player_pos_3d.x, player_pos_3d.z)
-	var tile_index_of_player = Vector2i(int(player_pos.x), int(player_pos.y))
+	var tile_index_of_player: Vector2i = Vector2i(int(player_pos.x), int(player_pos.y))
 	#print("player tile index: " + str(tile_index_of_player))
 	
-	var x0 = tile_index_of_player.x - radius
-	var x1 = tile_index_of_player.x + radius
-	var y0 = tile_index_of_player.y - radius
-	var y1 = tile_index_of_player.y + radius
+	var x0: int = tile_index_of_player.x - radius
+	var x1: int = tile_index_of_player.x + radius
+	var y0: int = tile_index_of_player.y - radius
+	var y1: int = tile_index_of_player.y + radius
 	
 	var tiles_visible: Array[Vector2i] = []
-	var tiles_no_longer_visible = cache.last_tiles_where_needed.duplicate()
+	var tiles_no_longer_visible: Dictionary = cache.last_tiles_where_needed.duplicate()
 	
 	for y in range(y0, y1):
 		for x in range(x0, x1):
-			var dist = (Vector2(x, y) - player_pos).length()
-			if int(round(dist)) < radius:
-				var tile_index = Vector2i(x, y)
+			var dist: float = (Vector2(x, y) - player_pos).length()
+			if int(roundf(dist)) < radius:
+				var tile_index: Vector2i = Vector2i(x, y)
 				tiles_visible.append(tile_index)
 				tiles_no_longer_visible.erase(tile_index)
 	
 	# iterate from player outwards
-	var sort_by_distance = func(a, b): return a.distance_squared_to(Vector2i(player_pos)) < b.distance_squared_to(Vector2i(player_pos))
+	var sort_by_distance: Callable = func(a: Vector2i, b: Vector2i) -> float: return a.distance_squared_to(Vector2i(player_pos)) < b.distance_squared_to(Vector2i(player_pos))
 	tiles_visible.sort_custom(sort_by_distance)
 
 	# remove out-of-range tile first
@@ -350,7 +350,7 @@ func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_cb: Ca
 		cache.last_tiles_where_needed[tile_index] = true
 		if placed_tiles.has(tile_index):
 			var placed_tile: PlacedTile = placed_tiles[tile_index]
-			var chunk_index = _get_chunk_index(tile_index)
+			var chunk_index: Vector2i = _get_chunk_index(tile_index)
 			if chunks.has(chunk_index):
 				if (!cache.placed_tiles.has(tile_index)) || cache.placed_tiles[tile_index] == false:
 					var chunk: Chunk = chunks[chunk_index]
@@ -363,7 +363,7 @@ func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_cb: Ca
 
 
 func _handle_world_generation() -> void:
-	var player_pos_3d: Vector3 = $Player.transform.origin
+	var player_pos_3d: Vector3 = _player.transform.origin
 	var player_pos: Vector2 = Vector2(player_pos_3d.x, player_pos_3d.z)
 	# print("Player pos: " + str(player_pos))
 	
@@ -377,33 +377,33 @@ func _handle_world_generation() -> void:
 	for chunk_index: Vector2i in chunks_to_remove:
 		_remove_chunk(chunk_index)
 
-	var current_chunk_x: int = int(floor(player_pos.x / float(CHUNK_SIZE)))
-	var current_chunk_y: int = int(floor(player_pos.y / float(CHUNK_SIZE)))
+	var current_chunk_x: int = int(floorf(player_pos.x / float(CHUNK_SIZE)))
+	var current_chunk_y: int = int(floorf(player_pos.y / float(CHUNK_SIZE)))
 	
 	for dx in range(-1, 2):
 		for dy in range(-1, 2):
 			var chunk_index: Vector2i = Vector2i(current_chunk_x + dx, current_chunk_y + dy)
 			if not chunks.has(chunk_index):
-				var chunk_center = _get_center_chunk_pos(chunk_index)
+				var chunk_center: Vector2 = _get_center_chunk_pos(chunk_index)
 				var dist: float = (chunk_center - player_pos).length()
 				# print("chunk: [" + str(chunk_index) + "]. center: [" + str(chunk_center) + "] check distance: " + str(dist - CHUNK_SIZE/2.0) + ")")
 				if (dist - CHUNK_SIZE/2.0) < GENERATION_THRESHOLD:
 					_get_or_create_chunk(chunk_index, true)
 
 func _get_chunk_index(tile_index: Vector2i) -> Vector2i:
-	return Vector2i(int(round(float(tile_index.x) / float(CHUNK_SIZE))), int(round(float(tile_index.y) / float(CHUNK_SIZE))))
+	return Vector2i(int(roundf(float(tile_index.x) / float(CHUNK_SIZE))), int(roundf(float(tile_index.y) / float(CHUNK_SIZE))))
 
-func _get_collision_shape(resource: Resource) -> CollisionShape3D:
+func _get_collision_shape(resource: PackedScene) -> CollisionShape3D:
 	var inst: Node3D = resource.instantiate()
 	for child: Node in inst.get_children():
 		if child is CollisionShape3D:
-			var shape := child.duplicate() as CollisionShape3D
+			var shape: CollisionShape3D = child.duplicate() as CollisionShape3D
 			inst.queue_free()
 			return shape
 	inst.queue_free()
 	return null
 
-func _instantiate_and_remove_collision(graphic: Resource) -> Node3D:
+func _instantiate_and_remove_collision(graphic: PackedScene) -> Node3D:
 	var node: Node3D = graphic.instantiate()
 	for child: Node in node.get_children():
 		if child is CollisionShape3D:
@@ -411,9 +411,9 @@ func _instantiate_and_remove_collision(graphic: Resource) -> Node3D:
 	return node
 
 var last_model_id: int = 0
-func _load_model(tile: Resource) -> Model:
+func _load_model(tile: PackedScene) -> Model:
 	last_model_id = last_model_id + 1
-	var retval = Model.new()
+	var retval: Model = Model.new()
 	retval.graphic = _instantiate_and_remove_collision(tile)
 	retval.collision = _get_collision_shape(tile)
 	retval.id = last_model_id
