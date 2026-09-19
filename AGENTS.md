@@ -33,3 +33,4 @@ godot --path . --export-release "Windows Desktop" ./build/debug/windows/backgroo
 - *When* checking if something is null, **Always** add a `push_error(...)` in case it is null.  
 - Avoid `preload()` gd scripts.
 - Do not correct any code that is not related to the current task.
+- Use `godot --headless --editor --quit` to check for warnings and errors.
