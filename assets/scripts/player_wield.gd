@@ -8,6 +8,7 @@ var active_wieldable: int = 0
 
 var _wieldable_old: int = 0
 var _wield_state: WieldState = WieldState.NONE
+var _seconds_since_equiping_start: float = 0.0
 var _wieldables: Dictionary = {}
 var _player: Node3D = null
 
@@ -17,7 +18,8 @@ func _init(player: Node3D) -> void:
 func add_wieldable(id: int, p_animation_name: String, p_rewind_for_dequip: bool = true, p_additional_args: Dictionary = {}) -> void:
 	_wieldables[id] = WieldableData.new(_player, p_animation_name, p_rewind_for_dequip, p_additional_args)
 
-func update() -> void:
+func update(dt: float) -> void:
+	_seconds_since_equiping_start = _seconds_since_equiping_start + dt
 	match _wield_state:
 		WieldState.NONE:
 			if _wieldable_old != active_wieldable:
@@ -27,11 +29,13 @@ func update() -> void:
 					_wield_state = WieldState.DEQUIPING
 				else:
 					_wield_state = WieldState.EQUIPING_START
+					_seconds_since_equiping_start = 0.0
 					
 		WieldState.DEQUIPING:
 			var old_wieldable: WieldableData = _wieldables[_wieldable_old]
 			if !old_wieldable.is_playing_animation():
 				_wield_state = WieldState.EQUIPING_START
+				_seconds_since_equiping_start = 0.0
 				
 		WieldState.EQUIPING_START:		
 			var new_wieldable: WieldableData = _wieldables[active_wieldable]
@@ -51,6 +55,9 @@ var active_wieldable_data: WieldableData:
 
 static func frame_index_to_time(anim: Animation, index: float) -> float:
 	return index * anim.step
+
+var seconds_since_equiping_start: float:
+	get: return _seconds_since_equiping_start;
 
 class AnimationRange:
 	var from: float = 0

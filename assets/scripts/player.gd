@@ -113,7 +113,7 @@ func _physics_process(delta: float) -> void:
 	if was_in_air and is_on_floor():
 		_play_landing_sound()
 	
-	_wield.update()
+	_wield.update(delta)
 	_handle_camera_limits(delta)
 	_handle_head_bob(delta)
 	_handle_footsteps(delta)
@@ -152,10 +152,10 @@ func _play_landing_sound() -> void:
 	_audio_player.play()
 
 func _handle_camera_limits(dt: float) -> void:
-	const ADJUSTEMENT_SPEED := 10.0
-	var adjustement_step := minf(1.0, ADJUSTEMENT_SPEED * dt)
+	var adjustement_speed := 10.0 + _wield.seconds_since_equiping_start * 40.0
+	var adjustement_step := minf(1.0, adjustement_speed * dt)
 	var active_wieldable_data := _wield.active_wieldable_data
-
+	
 	var max_look_freedom_h: float = 360.0
 	var max_look_freedom_v: float = 360.0
 	if active_wieldable_data:
