@@ -14,8 +14,8 @@ var _player: Node3D = null
 func _init(player: Node3D) -> void:
 	_player = player
 
-func add_wieldable(id: int, p_animation_name: String, rewind_for_dequip: bool = true, max_look_freedom_degrees: float = 360.0, p_equip: AnimationRange = null, p_dequip: AnimationRange = null) -> void:
-	_wieldables[id] = WieldableData.new(_player, p_animation_name, rewind_for_dequip, max_look_freedom_degrees, p_equip, p_dequip)
+func add_wieldable(id: int, p_animation_name: String, p_rewind_for_dequip: bool = true, p_additional_args: Dictionary = {}) -> void:
+	_wieldables[id] = WieldableData.new(_player, p_animation_name, p_rewind_for_dequip, p_additional_args)
 
 func update() -> void:
 	match _wield_state:
@@ -71,12 +71,21 @@ class Animations:
 class WieldableData:
 	var animations: Animations = Animations.new()
 	var animation_player: AnimationPlayer = null
-	var max_look_freedom_degrees: float = 360.0
 	var _animation_name: String = ""
-
-	func _init(_self_node: Node3D, p_animation_name: String, rewind_for_dequip: bool = true, p_max_look_freedom_degrees: float = 360.0, p_equip: AnimationRange = null, p_dequip: AnimationRange = null) -> void:
+	var _rewind_for_dequip: bool = true
+	var _additional_args: Dictionary = {}
+	
+	var rewind_for_dequip: bool:
+		get: return _rewind_for_dequip
+	
+	var max_look_freedom_degrees: float:
+		get: return _additional_args.get("max_look_freedom_degrees", 360.0)
+	
+	func _init(_self_node: Node3D, p_animation_name: String, p_rewind_for_dequip: bool = true, p_additional_args: Dictionary = {}) -> void:
 		if _self_node:
-			max_look_freedom_degrees = p_max_look_freedom_degrees
+			_additional_args = p_additional_args
+			_rewind_for_dequip = p_rewind_for_dequip
+			
 			animation_player = UtilsNode.find_animation_player_recursive(_self_node)
 			if animation_player == null:
 				push_error("animation_player is null")
@@ -89,8 +98,8 @@ class WieldableData:
 				animations.dequip = AnimationRange.new(0,0)
 				return
 
-			var anim_equip: AnimationRange = p_equip
-			var anim_dequip: AnimationRange = p_dequip
+			var anim_equip: AnimationRange = p_additional_args.get("equip", null)
+			var anim_dequip: AnimationRange = p_additional_args.get("dequip", null)
 			
 			var anim: Animation = animation_player.get_animation(_animation_name)
 			if anim == null:
@@ -100,7 +109,7 @@ class WieldableData:
 			if anim_equip == null:
 				anim_equip = AnimationRange.new(0, last_frame)
 			if anim_dequip == null:
-				if rewind_for_dequip:
+				if _rewind_for_dequip:
 					anim_dequip = AnimationRange.new(last_frame, 0)
 				else:
 					anim_dequip = AnimationRange.new(0, 0)
