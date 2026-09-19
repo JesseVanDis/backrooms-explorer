@@ -14,8 +14,8 @@ var _player: Node3D = null
 func _init(player: Node3D) -> void:
 	_player = player
 
-func add_wieldable(id: int, p_animation_name: String, rewind_for_dequip: bool = true, p_equip: AnimationRange = null, p_dequip: AnimationRange = null) -> void:
-	_wieldables[id] = WieldableData.new(_player, p_animation_name, rewind_for_dequip, p_equip, p_dequip)
+func add_wieldable(id: int, p_animation_name: String, rewind_for_dequip: bool = true, max_look_freedom_degrees: float = 360.0, p_equip: AnimationRange = null, p_dequip: AnimationRange = null) -> void:
+	_wieldables[id] = WieldableData.new(_player, p_animation_name, rewind_for_dequip, max_look_freedom_degrees, p_equip, p_dequip)
 
 func update() -> void:
 	match _wield_state:
@@ -46,6 +46,12 @@ func update() -> void:
 			if !new_wieldable.is_playing_animation():
 				_wield_state = WieldState.NONE
 
+func get_max_look_freedom_degrees() -> float:
+	if _wieldables.has(active_wieldable):
+		var wieldable: WieldableData = _wieldables[active_wieldable]
+		return wieldable.max_look_freedom_degrees
+	return 360.0
+
 static func frame_index_to_time(anim: Animation, index: float) -> float:
 	return index * anim.step
 
@@ -65,10 +71,12 @@ class Animations:
 class WieldableData:
 	var animations: Animations = Animations.new()
 	var animation_player: AnimationPlayer = null
+	var max_look_freedom_degrees: float = 360.0
 	var _animation_name: String = ""
 
-	func _init(_self_node: Node3D, p_animation_name: String, rewind_for_dequip: bool = true, p_equip: AnimationRange = null, p_dequip: AnimationRange = null) -> void:
+	func _init(_self_node: Node3D, p_animation_name: String, rewind_for_dequip: bool = true, p_max_look_freedom_degrees: float = 360.0, p_equip: AnimationRange = null, p_dequip: AnimationRange = null) -> void:
 		if _self_node:
+			max_look_freedom_degrees = p_max_look_freedom_degrees
 			animation_player = UtilsNode.find_animation_player_recursive(_self_node)
 			if animation_player == null:
 				push_error("animation_player is null")
