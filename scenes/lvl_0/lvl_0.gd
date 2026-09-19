@@ -26,7 +26,7 @@ var model_wall_l: Model = _load_model(wall_scene_l)
 var model_wall_e: Model = _load_model(wall_scene_e)
 
 @onready var _node_map: Node3D = $Map
-@onready var _player: Player = UtilsNode.find_player(get_tree())
+var _player: Player = null
 
 var _did_hit_floor: bool = false
 
@@ -77,6 +77,7 @@ func initialized() -> bool:
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	_player = $Player
 	UtilsScreen.fade_out_screen(get_tree())
 		
 	# Initial generation

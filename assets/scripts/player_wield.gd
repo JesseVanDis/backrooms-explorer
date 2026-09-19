@@ -102,9 +102,11 @@ class WieldableData:
 	
 	func play_animation(p_range: AnimationRange) -> bool:
 		if animation_player:
+			if _animation_name == "":
+				return false
 			var anim: Animation = animation_player.get_animation(_animation_name)
 			if anim == null:
-				push_error("Animation not found: " + _animation_name)
+				push_error("Animation not found: '" + _animation_name + "'")
 			if p_range.from <= p_range.to:
 				animation_player.play_section(_animation_name, PlayerWield.frame_index_to_time(anim, p_range.from), PlayerWield.frame_index_to_time(anim, p_range.to), -1,  p_range.speed, false)
 			else:
