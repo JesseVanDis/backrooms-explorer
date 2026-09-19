@@ -3,12 +3,13 @@ extends Node
 class_name MapGenerator
 
 enum Pixel {
-	BIOME_DEFAULT 		= 1 << 1,
-	BIOME_PILLARS 		= 1 << 2,
-	TILE_EMPTY			= 1 << 16,
-	TILE_CEILING_LIGHT	= 2 << 16,
-	TILE_WALL			= 3 << 16,
-	INVALID				= 1 << 31
+	NONE                = 0,
+	BIOME_DEFAULT       = 1 << 1,
+	BIOME_PILLARS       = 1 << 2,
+	TILE_EMPTY          = 1 << 16,
+	TILE_CEILING_LIGHT  = 2 << 16,
+	TILE_WALL           = 3 << 16,
+	INVALID             = 1 << 31
 }
 
 const BIOME_MASK = (1 << 16) - 1
@@ -25,11 +26,9 @@ func _ceiling_light(ctx: Context, misplacement_chance: float, interval_range: in
 
 	var grid_x := floori(float(ctx.x) / float(interval_range))
 	var grid_y := floori(float(ctx.y) / float(interval_range))
-	@warning_ignore("integer_division")
-	var light_pos_x = (grid_x * interval_range) + offset
-	@warning_ignore("integer_division")
-	var light_pos_y = (grid_y * interval_range) + offset
-	var random = ctx.random_with_seed(hash(Vector2i(grid_x, grid_y)))
+	var light_pos_x: int = (grid_x * interval_range) + offset
+	var light_pos_y: int = (grid_y * interval_range) + offset
+	var random: float = ctx.random_with_seed(hash(Vector2i(grid_x, grid_y)))
 	if random < misplacement_chance:
 		if random < 0.25 * misplacement_chance:
 			light_pos_x = light_pos_x+1
@@ -84,9 +83,9 @@ const NUM_PASSES_IN_GEN_BIOMES = 1 # change this everytime you change the amount
 func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 	match pass_index:
 		0:
-			var grid_low_x = ctx.x / 40
-			var grid_low_y = ctx.y / 40
-			var random_low = ctx.random_with_seed(hash(Vector2i(grid_low_x, grid_low_y)))
+			var grid_low_x: int = int(roundf(float(ctx.x) / 40.0))
+			var grid_low_y: int = int(roundf(float(ctx.y) / 40.0))
+			var random_low: float = ctx.random_with_seed(hash(Vector2i(grid_low_x, grid_low_y)))
 			if random_low < 0.2:
 				return Pixel.BIOME_PILLARS
 			else:
@@ -108,7 +107,7 @@ func _gen(pass_index: int, ctx: Context) -> Pixel:
 	
 	# force empty area at spawn point
 	if (ctx.x * ctx.x) < 100 && (ctx.y * ctx.y) < 100 && retval != Pixel.INVALID && pp.tile_c == Pixel.TILE_WALL:
-		retval = pp.biome_c | Pixel.TILE_EMPTY
+		retval = pp.biome_c | Pixel.TILE_EMPTY as Pixel
 	return retval
 	
 func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
@@ -122,26 +121,26 @@ func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
 	match pass_index:
 		0:
 			if ctx.random() > 0.9:
-				return pp.biome_c | Pixel.TILE_WALL
+				return pp.biome_c | Pixel.TILE_WALL as Pixel
 			if _ceiling_light(ctx, 0.7, 5, 2):
-				return pp.biome_c | Pixel.TILE_CEILING_LIGHT
-			return pp.biome_c | Pixel.TILE_EMPTY
+				return pp.biome_c | Pixel.TILE_CEILING_LIGHT as Pixel
+			return pp.biome_c | Pixel.TILE_EMPTY as Pixel
 	
 		1:
 			if num_neighbour_walls > 0 && !pp.wall_c:
 				if ctx.random() > 0.75:
-					return pp.biome_c | Pixel.TILE_WALL
+					return pp.biome_c | Pixel.TILE_WALL as Pixel
 			return pp.pixel_c
 			
 		2:
 			if _is_isolated_wall_dot(ctx):
-				return pp.biome_c | Pixel.TILE_EMPTY
+				return pp.biome_c | Pixel.TILE_EMPTY as Pixel
 			return pp.pixel_c
 		
 		3,4,5,6,7,8,9,10:
 			if ctx.random() > 0.1:
 				if _extend_walls(ctx):
-					return pp.biome_c | Pixel.TILE_WALL
+					return pp.biome_c | Pixel.TILE_WALL as Pixel
 			return pp.pixel_c
 		
 	return Pixel.INVALID
@@ -152,14 +151,14 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 	const grid_cell_size = 3
 	var grid_x := floori(ctx.x_flt / grid_cell_size)
 	var grid_y := floori(ctx.y_flt / grid_cell_size)
-	var grid_local_x = (ctx.x - (grid_x * grid_cell_size))
-	var grid_local_y = (ctx.y - (grid_y * grid_cell_size))
+	var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
+	var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
 	
 	match pass_index:
 		0:
 			if _ceiling_light(ctx, 1.0, 3, 1):
-				return pp.biome_c | Pixel.TILE_CEILING_LIGHT
-			return pp.biome_c | Pixel.TILE_EMPTY
+				return pp.biome_c | Pixel.TILE_CEILING_LIGHT as Pixel
+			return pp.biome_c | Pixel.TILE_EMPTY as Pixel
 		
 		1:
 			var x_offset := 1
@@ -168,7 +167,7 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 				(grid_local_x == x_offset + 0 && grid_local_y == y_offset + 1) ||
 				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 0) || 
 				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 1)):
-					return pp.biome_c | Pixel.TILE_WALL
+					return pp.biome_c | Pixel.TILE_WALL as Pixel
 		
 	return Pixel.INVALID
 
@@ -199,9 +198,9 @@ class Section:
 class PreviousPass:
 	var data: Array[Pixel]
 	
-	var pixel_c = Pixel
-	var tile_c = Pixel
-	var biome_c = Pixel
+	var pixel_c: Pixel = Pixel.NONE
+	var tile_c: Pixel = Pixel.NONE
+	var biome_c: Pixel = Pixel.NONE
 	var wall_c: bool
 	var wall_n: bool
 	var wall_nn: bool
@@ -219,7 +218,7 @@ class PreviousPass:
 	func update(ctx: Context) -> void:
 		pixel_c = ctx.get_at(data)
 		biome_c = TileUtils.get_biome(pixel_c)
-		tile_c = pixel_c - biome_c
+		tile_c = pixel_c - biome_c as Pixel
 		wall_c = (ctx.get_at(data) & TILE_MASK) == Pixel.TILE_WALL
 		wall_n = (ctx.get_at_offset(data, 0, 1) & TILE_MASK) == Pixel.TILE_WALL
 		wall_nn = (ctx.get_at_offset(data, 0, 2) & TILE_MASK) == Pixel.TILE_WALL
@@ -312,8 +311,8 @@ func _run_mapshader(section: Section) -> void:
 	#print("Pass: " + str(0))
 	section.data = pass_b
 	
-	var was_valid = true
-	var pass_index = 1
+	var was_valid := true
+	var pass_index: int = 1
 	while was_valid:
 		if pass_index & 1 == 0:
 			was_valid = _run_pass(section.x, section.y, section.x + section.w, section.y + section.h, pass_b, pass_index, pass_a);
@@ -334,7 +333,7 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[Pixel], pass_in
 	context.start_y = y0;
 	context.previous_pass = PreviousPass.new()
 	context.previous_pass.data = previous_pass_array
-	var all_pixels_set_to_count = true
+	var all_pixels_set_to_count := true
 	
 	target.resize(context.w * context.h);
 	for y in range(y0, y1):
@@ -342,14 +341,14 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[Pixel], pass_in
 		context.ly = ly
 		for x in range(x0, x1):
 			var lx: int = x - x0
-			var index = lx + ly * width
+			var index := lx + ly * width
 			context.x = x;
 			context.y = y;
 			context.lx = lx
 			context.x_flt = float(x);
 			context.y_flt = float(y);
 			context.previous_pass.update(context)
-			var pixel = _gen(pass_index, context);
+			var pixel: Pixel = _gen(pass_index, context);
 			if pixel != Pixel.INVALID:
 				target[index] = pixel;
 				all_pixels_set_to_count = false
@@ -376,7 +375,7 @@ class TileUtils:
 			Pixel.TILE_CEILING_LIGHT:				return Color(0,1,1)
 			Pixel.TILE_WALL:						return Color(0,0,0)
 		
-		var h := fmod(abs(sin(float(pixel) * 12.9898) * 43758.5453), 1.0)
+		var h := fmod(absf(sin(float(pixel) * 12.9898) * 43758.5453), 1.0)
 		return Color.from_hsv(h, 0.7, 1.0)
 		
 		# return Color(1,0,1)

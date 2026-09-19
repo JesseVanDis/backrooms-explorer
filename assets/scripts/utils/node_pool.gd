@@ -9,7 +9,7 @@ class Pool:
 	var archive_node: Node3D
 
 	func _create() -> Node3D:
-		var copy = reference_node.duplicate()
+		var copy: Node3D = reference_node.duplicate()
 		copy.name = reference_node.name + "_<>_" + str(counter)
 		counter = counter+1
 		#print("nodecount of: " + reference_node.name + " is: " + str(counter))
@@ -17,7 +17,7 @@ class Pool:
 		
 	func get_auto_create() -> Node3D:
 		if archive_node.get_child_count() > 0:
-			var child = archive_node.get_child(0)
+			var child: Node = archive_node.get_child(0)
 			archive_node.remove_child(child)
 			return child
 		print("created for: " + str(counter))
@@ -33,7 +33,7 @@ class Pool:
 		# pre-allocate
 		print("Pre allocating '" + reference_node.name + "'...")
 		for i in range(0, 20000):
-			var node = _create()
+			var node: Node3D = _create()
 			archive_node.add_child(node)
 		print("Pre allocating '" + reference_node.name + "'... Done")
 		pass;
@@ -47,9 +47,9 @@ func get_auto_create(reference_node: Node3D) -> Node3D:
 	return pool.get_auto_create()
 
 func archive(created_node: Node3D) -> void:
-	var reference_node_name = created_node.name.split("_<>_")[0]
+	var reference_node_name: String = created_node.name.split("_<>_")[0]
 	if pools.has(reference_node_name):
-		var pool = pools[reference_node_name]
+		var pool: Pool = pools[reference_node_name]
 		pool.archive(created_node)
 
 func _get_pool_auto_create(reference_node: Node3D) -> Pool:

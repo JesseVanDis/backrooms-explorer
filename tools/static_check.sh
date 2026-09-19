@@ -7,6 +7,13 @@ tmp2=$(mktemp)
 tmp3=$(mktemp)
 
 cp ./project.godot ${tmp1}
+
+cleanup() {
+    mv ${tmp1} ./project.godot
+    rm -f ${tmp2} ${tmp3}
+}
+
+trap cleanup EXIT
 {
     sed -n '/^\[debug\]$/,/^\[/p' project.godot | sed '$d'
     godot --headless --path . --script res://assets/scripts/utils/static_analysis.gd
@@ -36,5 +43,3 @@ find . -name "*.gd" -print0 | while IFS= read -r -d '' file; do
   echo "checking file: '${file}'"
   godot --headless --path . --check-only --script "$file"
 done
-
-mv ${tmp1} ./project.godot
