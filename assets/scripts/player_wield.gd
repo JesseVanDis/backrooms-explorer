@@ -46,11 +46,8 @@ func update() -> void:
 			if !new_wieldable.is_playing_animation():
 				_wield_state = WieldState.NONE
 
-func get_max_look_freedom_degrees() -> float:
-	if _wieldables.has(active_wieldable):
-		var wieldable: WieldableData = _wieldables[active_wieldable]
-		return wieldable.max_look_freedom_degrees
-	return 360.0
+var active_wieldable_data: WieldableData:
+	get: return _wieldables.get(active_wieldable)
 
 static func frame_index_to_time(anim: Animation, index: float) -> float:
 	return index * anim.step
@@ -78,8 +75,11 @@ class WieldableData:
 	var rewind_for_dequip: bool:
 		get: return _rewind_for_dequip
 	
-	var max_look_freedom_degrees: float:
-		get: return _additional_args.get("max_look_freedom_degrees", 360.0)
+	var max_look_freedom_degrees_h: float:
+		get: return _additional_args.get("max_look_freedom_degrees_h", _additional_args.get("max_look_freedom_degrees", 360.0))
+		
+	var max_look_freedom_degrees_v: float:
+		get: return _additional_args.get("max_look_freedom_degrees_v", _additional_args.get("max_look_freedom_degrees", 360.0))
 	
 	func _init(_self_node: Node3D, p_animation_name: String, p_rewind_for_dequip: bool = true, p_additional_args: Dictionary = {}) -> void:
 		if _self_node:

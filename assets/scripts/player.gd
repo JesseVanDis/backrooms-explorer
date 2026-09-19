@@ -68,7 +68,7 @@ func _ready() -> void:
 	
 	_wield.add_wieldable(Wieldable.NONE,             "")
 	_wield.add_wieldable(Wieldable.PUSH,             "wield_push")
-	_wield.add_wieldable(Wieldable.LVL_0_HITGROUND,  "lvl_0_landing", false, {"max_look_freedom_degrees": 10.0})
+	_wield.add_wieldable(Wieldable.LVL_0_HITGROUND,  "lvl_0_landing", false, {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0})
 
 
 func apply_footsteps(sounds: Array[AudioStream]) -> void:
@@ -154,12 +154,20 @@ func _play_landing_sound() -> void:
 func _handle_camera_limits(dt: float) -> void:
 	const ADJUSTEMENT_SPEED := 10.0
 	var adjustement_step := minf(1.0, ADJUSTEMENT_SPEED * dt)
-	var max_look_freedom: float = _wield.get_max_look_freedom_degrees()
+	var active_wieldable_data := _wield.active_wieldable_data
+
+	var max_look_freedom_h: float = 360.0
+	var max_look_freedom_v: float = 360.0
+	if active_wieldable_data:
+		max_look_freedom_h = active_wieldable_data.max_look_freedom_degrees_h
+		max_look_freedom_v = active_wieldable_data.max_look_freedom_degrees_v
+	
 	var pitch_limit_deg := 90.0
 	var yaw_limit_deg := 360.0
-	if max_look_freedom < 360.0:
-		pitch_limit_deg = max_look_freedom * 0.5
-		yaw_limit_deg = max_look_freedom * 0.5
+	if max_look_freedom_h < 360.0:
+		yaw_limit_deg = max_look_freedom_h * 0.5
+	if max_look_freedom_v < 360.0:
+		pitch_limit_deg = max_look_freedom_v * 0.5
 	
 	var target_x := clampf(_node_camera.rotation.x, deg_to_rad(-pitch_limit_deg), deg_to_rad(pitch_limit_deg))
 	if target_x != _node_camera.rotation.x:
@@ -182,12 +190,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		var event_mouse_motion: InputEventMouseMotion = event as InputEventMouseMotion
 		if event_mouse_motion:
 			var motion_speed := 0.01
-			var max_look_freedom: float = _wield.get_max_look_freedom_degrees()
-			if max_look_freedom < 360.0:
+			var active_wieldable_data := _wield.active_wieldable_data
+			var is_rotating_limited: bool = active_wieldable_data and (active_wieldable_data.max_look_freedom_degrees_h < 360.0 or active_wieldable_data.max_look_freedom_degrees_v < 360.0)
+			if is_rotating_limited:
 				motion_speed = 0.0005
 			rotate_y(-event_mouse_motion.relative.x * motion_speed)
 			_node_camera.rotate_x(-event_mouse_motion.relative.y * motion_speed)
-			if max_look_freedom >= 360.0:
+			if not is_rotating_limited:
 				_handle_camera_limits(9999.0)
 
 func _get_movement_speed_multiplier() -> float:
