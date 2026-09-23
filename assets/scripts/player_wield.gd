@@ -15,8 +15,8 @@ var _player: Node3D = null
 func _init(player: Node3D) -> void:
 	_player = player
 
-func add_wieldable(id: int, p_animation_name: String, p_rewind_for_dequip: bool = true, p_additional_args: Dictionary = {}) -> void:
-	_wieldables[id] = WieldableData.new(_player, p_animation_name, p_rewind_for_dequip, p_additional_args)
+func add_wieldable(id: int, p_animation_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void:
+	_wieldables[id] = WieldableData.new(_player, p_animation_name, p_rewind_for_dequip, p_clear_wield_when_finish, p_additional_args)
 
 func update(dt: float) -> void:
 	_seconds_since_equiping_start = _seconds_since_equiping_start + dt
@@ -48,6 +48,8 @@ func update(dt: float) -> void:
 		WieldState.EQUIPING:
 			var new_wieldable: WieldableData = _wieldables[active_wieldable]
 			if !new_wieldable.is_playing_animation():
+				if new_wieldable.clear_wield_when_finish:
+					active_wieldable = 0
 				_wield_state = WieldState.NONE
 
 var active_wieldable_data: WieldableData:
@@ -77,10 +79,14 @@ class WieldableData:
 	var animation_player: AnimationPlayer = null
 	var _animation_name: String = ""
 	var _rewind_for_dequip: bool = true
+	var _clear_wield_when_finish: bool = false
 	var _additional_args: Dictionary = {}
 	
 	var rewind_for_dequip: bool:
 		get: return _rewind_for_dequip
+
+	var clear_wield_when_finish: bool:
+		get: return _clear_wield_when_finish
 	
 	var max_look_freedom_degrees_h: float:
 		get: return _additional_args.get("max_look_freedom_degrees_h", _additional_args.get("max_look_freedom_degrees", 360.0))
@@ -88,10 +94,11 @@ class WieldableData:
 	var max_look_freedom_degrees_v: float:
 		get: return _additional_args.get("max_look_freedom_degrees_v", _additional_args.get("max_look_freedom_degrees", 360.0))
 	
-	func _init(_self_node: Node3D, p_animation_name: String, p_rewind_for_dequip: bool = true, p_additional_args: Dictionary = {}) -> void:
+	func _init(_self_node: Node3D, p_animation_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void:
 		if _self_node:
 			_additional_args = p_additional_args
 			_rewind_for_dequip = p_rewind_for_dequip
+			_clear_wield_when_finish = p_clear_wield_when_finish
 			
 			animation_player = UtilsNode.find_animation_player_recursive(_self_node)
 			if animation_player == null:

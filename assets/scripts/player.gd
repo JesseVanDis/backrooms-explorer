@@ -68,7 +68,7 @@ func _ready() -> void:
 	
 	_wield.add_wieldable(Wieldable.NONE,             "")
 	_wield.add_wieldable(Wieldable.PUSH,             "wield_push")
-	_wield.add_wieldable(Wieldable.LVL_0_HITGROUND,  "lvl_0_landing", false, {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0})
+	_wield.add_wieldable(Wieldable.LVL_0_HITGROUND,  "lvl_0_landing", false, true, {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0})
 
 
 func apply_footsteps(sounds: Array[AudioStream]) -> void:
