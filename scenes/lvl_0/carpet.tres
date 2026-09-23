@@ -1,12 +1,12 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://dpkyn41qpdxao"]
 
-[ext_resource type="Shader" path="res://scenes/lvl_0/carpet.gdshader" id="1_q8swi"]
-[ext_resource type="Texture2D" path="res://assets/textures/generic_noise.png" id="2_uvfj5"]
+[ext_resource type="Shader" uid="uid://dh01gj5soknke" path="res://scenes/lvl_0/carpet.gdshader" id="1_q8swi"]
+[ext_resource type="Texture2D" uid="uid://csj66kw2o3p1l" path="res://assets/textures/generic_noise.png" id="2_uvfj5"]
 
 [resource]
 render_priority = 0
 shader = ExtResource("1_q8swi")
-shader_parameter/base_color = Color(1, 0.923, 0.58000004, 1)
+shader_parameter/base_color = Color(0.55, 0.5066417, 0.31350002, 1)
 shader_parameter/noise_texture = ExtResource("2_uvfj5")
 shader_parameter/noise_strength = 0.2000000095
 shader_parameter/noise_scale = 9.4610004493975
