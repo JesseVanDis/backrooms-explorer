@@ -5,11 +5,11 @@
 
 [node name="hands" unique_id=1296432070 instance=ExtResource("1_c54j8")]
 
-[node name="Hand_3D" parent="armature/Skeleton3D" parent_id_path=PackedInt32Array(1170103916) index="0" unique_id=1511449606]
+[node name="Hand_3D" parent="_hands/armature/Skeleton3D" parent_id_path=PackedInt32Array(1170103916) index="0" unique_id=1511449606]
 surface_material_override/0 = ExtResource("2_dpncg")
 
-[node name="Plane" parent="." index="1" unique_id=731292494]
+[node name="_ignore_groundreference" parent="." index="1" unique_id=731292494]
 visible = false
 
-[node name="Camera" parent="_Cam" parent_id_path=PackedInt32Array(2112331454) index="0" unique_id=1985736320]
+[node name="Camera" parent="_cam" parent_id_path=PackedInt32Array(2112331454) index="0" unique_id=1985736320]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0)
