@@ -21,5 +21,4 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if _node_opacity_controller and _hand_material:
 		var opacity: float = clampf(_node_opacity_controller.transform.origin.y, 0.0, 1.0)
-		print("opacity: " + str(opacity))
 		_hand_material.set_shader_parameter("opacity", opacity)
