@@ -67,8 +67,8 @@ func _ready() -> void:
 	_camera_default_position = _node_camera.position
 	
 	_wield.add_wieldable(Wieldable.NONE,             "")
-	_wield.add_wieldable(Wieldable.PUSH,             "wield_push")
-	_wield.add_wieldable(Wieldable.LVL_0_HITGROUND,  "lvl_0_landing", false, true, {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0})
+	_wield.add_wieldable(Wieldable.PUSH,             "wield_push", true, false, {"movement_multiplier": 0.2})
+	_wield.add_wieldable(Wieldable.LVL_0_HITGROUND,  "lvl_0_landing", false, true, {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0, "movement_multiplier": 0.0})
 
 
 func apply_footsteps(sounds: Array[AudioStream]) -> void:
@@ -200,11 +200,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				_handle_camera_limits(9999.0)
 
 func _get_movement_speed_multiplier() -> float:
-	match active_wieldable:
-		Wieldable.PUSH:
-			return 0.2
-		_:
-			return 1.0
+	var active_wieldable_data := _wield.active_wieldable_data
+	if active_wieldable_data:
+		return active_wieldable_data.movement_multiplier
+	return 1.0
 
 func _get_animation_speed_multiplier() -> float:
 	match active_wieldable:

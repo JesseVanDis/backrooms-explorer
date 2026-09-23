@@ -94,6 +94,9 @@ class WieldableData:
 	var max_look_freedom_degrees_v: float:
 		get: return _additional_args.get("max_look_freedom_degrees_v", _additional_args.get("max_look_freedom_degrees", 360.0))
 	
+	var movement_multiplier: float:
+		get: return _additional_args.get("movement_multiplier", 1.0)
+	
 	func _init(_self_node: Node3D, p_animation_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void:
 		if _self_node:
 			_additional_args = p_additional_args
