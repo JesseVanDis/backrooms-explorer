@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://d4hyy5sntc0di"]
+
+[ext_resource type="PackedScene" uid="uid://8y8epqhwryyd" path="res://scenes/lvl_0/part_1x1_ceiling_light.tscn" id="1_5eln5"]
+
+[node name="Part1x1CeilingLightBlinking" type="Node3D" unique_id=437059223]
+
+[node name="part_1x1_ceiling_light" parent="." unique_id=1814395978 instance=ExtResource("1_5eln5")]
+mode = 1

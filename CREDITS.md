@@ -39,6 +39,7 @@ This game uses the following third-party assets:
 * [Format this] https://www.turbosquid.com/FullPreview/1912950
 * [Format this] https://www.turbosquid.com/FullPreview/940229
 * [Format this] https://www.turbosquid.com/FullPreview/1541942
+* [Format this] https://www.turbosquid.com/FullPreview/532163
 * **Clouds shader** ([url](https://godotshaders.com/shader/realistic-spatial-clouds/)) - sebashtioon, CC0
 
 

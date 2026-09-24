@@ -2,6 +2,8 @@ extends Node
 
 class_name MapGenerator
 
+const CHANCE_BLINKING_LIGHT = 0.007
+
 enum Pixel {
 	NONE                         = 0,
 	BIOME_DEFAULT                = 1 << 1,
@@ -128,7 +130,7 @@ func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
 			return pp.with_tile(Pixel.TILE_EMPTY)
 	
 		1: # make some lights blinking
-			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < 0.5:
+			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
 				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
 	
 		2:
@@ -165,7 +167,11 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 				return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
 			return pp.with_tile(Pixel.TILE_EMPTY)
 		
-		1:
+		1: # make some lights blinking
+			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
+		
+		2:
 			var x_offset := 1
 			var y_offset := 1
 			if ((grid_local_x == x_offset + 0 && grid_local_y == y_offset + 0) || 

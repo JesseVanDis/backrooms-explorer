@@ -7,23 +7,15 @@ const GENERATION_THRESHOLD: float = CHUNK_SIZE
 const REMOVAL_THRESHOLD: float = 200.0
 const VIEW_DISTANCE: int = 60
 
-const floor_scene: PackedScene = preload("res://scenes/lvl_0/part_1x1_floor.tscn")
-const ceiling_scene: PackedScene = preload("res://scenes/lvl_0/part_1x1_ceiling.tscn")
-const ceiling_light_scene: PackedScene = preload("res://scenes/lvl_0/part_1x1_ceiling_light.tscn")
-const wall_scene_x: PackedScene = preload("res://scenes/lvl_0/part_wall_x.tscn")
-const wall_scene_t: PackedScene = preload("res://scenes/lvl_0/part_wall_t.tscn")
-const wall_scene_i: PackedScene = preload("res://scenes/lvl_0/part_wall_i.tscn")
-const wall_scene_l: PackedScene = preload("res://scenes/lvl_0/part_wall_l.tscn")
-const wall_scene_e: PackedScene = preload("res://scenes/lvl_0/part_wall_end.tscn")
-
-var model_floor: Model = _load_model(floor_scene)
-var model_ceiling: Model = _load_model(ceiling_scene)
-var model_ceiling_light: Model = _load_model(ceiling_light_scene)
-var model_wall_x: Model = _load_model(wall_scene_x)
-var model_wall_t: Model = _load_model(wall_scene_t)
-var model_wall_i: Model = _load_model(wall_scene_i)
-var model_wall_l: Model = _load_model(wall_scene_l)
-var model_wall_e: Model = _load_model(wall_scene_e)
+var model_floor:                  Model = _load_model(preload("res://scenes/lvl_0/part_1x1_floor.tscn"))
+var model_ceiling:                Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling.tscn"))
+var model_ceiling_light:          Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling_light.tscn"))
+var model_ceiling_light_blinking: Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling_light_blinking.tscn"))
+var model_wall_x:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_x.tscn"))
+var model_wall_t:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_t.tscn"))
+var model_wall_i:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_i.tscn"))
+var model_wall_l:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_l.tscn"))
+var model_wall_e:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_end.tscn"))
 
 @onready var _node_map: Node3D = $Map
 var _player: Player = null
@@ -212,16 +204,20 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 	
 	# ALWAYS add a floor and ceiling
 	_instantiate_model(model_floor, tile_index, 0)
-	_instantiate_model(model_ceiling, tile_index, 0)
 
 	match pixel & MapGenerator.TILE_MASK:
 		MapGenerator.Pixel.TILE_EMPTY:
+			_instantiate_model(model_ceiling, tile_index, 0)
 			return
 			
 		MapGenerator.Pixel.TILE_CEILING_LIGHT:
 			_instantiate_model(model_ceiling_light, tile_index, 0)
 			
+		MapGenerator.Pixel.TILE_CEILING_LIGHT_BLINKING:
+			_instantiate_model(model_ceiling_light_blinking, tile_index, 0)
+			
 		MapGenerator.Pixel.TILE_WALL:
+			_instantiate_model(model_ceiling, tile_index, 0)
 			# Use _get_pixel_at for seamless transitions between chunks
 			var wall_n: bool = (_get_pixel_at(x, y + 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
 			var wall_s: bool = (_get_pixel_at(x, y - 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
