@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://dbac8i5a3v6kp"]
 
-[ext_resource type="PackedScene" path="res://scenes/lvl_0/saves/part_1x1_floor.blend" id="1_eyx27"]
-[ext_resource type="Material" path="res://scenes/lvl_0/carpet.tres" id="2_l1r05"]
+[ext_resource type="PackedScene" uid="uid://c3aeyetv3cxk2" path="res://scenes/lvl_0/saves/part_1x1_floor.blend" id="1_eyx27"]
+[ext_resource type="Material" uid="uid://dpkyn41qpdxao" path="res://scenes/lvl_0/carpet.tres" id="2_l1r05"]
+[ext_resource type="Material" uid="uid://cou46wwobdsl4" path="res://scenes/lvl_0/carpet_fur.tres" id="3_wb00v"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_l1r05"]
 size = Vector3(1, 0.001, 1)
@@ -12,5 +13,8 @@ size = Vector3(1, 0.001, 1)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5e-06, 0)
 shape = SubResource("BoxShape3D_l1r05")
 
-[node name="Cube" parent="." index="1" unique_id=113969816]
+[node name="Cube" parent="." index="1" unique_id=910495441]
 surface_material_override/0 = ExtResource("2_l1r05")
+
+[node name="Cube_001" parent="Cube" index="0" unique_id=182468962]
+surface_material_override/0 = ExtResource("3_wb00v")

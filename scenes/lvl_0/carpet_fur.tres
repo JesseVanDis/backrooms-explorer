@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cou46wwobdsl4"]
+
+[ext_resource type="Shader" uid="uid://c1r3qdhwyt36d" path="res://scenes/lvl_0/carpet_fur.gdshader" id="1_4d53l"]
+[ext_resource type="Texture2D" uid="uid://csj66kw2o3p1l" path="res://assets/textures/generic_noise.png" id="2_w7b7n"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_4d53l")
+shader_parameter/base_color = Color(0.54901963, 0.5058824, 0.3137255, 1)
+shader_parameter/noise_texture = ExtResource("2_w7b7n")
+shader_parameter/noise_strength = 1.0
+shader_parameter/noise_scale = 9.46000044935
+shader_parameter/carpet_bump = 1.0
+shader_parameter/bump_size = 0.01
