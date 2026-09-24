@@ -3,13 +3,14 @@ extends Node
 class_name MapGenerator
 
 enum Pixel {
-	NONE                = 0,
-	BIOME_DEFAULT       = 1 << 1,
-	BIOME_PILLARS       = 1 << 2,
-	TILE_EMPTY          = 1 << 16,
-	TILE_CEILING_LIGHT  = 2 << 16,
-	TILE_WALL           = 3 << 16,
-	INVALID             = 1 << 31
+	NONE                         = 0,
+	BIOME_DEFAULT                = 1 << 1,
+	BIOME_PILLARS                = 1 << 2,
+	TILE_EMPTY                   = 1 << 16,
+	TILE_CEILING_LIGHT           = 2 << 16,
+	TILE_CEILING_LIGHT_BLINKING  = 3 << 16,
+	TILE_WALL                    = 4 << 16,
+	INVALID                      = 1 << 31
 }
 
 const BIOME_MASK = (1 << 16) - 1
@@ -107,7 +108,7 @@ func _gen(pass_index: int, ctx: Context) -> Pixel:
 	
 	# force empty area at spawn point
 	if (ctx.x * ctx.x) < 100 && (ctx.y * ctx.y) < 100 && retval != Pixel.INVALID && pp.tile_c == Pixel.TILE_WALL:
-		retval = pp.biome_c | Pixel.TILE_EMPTY as Pixel
+		retval = pp.with_tile(Pixel.TILE_EMPTY)
 	return retval
 	
 func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
@@ -121,27 +122,31 @@ func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
 	match pass_index:
 		0:
 			if ctx.random() > 0.9:
-				return pp.biome_c | Pixel.TILE_WALL as Pixel
+				return pp.with_tile(Pixel.TILE_WALL)
 			if _ceiling_light(ctx, 0.7, 5, 2):
-				return pp.biome_c | Pixel.TILE_CEILING_LIGHT as Pixel
-			return pp.biome_c | Pixel.TILE_EMPTY as Pixel
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
+			return pp.with_tile(Pixel.TILE_EMPTY)
 	
-		1:
+		1: # make some lights blinking
+			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < 0.5:
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
+	
+		2:
 			if num_neighbour_walls > 0 && !pp.wall_c:
 				if ctx.random() > 0.75:
-					return pp.biome_c | Pixel.TILE_WALL as Pixel
-			return pp.pixel_c
+					return pp.with_tile(Pixel.TILE_WALL)
+			return pp.no_change()
 			
-		2:
+		3:
 			if _is_isolated_wall_dot(ctx):
-				return pp.biome_c | Pixel.TILE_EMPTY as Pixel
-			return pp.pixel_c
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
 		
-		3,4,5,6,7,8,9,10:
+		4,5,6,7,8,9,10,11:
 			if ctx.random() > 0.1:
 				if _extend_walls(ctx):
-					return pp.biome_c | Pixel.TILE_WALL as Pixel
-			return pp.pixel_c
+					return pp.with_tile(Pixel.TILE_WALL)
+			return pp.no_change()
 		
 	return Pixel.INVALID
 
@@ -157,8 +162,8 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 	match pass_index:
 		0:
 			if _ceiling_light(ctx, 1.0, 3, 1):
-				return pp.biome_c | Pixel.TILE_CEILING_LIGHT as Pixel
-			return pp.biome_c | Pixel.TILE_EMPTY as Pixel
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
+			return pp.with_tile(Pixel.TILE_EMPTY)
 		
 		1:
 			var x_offset := 1
@@ -167,7 +172,7 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 				(grid_local_x == x_offset + 0 && grid_local_y == y_offset + 1) ||
 				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 0) || 
 				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 1)):
-					return pp.biome_c | Pixel.TILE_WALL as Pixel
+					return pp.with_tile(Pixel.TILE_WALL)
 		
 	return Pixel.INVALID
 
@@ -214,6 +219,21 @@ class PreviousPass:
 	var wall_ne: bool
 	var wall_sw: bool
 	var wall_se: bool
+	
+	func with_tile(tile: Pixel) -> Pixel:
+		if tile < Pixel.TILE_EMPTY:
+			push_error("argument given to 'with_tile' MUST be a tile")
+			return no_change()
+		return biome_c | tile as Pixel
+
+	func with_biome(biome: Pixel) -> Pixel:
+		if biome < Pixel.TILE_EMPTY:
+			push_error("argument given to 'with_biome' MUST be a biome")
+			return no_change()
+		return tile_c | biome as Pixel
+		
+	func no_change() -> Pixel:
+		return pixel_c
 
 	func update(ctx: Context) -> void:
 		pixel_c = ctx.get_at(data)
@@ -366,14 +386,15 @@ class TileUtils:
 	
 	static func to_color(pixel: Pixel) -> Color:
 		match pixel:
-			Pixel.BIOME_DEFAULT: 					return Color(0.887, 0.975, 1.0, 1.0)
-			Pixel.BIOME_PILLARS: 					return Color(0.811, 1.0, 0.792, 1.0)
+			Pixel.BIOME_DEFAULT:                    return Color(0.887, 0.975, 1.0, 1.0)
+			Pixel.BIOME_PILLARS:                    return Color(0.811, 1.0, 0.792, 1.0)
 			Pixel.BIOME_DEFAULT | Pixel.TILE_EMPTY: return Color(0.587, 0.723, 1.0, 1.0)
 			Pixel.BIOME_PILLARS | Pixel.TILE_EMPTY: return Color(0.0, 0.886, 0.522, 1.0)
 		
 		match pixel & TILE_MASK:
-			Pixel.TILE_CEILING_LIGHT:				return Color(0,1,1)
-			Pixel.TILE_WALL:						return Color(0,0,0)
+			Pixel.TILE_CEILING_LIGHT:               return Color(0,1,1)
+			Pixel.TILE_CEILING_LIGHT_BLINKING:      return Color(0.0, 0.58, 0.614, 1.0)
+			Pixel.TILE_WALL:                        return Color(0,0,0)
 		
 		var h := fmod(absf(sin(float(pixel) * 12.9898) * 43758.5453), 1.0)
 		return Color.from_hsv(h, 0.7, 1.0)
