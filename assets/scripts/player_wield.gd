@@ -141,6 +141,8 @@ class WieldableData:
 			var anim: Animation = animation_player.get_animation(_animation_name)
 			if anim == null:
 				push_error("Animation not found: '" + _animation_name + "'")
+			if p_range.from == p_range.to:
+				return false
 			if p_range.from <= p_range.to:
 				animation_player.play_section(_animation_name, PlayerWield.frame_index_to_time(anim, p_range.from), PlayerWield.frame_index_to_time(anim, p_range.to), -1,  p_range.speed, false)
 			else:

@@ -132,7 +132,8 @@ func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
 		1: # make some lights blinking
 			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
 				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
-	
+			return pp.no_change()
+		
 		2:
 			if num_neighbour_walls > 0 && !pp.wall_c:
 				if ctx.random() > 0.75:
@@ -170,6 +171,7 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 		1: # make some lights blinking
 			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
 				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
+			return pp.no_change()
 		
 		2:
 			var x_offset := 1

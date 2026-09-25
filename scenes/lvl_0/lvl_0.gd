@@ -295,6 +295,7 @@ func _handle_tile_graphics() -> void:
 		for model: Model in placed_tile.models.values():
 			if ! placed_tile.graphics.has(model.id):
 				var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
+				# push_warning("adding: " + str(model.id))
 				var graphic: Node3D = model.graphic.duplicate()
 				graphic.transform.origin = tile_pos
 				graphic.rotate_y(placed_tile.angle)
@@ -401,11 +402,20 @@ func _get_collision_shape(resource: PackedScene) -> CollisionShape3D:
 	return null
 
 func _instantiate_and_remove_collision(graphic: PackedScene) -> Node3D:
-	var node: Node3D = graphic.instantiate()
-	for child: Node in node.get_children():
-		if child is CollisionShape3D:
-			child.queue_free()
-	return node
+	var inst: Node3D = graphic.instantiate()
+	var new_node: Node3D = Node3D.new()
+
+	var script: Script = inst.get_script()
+	if script != null:
+		new_node.set_script(script)
+	
+	for child: Node in inst.get_children():
+		if not (child is CollisionShape3D or child is CollisionPolygon3D or child is PhysicsBody3D):
+			var dup: Node = child.duplicate()
+			new_node.add_child(dup)
+	
+	inst.queue_free()
+	return new_node
 
 var last_model_id: int = 0
 func _load_model(tile: PackedScene) -> Model:
