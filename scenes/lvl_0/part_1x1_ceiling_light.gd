@@ -11,6 +11,7 @@ enum LightMode {
 @onready var _emission_node: Node3D = $_base/_emission
 @onready var _light_node: Node3D = $OmniLight3D
 @onready var _casing_node: Node3D = $_base/_casing
+@onready var _audio_lamp_flick: AudioStreamPlayer3D = $AudioLampFlick
 
 const BLINK_INTERVAL_MIN: float = 0.05
 const BLINK_INTERVAL_MAX: float = 0.5
@@ -26,6 +27,8 @@ func _ready() -> void:
 		push_error("_light_node is null")
 	if _casing_node == null:
 		push_error("_casing_node is null")
+	if _audio_lamp_flick == null:
+		push_error("_audio_lamp_flick is null")
 	
 	_update_light_state()
 
@@ -36,6 +39,8 @@ func _process(dt: float) -> void:
 		if _blinking_timer <= 0.0:
 			_is_on = not _is_on
 			_apply_visibility(_is_on)
+			if _is_on and _audio_lamp_flick != null:
+				_audio_lamp_flick.play()
 			_blinking_timer = randf_range(BLINK_INTERVAL_MIN, BLINK_INTERVAL_MAX)
 	elif mode == LightMode.ON:
 		if not _is_on:
@@ -54,6 +59,8 @@ func _update_light_state() -> void:
 			_is_on = false
 		LightMode.BLINKING:
 			_is_on = randf() > 0.5
+			if _is_on and _audio_lamp_flick != null:
+				_audio_lamp_flick.play()
 			_blinking_timer = randf_range(BLINK_INTERVAL_MIN, BLINK_INTERVAL_MAX)
 	
 	_apply_visibility(_is_on)

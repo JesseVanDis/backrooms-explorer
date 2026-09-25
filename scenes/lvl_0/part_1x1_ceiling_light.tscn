@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://y54o8gtxq3ml" path="res://scenes/lvl_0/saves/part_1x1_ceiling_light.blend" id="1_ff6hj"]
 [ext_resource type="Script" uid="uid://dw4qb3kf3xyqu" path="res://scenes/lvl_0/part_1x1_ceiling_light.gd" id="2_wgd5q"]
+[ext_resource type="AudioStream" uid="uid://dfg0rc1sojsb5" path="res://scenes/lvl_0/fluorescent-lamp-flick.wav" id="3_qgfil"]
 
 [node name="part_1x1_ceiling_light" unique_id=1814395978 instance=ExtResource("1_ff6hj")]
 script = ExtResource("2_wgd5q")
@@ -15,3 +16,10 @@ shadow_blur = 5.347
 distance_fade_enabled = true
 distance_fade_shadow = 20.0
 omni_range = 6.0
+
+[node name="AudioLampFlick" type="AudioStreamPlayer3D" parent="." index="2" unique_id=899760153]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9733136, 0)
+stream = ExtResource("3_qgfil")
+attenuation_model = 1
+unit_size = 4.89
+max_polyphony = 4

@@ -2,7 +2,7 @@ extends Node
 
 class_name MapGenerator
 
-const CHANCE_BLINKING_LIGHT = 0.007
+const CHANCE_BLINKING_LIGHT = 0.003
 
 enum Pixel {
 	NONE                         = 0,

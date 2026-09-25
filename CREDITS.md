@@ -24,6 +24,7 @@
 This game uses the following third-party assets:
 
 * **[fluorescent light buzz ](scenes/lvl_0/fluorescent-light-buzz.mp3)** ([url](https://pixabay.com/sound-effects/film-special-effects-factory-fluorescent-light-buzz-6871/)) - janbezouska (Freesound), Pixabay Content License
+* [Format this] https://pixabay.com/sound-effects/household-fluorescent-lamp-flickering-17625/))
 * **level 0 footsteps** ([url](https://pixabay.com/sound-effects/household-walking-footsteps-on-carpet-34094/)) - Abolla (Freesound), Pixabay Content License
 * **level frontrooms kitchen** ([url](https://www.turbosquid.com/FullPreview/1611240)) - Marcin Lubecki, TurboSquid's Standard 3D Model License
 * **level frontrooms trashbin** ([url](https://www.turbosquid.com/FullPreview/2432954)) - Vee Animation, TurboSquid's Standard 3D Model License
