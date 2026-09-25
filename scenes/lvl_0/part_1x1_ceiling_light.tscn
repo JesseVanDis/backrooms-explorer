@@ -7,6 +7,13 @@
 [node name="part_1x1_ceiling_light" unique_id=1814395978 instance=ExtResource("1_ff6hj")]
 script = ExtResource("2_wgd5q")
 
+[node name="_casing" parent="_base" parent_id_path=PackedInt32Array(1301288860) index="0" unique_id=692398261]
+cast_shadow = 0
+ignore_occlusion_culling = true
+
+[node name="_emission" parent="_base" parent_id_path=PackedInt32Array(1301288860) index="1" unique_id=127325871]
+gi_mode = 0
+
 [node name="OmniLight3D" type="OmniLight3D" parent="." index="1" unique_id=1338369808]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1426687, 0)
 light_color = Color(1, 0.955, 0.7, 1)
