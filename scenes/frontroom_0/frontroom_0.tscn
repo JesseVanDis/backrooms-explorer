@@ -221,21 +221,22 @@ transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-
 shape = SubResource("BoxShape3D_qjbi0")
 
 [node name="MovingBox3" type="RigidBody3D" parent="." unique_id=1998759815]
-transform = Transform3D(0.9904443, 0, -0.13791342, 0, 1, 0, 0.13791342, 0, 0.9904443, -4.656395, 0.6885196, 0.4749058)
-collision_layer = 7
-collision_mask = 5
+transform = Transform3D(0.9904443, 0, -0.13791342, 0, 1, 0, 0.13791342, 0, 0.9904443, -3.7499943, 0.6885196, 0.34894997)
+collision_layer = 9
+collision_mask = 9
 
 [node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox3" unique_id=27932876]
 transform = Transform3D(1.4, 0, 0, 0, -6.119594e-08, -1.4, 0, 1.4, -6.119594e-08, 0, 0.55220044, 0)
 gi_mode = 2
 mesh = SubResource("ArrayMesh_xv7e5")
+surface_material_override/0 = ExtResource("6_m4q7u")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox3" unique_id=2069263377]
 transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-08, 0, 0.37513602, 0)
 shape = SubResource("BoxShape3D_qjbi0")
 
 [node name="MovingBox2" type="RigidBody3D" parent="." unique_id=654344532]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2216473, 1.5609629, -1.5114428)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.102476, 1.5609629, -1.5114428)
 collision_layer = 6
 collision_mask = 5
 

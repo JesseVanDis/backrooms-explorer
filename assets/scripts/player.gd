@@ -8,6 +8,7 @@ const BOB_VERTICAL_AMPLITUDE: float = 0.08
 const BOB_HORIZONTAL_AMPLITUDE: float = 0.02
 const MOVEMENT_LOWERING: float = 0.15
 const HANDS_APPEAR_DURATION: float = 0.1
+const PUSH_FORCE: float = 0.5
 
 enum Wieldable {NONE, PUSH, LVL_0_HITGROUND}
 
@@ -115,6 +116,12 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0, SPEED)
 	
 	move_and_slide()
+	
+	for i in get_slide_collision_count():
+		var collision := get_slide_collision(i)
+		var collider := collision.get_collider()
+		if collider is RigidBody3D:
+			collider.apply_central_impulse(-collision.get_normal() * PUSH_FORCE)
 	
 	if was_in_air and is_on_floor():
 		_play_landing_sound()
