@@ -3,9 +3,10 @@
 [ext_resource type="LightmapGIData" uid="uid://2gpusrt81l4" path="res://scenes/frontroom_0/frontroom_0.lmbake" id="1_56db3"]
 [ext_resource type="Script" uid="uid://p4ju0w0gemo1" path="res://scenes/frontroom_0/frontroom_0.gd" id="1_gvot5"]
 [ext_resource type="Shader" uid="uid://cp3tsmuhr3dd0" path="res://scenes/frontroom_0/frontroom_0_sky.gdshader" id="1_uy0mw"]
-[ext_resource type="PackedScene" uid="uid://dd2fgigir7jry" path="res://scenes/frontroom_0/garden.tscn" id="3_uy0mw"]
 [ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://assets/models/player.tscn" id="4_8lqa0"]
 [ext_resource type="Texture2D" uid="uid://bv2llcnedu1yx" path="res://assets/textures/box_01.jpg" id="5_qjbi0"]
+[ext_resource type="PackedScene" uid="uid://b8fv4gxs3jk1l" path="res://scenes/frontroom_0/frontrooms_0_model.tscn" id="6_gvot5"]
+[ext_resource type="Material" uid="uid://bl3xtl40x16ag" path="res://materials/box_1.tres" id="6_m4q7u"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uy0mw"]
 shader = ExtResource("1_uy0mw")
@@ -175,10 +176,10 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_jgmky")
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_qjbi0"]
-size = Vector3(0.6, 0.6, 0.6431062)
+size = Vector3(0.65, 0.65, 0.68)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_gvot5"]
-size = Vector3(0.6, 0.6, 0.6431062)
+size = Vector3(0.65, 0.65, 0.68)
 
 [node name="Frontroom0" type="Node3D" unique_id=1630197344]
 script = ExtResource("1_gvot5")
@@ -202,56 +203,51 @@ mesh = SubResource("PlaneMesh_khlrb")
 surface_material_override/0 = SubResource("ShaderMaterial_f4hk2")
 
 [node name="Player" parent="." unique_id=1091834531 instance=ExtResource("4_8lqa0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26800656, 1.3164781, 0.053611755)
-
-[node name="frontrooms_0" parent="." unique_id=1371298715 instance=ExtResource("3_uy0mw")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9137387, 0, 3.38057)
-
-[node name="AreaLight3D3" type="AreaLight3D" parent="frontrooms_0" unique_id=1241896618]
-transform = Transform3D(-2.1855692e-07, 0, -1, 0, 1, 0, 1, 0, -2.1855692e-07, -13.672714, 1.4822526, -3.5344713)
-light_energy = 0.6
-light_bake_mode = 1
-area_range = 10.0
-area_size = Vector2(2.1699352, 1.11205)
-
-[node name="AreaLight3D" type="AreaLight3D" parent="frontrooms_0" unique_id=917426796]
-transform = Transform3D(1.3113416e-07, 0, 1, 0, 1, 0, -1, 0, 1.3113416e-07, -3.5561001, 1.4779526, -3.7885773)
-light_energy = 0.3
-light_bake_mode = 1
-area_range = 10.0
-area_size = Vector2(1.5977416, 1.0808372)
-
-[node name="AreaLight3D2" type="AreaLight3D" parent="frontrooms_0" unique_id=1032978158]
-transform = Transform3D(1.3113416e-07, 0, 1, 0, 1, 0, -1, 0, 1.3113416e-07, -3.5561001, 1.2157958, -2.2468433)
-light_energy = 0.3
-light_bake_mode = 1
-area_range = 10.0
-area_size = Vector2(0.643523, 1.6085932)
+transform = Transform3D(-0.50000006, 0, 0.8660254, 0, 1, 0, -0.8660254, 0, -0.50000006, 1.1181391, 1.3164781, -0.92704856)
 
 [node name="MovingBox1" type="RigidBody3D" parent="." unique_id=841379533]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.4481716, 0.19263947, -1.0288787)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2216473, 0.6885196, -1.5114428)
 collision_layer = 6
 collision_mask = 5
 
 [node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox1" unique_id=847687666]
-transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-08, 0, 0.55220044, 0)
+transform = Transform3D(1.4, 0, 0, 0, -6.119594e-08, -1.4, 0, 1.4, -6.119594e-08, 0, 0.55220044, 0)
+gi_mode = 2
+mesh = SubResource("ArrayMesh_xv7e5")
+surface_material_override/0 = ExtResource("6_m4q7u")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox1" unique_id=1736630928]
+transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-08, 0, 0.37513602, 0)
+shape = SubResource("BoxShape3D_qjbi0")
+
+[node name="MovingBox3" type="RigidBody3D" parent="." unique_id=1998759815]
+transform = Transform3D(0.9904443, 0, -0.13791342, 0, 1, 0, 0.13791342, 0, 0.9904443, -4.656395, 0.6885196, 0.4749058)
+collision_layer = 7
+collision_mask = 5
+
+[node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox3" unique_id=27932876]
+transform = Transform3D(1.4, 0, 0, 0, -6.119594e-08, -1.4, 0, 1.4, -6.119594e-08, 0, 0.55220044, 0)
 gi_mode = 2
 mesh = SubResource("ArrayMesh_xv7e5")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox1" unique_id=1736630928]
-transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-08, 0, 0.38521945, -4.604199e-08)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox3" unique_id=2069263377]
+transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-08, 0, 0.37513602, 0)
 shape = SubResource("BoxShape3D_qjbi0")
 
 [node name="MovingBox2" type="RigidBody3D" parent="." unique_id=654344532]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.4481716, 1.0650828, -1.0288787)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2216473, 1.5609629, -1.5114428)
 collision_layer = 6
 collision_mask = 5
 
 [node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox2" unique_id=1589079478]
-transform = Transform3D(0.99476206, -0.10221759, 0, 0, 0, -1, 0.10221759, 0.99476206, 0, 0, 0.55220044, 0.024617076)
+transform = Transform3D(1.0942383, -0.11243936, 4.9148805e-09, 0, -4.8082526e-08, -1.1, 0.11243936, 1.0942383, -4.7830675e-08, 0, 0.55220044, 0.024617076)
 gi_mode = 2
 mesh = SubResource("ArrayMesh_xv7e5")
+surface_material_override/0 = ExtResource("6_m4q7u")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox2" unique_id=114475701]
 transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.42375353, -2.9802322e-08)
 shape = SubResource("BoxShape3D_gvot5")
+
+[node name="frontrooms_0" parent="." unique_id=1493336842 instance=ExtResource("6_gvot5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1666489, 0, 3.0103292)

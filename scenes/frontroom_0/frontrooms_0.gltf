@@ -23,14 +23,25 @@
 				0,
 				82,
 				83,
-				84
+				84,
+				85
 			]
 		}
 	],
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"GrassPlatform"
+			"name":"GrassPlatform",
+			"scale":[
+				1.0920000076293945,
+				1.0920000076293945,
+				1.0920000076293945
+			],
+			"translation":[
+				0.5607407093048096,
+				0.4246361255645752,
+				0.2849843502044678
+			]
 		},
 		{
 			"mesh":1,
@@ -42,8 +53,8 @@
 				0.7069588899612427
 			],
 			"translation":[
-				-13.012127876281738,
-				0.3617686629295349,
+				-13.012128829956055,
+				0.3617686331272125,
 				-2.9337377548217773
 			]
 		},
@@ -57,9 +68,9 @@
 				0.7071068286895752
 			],
 			"translation":[
-				-13.111751556396484,
+				-13.1117525100708,
 				0.5257781744003296,
-				-4.034008502960205
+				-4.034008979797363
 			]
 		},
 		{
@@ -77,8 +88,8 @@
 				0.7624759674072266
 			],
 			"translation":[
-				-9.529356956481934,
-				0.44661298394203186,
+				-9.52935791015625,
+				0.44661304354667664,
 				-2.697876453399658
 			]
 		},
@@ -93,15 +104,15 @@
 			],
 			"translation":[
 				-8.185832977294922,
-				0.577045738697052,
-				-1.8886717557907104
+				0.5770456790924072,
+				-1.888671875
 			]
 		},
 		{
 			"mesh":5,
 			"name":"BoxesOBJ.004",
 			"rotation":[
-				0.7035855650901794,
+				0.7035856246948242,
 				-0.07047836482524872,
 				0.07047835737466812,
 				0.7035857439041138
@@ -122,7 +133,7 @@
 				0.7071066498756409
 			],
 			"scale":[
-				0.009999999776482582,
+				0.010000000707805157,
 				0.010000000707805157,
 				0.010000000707805157
 			],
@@ -144,10 +155,10 @@
 			"scale":[
 				0.009999999776482582,
 				0.009999999776482582,
-				0.009999999776482582
+				0.010000000707805157
 			],
 			"translation":[
-				0.33501186966896057,
+				0.3350118398666382,
 				0,
 				-2.5408480167388916
 			]
@@ -156,7 +167,7 @@
 			"mesh":8,
 			"name":"Cube.002",
 			"translation":[
-				-5.519863128662109,
+				-5.519862651824951,
 				0,
 				-2.4743614196777344
 			]
@@ -173,11 +184,11 @@
 			"scale":[
 				0.3417753577232361,
 				0.3816830515861511,
-				0.38168302178382874
+				0.3816830515861511
 			],
 			"translation":[
 				-3.3754608631134033,
-				0.005389794707298279,
+				0.005389809608459473,
 				-4.956604480743408
 			]
 		},
@@ -185,7 +196,7 @@
 			"mesh":10,
 			"name":"Cube.005",
 			"translation":[
-				-5.519863128662109,
+				-5.519862651824951,
 				0,
 				-2.4743614196777344
 			]
@@ -202,11 +213,11 @@
 			"scale":[
 				0.3417753577232361,
 				0.3816830515861511,
-				0.38168302178382874
+				0.3816830515861511
 			],
 			"translation":[
 				-3.3754608631134033,
-				0.005389794707298279,
+				0.005389809608459473,
 				-4.345511436462402
 			]
 		},
@@ -222,12 +233,12 @@
 			"scale":[
 				0.3417753577232361,
 				0.3816830515861511,
-				0.38168302178382874
+				0.3816830515861511
 			],
 			"translation":[
 				-3.3754608631134033,
-				0.005389794707298279,
-				-3.7406044006347656
+				0.005389809608459473,
+				-3.7406046390533447
 			]
 		},
 		{
@@ -240,7 +251,7 @@
 			],
 			"translation":[
 				-3.0251214504241943,
-				0.005389794707298279,
+				0.005389809608459473,
 				-5.201439380645752
 			]
 		},
@@ -254,7 +265,7 @@
 			],
 			"translation":[
 				-2.4088385105133057,
-				0.005389794707298279,
+				0.005389809608459473,
 				-5.201439380645752
 			]
 		},
@@ -268,7 +279,7 @@
 			],
 			"translation":[
 				-1.790970802307129,
-				0.005389794707298279,
+				0.005389809608459473,
 				-5.201439380645752
 			]
 		},
@@ -282,7 +293,7 @@
 			],
 			"translation":[
 				-3.0190696716308594,
-				0.005389794707298279,
+				0.005389809608459473,
 				-3.4956932067871094
 			]
 		},
@@ -296,7 +307,7 @@
 			],
 			"translation":[
 				-2.402039051055908,
-				0.005389794707298279,
+				0.005389809608459473,
 				-3.492891550064087
 			]
 		},
@@ -309,8 +320,8 @@
 				0.3816830515861511
 			],
 			"translation":[
-				-1.7827905416488647,
-				0.005389794707298279,
+				-1.7827906608581543,
+				0.005389809608459473,
 				-3.491429328918457
 			]
 		},
@@ -326,12 +337,12 @@
 			"scale":[
 				0.3417753577232361,
 				0.3816830515861511,
-				0.38168302178382874
+				0.3816830515861511
 			],
 			"translation":[
-				-1.4283274412155151,
-				0.005389794707298279,
-				-3.7146620750427246
+				-1.4283275604248047,
+				0.005389809608459473,
+				-3.7146618366241455
 			]
 		},
 		{
@@ -346,11 +357,11 @@
 			"scale":[
 				0.3417753577232361,
 				0.3816830515861511,
-				0.38168302178382874
+				0.3816830515861511
 			],
 			"translation":[
-				-1.438630223274231,
-				0.005389794707298279,
+				-1.4386303424835205,
+				0.005389809608459473,
 				-4.959572792053223
 			]
 		},
@@ -366,11 +377,11 @@
 			"scale":[
 				0.3417753577232361,
 				0.3816830515861511,
-				0.38168302178382874
+				0.3816830515861511
 			],
 			"translation":[
-				-1.4283274412155151,
-				0.005389794707298279,
+				-1.4283275604248047,
+				0.005389809608459473,
 				-4.3356218338012695
 			]
 		},
@@ -384,7 +395,7 @@
 			],
 			"translation":[
 				-2.165550708770752,
-				0.018599433824419975,
+				0.01859945058822632,
 				-3.752314567565918
 			]
 		},
@@ -395,12 +406,12 @@
 				0,
 				-1,
 				0,
-				7.549790126404332e-08
+				7.549790836947068e-08
 			],
 			"translation":[
 				-7.48714017868042,
 				0,
-				-5.059126377105713
+				-5.059126853942871
 			]
 		},
 		{
@@ -413,18 +424,18 @@
 				0.70710688829422
 			],
 			"translation":[
-				-9.270973205566406,
+				-9.270974159240723,
 				0,
-				-5.335745334625244
+				-5.335745811462402
 			]
 		},
 		{
 			"mesh":25,
 			"name":"Door3.001",
 			"translation":[
-				3.0517578125e-05,
-				-3.0517574487021193e-05,
-				0
+				1.52587890625e-05,
+				-9.271162525692489e-06,
+				6.984409992583096e-06
 			]
 		},
 		{
@@ -440,9 +451,9 @@
 				0.4999999403953552
 			],
 			"scale":[
-				0.009999999776482582,
-				0.009999999776482582,
-				0.009999999776482582
+				0.010000000707805157,
+				0.010000000707805157,
+				0.010000000707805157
 			],
 			"translation":[
 				-3.5264453887939453,
@@ -461,7 +472,7 @@
 			],
 			"scale":[
 				0.005970776081085205,
-				0.009999999776482582,
+				0.010000000707805157,
 				0.009999998845160007
 			],
 			"translation":[
@@ -485,8 +496,8 @@
 				0.6324605345726013
 			],
 			"translation":[
-				-4.035289764404297,
-				0.07249303162097931,
+				-4.035290241241455,
+				0.07249301671981812,
 				-1.4950644969940186
 			]
 		},
@@ -494,21 +505,21 @@
 			"mesh":29,
 			"name":"FENCEWOOD.004",
 			"scale":[
-				0.009999999776482582,
-				0.009999999776482582,
-				0.009999999776482582
+				0.010000000707805157,
+				0.010000000707805157,
+				0.010000000707805157
 			],
 			"translation":[
-				0.4733380973339081,
+				0.47333812713623047,
 				0,
-				-5.288811683654785
+				-5.288812160491943
 			]
 		},
 		{
 			"mesh":30,
 			"name":"folding_wooden_stool",
 			"translation":[
-				0.6626112461090088,
+				0.6626113057136536,
 				0,
 				-4.883713722229004
 			]
@@ -517,7 +528,7 @@
 			"mesh":31,
 			"name":"Glass",
 			"translation":[
-				-5.519863128662109,
+				-5.519862651824951,
 				0,
 				-2.4743614196777344
 			]
@@ -526,7 +537,7 @@
 			"mesh":32,
 			"name":"Glass.001",
 			"translation":[
-				-17.04407501220703,
+				-17.0440731048584,
 				0,
 				-2.4743614196777344
 			]
@@ -538,10 +549,10 @@
 				0,
 				-0.9713499546051025,
 				0,
-				0.23765376210212708
+				0.23765377700328827
 			],
 			"translation":[
-				-0.07001183927059174,
+				-0.07001185417175293,
 				0,
 				-3.033952236175537
 			]
@@ -556,13 +567,13 @@
 				0.5000000596046448
 			],
 			"scale":[
-				0.009999999776482582,
-				0.009999999776482582,
-				0.009999999776482582
+				0.010000000707805157,
+				0.010000000707805157,
+				0.010000000707805157
 			],
 			"translation":[
 				-2.3738362789154053,
-				0.3736124634742737,
+				0.37361249327659607,
 				-1.5384221076965332
 			]
 		},
@@ -576,13 +587,13 @@
 				0.5000000596046448
 			],
 			"scale":[
-				0.009999999776482582,
-				0.009999999776482582,
-				0.009999999776482582
+				0.010000000707805157,
+				0.010000000707805157,
+				0.010000000707805157
 			],
 			"translation":[
 				-2.434560537338257,
-				0.3736124634742737,
+				0.37361249327659607,
 				-1.673384666442871
 			]
 		},
@@ -596,13 +607,13 @@
 				0.5000000596046448
 			],
 			"scale":[
-				0.009999999776482582,
-				0.009999999776482582,
-				0.009999999776482582
+				0.010000000707805157,
+				0.010000000707805157,
+				0.010000000707805157
 			],
 			"translation":[
 				-2.5453274250030518,
-				0.3736124634742737,
+				0.37361249327659607,
 				-1.517827033996582
 			]
 		},
@@ -625,8 +636,8 @@
 				0.0010000000474974513
 			],
 			"translation":[
-				-4.98362398147583,
-				0.10000000149011612,
+				-4.983623504638672,
+				0.10000002384185791,
 				-1.4096152782440186
 			]
 		},
@@ -649,7 +660,7 @@
 				0.8170669674873352
 			],
 			"translation":[
-				-10.789437294006348,
+				-10.789438247680664,
 				0,
 				-9.618305206298828
 			]
@@ -690,7 +701,7 @@
 			"translation":[
 				2.08272647857666,
 				0,
-				11.410365104675293
+				11.41036605834961
 			]
 		},
 		{
@@ -700,17 +711,17 @@
 				0,
 				-0.36416754126548767,
 				0,
-				0.9313334822654724
+				0.9313335418701172
 			],
 			"scale":[
-				1.2739046812057495,
 				1.273904800415039,
-				1.2739046812057495
+				1.2739049196243286,
+				1.273904800415039
 			],
 			"translation":[
 				-1.662656307220459,
-				0.0023682513274252415,
-				-4.997343063354492
+				0.0023682713508605957,
+				-4.99734354019165
 			]
 		},
 		{
@@ -720,16 +731,16 @@
 				0,
 				-0.36416754126548767,
 				0,
-				0.9313334822654724
+				0.9313335418701172
 			],
 			"scale":[
-				1.2739046812057495,
 				1.273904800415039,
-				1.2739046812057495
+				1.2739049196243286,
+				1.273904800415039
 			],
 			"translation":[
-				-0.45252561569213867,
-				0.0023682513274252415,
+				-0.45252564549446106,
+				0.0023682713508605957,
 				-1.5226876735687256
 			]
 		},
@@ -740,16 +751,16 @@
 				0,
 				-0.36416754126548767,
 				0,
-				0.9313334822654724
+				0.9313335418701172
 			],
 			"scale":[
-				1.2739046812057495,
 				1.273904800415039,
-				1.2739046812057495
+				1.2739049196243286,
+				1.273904800415039
 			],
 			"translation":[
 				-3.1718251705169678,
-				0.0023682513274252415,
+				0.0023682713508605957,
 				-3.6320931911468506
 			]
 		},
@@ -765,7 +776,7 @@
 			"translation":[
 				-2.88234281539917,
 				0,
-				-4.343723297119141
+				-4.343723773956299
 			]
 		},
 		{
@@ -780,7 +791,7 @@
 			"translation":[
 				-2.897139072418213,
 				0,
-				-4.59451150894165
+				-4.594511985778809
 			]
 		},
 		{
@@ -790,12 +801,12 @@
 				0,
 				-1,
 				0,
-				7.549790126404332e-08
+				7.549790836947068e-08
 			],
 			"translation":[
 				-2.88234281539917,
 				0,
-				-4.343723297119141
+				-4.343723773956299
 			]
 		},
 		{
@@ -850,14 +861,14 @@
 			"mesh":51,
 			"name":"planter_pot_clay.002",
 			"rotation":[
-				0.09898858517408371,
+				0.0989886000752449,
 				0.13126090168952942,
 				0.6147445440292358,
-				0.7714020013809204
+				0.7714019417762756
 			],
 			"translation":[
-				-0.794672429561615,
-				0.07172148674726486,
+				-0.7946724891662598,
+				0.07172149419784546,
 				-1.5213770866394043
 			]
 		},
@@ -876,8 +887,8 @@
 				0.30480000376701355
 			],
 			"translation":[
-				-11.240737915039062,
-				0.029357030987739563,
+				-11.240738868713379,
+				0.029357045888900757,
 				-2.085890531539917
 			]
 		},
@@ -891,7 +902,7 @@
 			],
 			"translation":[
 				-3.0560271739959717,
-				0.23914223909378052,
+				0.2391422688961029,
 				-2.2432963848114014
 			]
 		},
@@ -910,8 +921,8 @@
 				0.3888767659664154
 			],
 			"translation":[
-				-1.5183359384536743,
-				0.2391422539949417,
+				-1.5183360576629639,
+				0.2391422688961029,
 				-2.8042702674865723
 			]
 		},
@@ -920,18 +931,18 @@
 			"name":"StepStone.002",
 			"rotation":[
 				0,
-				0.010599230416119099,
+				0.010599229484796524,
 				0,
 				0.9999439120292664
 			],
 			"scale":[
 				0.35878893733024597,
 				0.3816830515861511,
-				0.3888666033744812
+				0.3888666331768036
 			],
 			"translation":[
-				0.5845087766647339,
-				0.23914219439029694,
+				0.5845088362693787,
+				0.23914220929145813,
 				-3.799046277999878
 			]
 		},
@@ -950,8 +961,8 @@
 				0.37395960092544556
 			],
 			"translation":[
-				-0.1976316273212433,
-				0.2542230486869812,
+				-0.19763165712356567,
+				0.2542230784893036,
 				-3.6183533668518066
 			]
 		},
@@ -982,16 +993,16 @@
 				0,
 				0.24907858669757843,
 				0,
-				0.9684833288192749
+				0.9684832692146301
 			],
 			"scale":[
-				0.3459370732307434,
+				0.3459371030330658,
 				0.3816830515861511,
 				0.37395960092544556
 			],
 			"translation":[
 				-0.8734142184257507,
-				0.2542230486869812,
+				0.2542230784893036,
 				-3.2492523193359375
 			]
 		},
@@ -1004,12 +1015,12 @@
 				0.7071066498756409
 			],
 			"scale":[
-				0.009999999776482582,
+				0.010000000707805157,
 				0.010000000707805157,
 				0.010000000707805157
 			],
 			"translation":[
-				1.651554822921753,
+				1.651555061340332,
 				0,
 				-3.162393808364868
 			]
@@ -1024,7 +1035,7 @@
 				0.8170669674873352
 			],
 			"translation":[
-				-10.789436340332031,
+				-10.789437294006348,
 				0,
 				-9.618303298950195
 			]
@@ -1033,7 +1044,7 @@
 			"mesh":59,
 			"name":"tree.002",
 			"translation":[
-				2.520371198654175,
+				2.520371437072754,
 				0,
 				-12.102766036987305
 			]
@@ -1084,16 +1095,16 @@
 				0,
 				-1,
 				0,
-				4.033799712033215e-07
+				4.033798859381932e-07
 			],
 			"scale":[
 				1,
-				1.011667013168335,
-				1.023729920387268
+				1.011667251586914,
+				1.023729681968689
 			],
 			"translation":[
-				0.002203418407589197,
-				-0.17831489443778992,
+				0.0022024926729500294,
+				-0.17831358313560486,
 				0
 			]
 		},
@@ -1101,13 +1112,13 @@
 			"mesh":62,
 			"name":"Plane.002",
 			"scale":[
-				0.18707439303398132,
-				8.134652137756348,
-				0.7269948124885559
+				0.18707440793514252,
+				8.134653091430664,
+				0.7269946932792664
 			],
 			"translation":[
 				0,
-				-5.804391384124756,
+				-5.804389476776123,
 				0
 			]
 		},
@@ -1122,7 +1133,7 @@
 				0,
 				-1,
 				0,
-				7.549790126404332e-08
+				7.549790836947068e-08
 			],
 			"scale":[
 				1.4096260070800781,
@@ -1130,8 +1141,8 @@
 				0.3627329170703888
 			],
 			"translation":[
-				-11.829092979431152,
-				0.10308193415403366,
+				-11.829093933105469,
+				0.10308194160461426,
 				-4.881680488586426
 			]
 		},
@@ -1146,7 +1157,7 @@
 			"mesh":65,
 			"name":"UpperWindow",
 			"translation":[
-				-5.519863128662109,
+				-5.519862651824951,
 				0,
 				-2.4743614196777344
 			]
@@ -1162,9 +1173,9 @@
 			"mesh":67,
 			"name":"UpperWindow.001",
 			"translation":[
-				-5.519863128662109,
+				-5.519862651824951,
 				0,
-				-0.36222219467163086
+				-0.36222222447395325
 			]
 		},
 		{
@@ -1178,9 +1189,9 @@
 			"mesh":69,
 			"name":"UpperWindow.003",
 			"translation":[
-				-5.519863128662109,
+				-5.519862651824951,
 				0,
-				0.9269438982009888
+				0.9269439578056335
 			]
 		},
 		{
@@ -1194,7 +1205,7 @@
 			"mesh":71,
 			"name":"UpperWindow.006",
 			"translation":[
-				-5.519863128662109,
+				-5.519862651824951,
 				0,
 				3.2093310356140137
 			]
@@ -1209,13 +1220,13 @@
 				0.5000000596046448
 			],
 			"scale":[
-				0.009999999776482582,
-				0.009999999776482582,
-				0.009999999776482582
+				0.010000000707805157,
+				0.010000000707805157,
+				0.010000000707805157
 			],
 			"translation":[
 				-1.9334392547607422,
-				0.3102310299873352,
+				0.3102310597896576,
 				-1.6539902687072754
 			]
 		},
@@ -1235,7 +1246,7 @@
 			],
 			"translation":[
 				-2.876716375350952,
-				0.3102310299873352,
+				0.3102310597896576,
 				-1.642448902130127
 			]
 		},
@@ -1244,18 +1255,18 @@
 			"name":"Weeds_02",
 			"rotation":[
 				0.7071058750152588,
-				0.0010527855483815074,
+				0.0010527856647968292,
 				-0.0010527854319661856,
 				0.7071061730384827
 			],
 			"scale":[
 				0.009999999776482582,
 				0.009999999776482582,
-				0.009999999776482582
+				0.010000000707805157
 			],
 			"translation":[
 				-1.4586639404296875,
-				0.35879164934158325,
+				0.35879167914390564,
 				-1.5544614791870117
 			]
 		},
@@ -1336,24 +1347,58 @@
 				80,
 				81
 			],
-			"name":"Scene"
+			"name":"Scene",
+			"scale":[
+				1.0920000076293945,
+				1.0920000076293945,
+				1.0920000076293945
+			],
+			"translation":[
+				0.5607407093048096,
+				0.4246361255645752,
+				0.2849843502044678
+			]
 		},
 		{
 			"mesh":75,
 			"name":"Cube",
+			"scale":[
+				1.0920000076293945,
+				1.0920000076293945,
+				1.0920000076293945
+			],
 			"translation":[
-				-9.04420280456543,
-				-0.9320330619812012,
-				-4.596518039703369
+				-9.315528869628906,
+				-0.5931441783905029,
+				-4.7344136238098145
 			]
 		},
 		{
 			"mesh":76,
 			"name":"Cube.001",
+			"scale":[
+				1.0920000076293945,
+				1.0920000076293945,
+				1.0920000076293945
+			],
 			"translation":[
-				-9.04420280456543,
-				-12.765890121459961,
-				-4.596518039703369
+				-9.315528869628906,
+				-13.515717506408691,
+				-4.7344136238098145
+			]
+		},
+		{
+			"mesh":77,
+			"name":"_collision",
+			"scale":[
+				0.8400000333786011,
+				0.8400000333786011,
+				0.8400000333786011
+			],
+			"translation":[
+				-0.5788290500640869,
+				-0.43833351135253906,
+				-0.29417717456817627
 			]
 		}
 	],
@@ -2355,6 +2400,21 @@
 				},
 				"metallicFactor":0.5,
 				"roughnessFactor":0.5527864098548889
+			}
+		},
+		{
+			"alphaMode":"BLEND",
+			"doubleSided":true,
+			"name":"Material.004",
+			"pbrMetallicRoughness":{
+				"baseColorFactor":[
+					0,
+					0.6590714454650879,
+					0.8002997636795044,
+					0.45077717304229736
+				],
+				"metallicFactor":0,
+				"roughnessFactor":0.5
 			}
 		}
 	],
@@ -3767,6 +3827,20 @@
 					"material":12
 				}
 			]
+		},
+		{
+			"name":"Cube.038",
+			"primitives":[
+				{
+					"attributes":{
+						"POSITION":477,
+						"NORMAL":478,
+						"TEXCOORD_0":479
+					},
+					"indices":480,
+					"material":50
+				}
+			]
 		}
 	],
 	"textures":[
@@ -4163,437 +4237,437 @@
 		{
 			"mimeType":"image/jpeg",
 			"name":"box_04",
-			"uri":"../textures/box_04.jpg"
+			"uri":"../../assets/textures/box_04.jpg"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"box_01",
-			"uri":"../textures/box_01.jpg"
+			"uri":"../../assets/textures/box_01.jpg"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"box_03",
-			"uri":"../textures/box_03.jpg"
+			"uri":"../../assets/textures/box_03.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"file14",
-			"uri":"../textures/file14.png"
+			"uri":"../../assets/textures/file14.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"file15",
-			"uri":"../textures/file15.png"
+			"uri":"../../assets/textures/file15.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"file13-file13",
-			"uri":"../textures/file13-file13.png"
+			"uri":"../../assets/textures/file13-file13.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"painted_plaster_wall_nor_gl",
-			"uri":"../textures/painted_plaster_wall_nor_gl.png"
+			"uri":"../../assets/textures/painted_plaster_wall_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"painted_plaster_wall_diff_1k",
-			"uri":"../textures/painted_plaster_wall_diff_1k.jpg"
+			"uri":"../../assets/textures/painted_plaster_wall_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"painted_plaster_wall_rough",
-			"uri":"../textures/painted_plaster_wall_rough.png"
+			"uri":"../../assets/textures/painted_plaster_wall_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"factory_brick_nor_4k",
-			"uri":"../textures/factory_brick_nor_4k.png"
+			"uri":"../../assets/textures/factory_brick_nor_4k.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"factory_brick_diff_1k",
-			"uri":"../textures/factory_brick_diff_1k.jpg"
+			"uri":"../../assets/textures/factory_brick_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"factory_brick_rough_4k",
-			"uri":"../textures/factory_brick_rough_4k.png"
+			"uri":"../../assets/textures/factory_brick_rough_4k.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"ceiling_interior_nor_gl",
-			"uri":"../textures/ceiling_interior_nor_gl.png"
+			"uri":"../../assets/textures/ceiling_interior_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"ceiling_interior_diff_1k",
-			"uri":"../textures/ceiling_interior_diff_1k.jpg"
+			"uri":"../../assets/textures/ceiling_interior_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"ceiling_interior_rough",
-			"uri":"../textures/ceiling_interior_rough.png"
+			"uri":"../../assets/textures/ceiling_interior_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"rock_01_Nor_4k",
-			"uri":"../textures/rock_01_Nor_4k.png"
+			"uri":"../../assets/textures/rock_01_Nor_4k.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"rock_01_diff_1k",
-			"uri":"../textures/rock_01_diff_1k.jpg"
+			"uri":"../../assets/textures/rock_01_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"rock_01_rough_1k",
-			"uri":"../textures/rock_01_rough_1k.png"
+			"uri":"../../assets/textures/rock_01_rough_1k.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"brown_floor_tiles_nor_gl",
-			"uri":"../textures/brown_floor_tiles_nor_gl.png"
+			"uri":"../../assets/textures/brown_floor_tiles_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"brown_floor_tiles_diff_1k",
-			"uri":"../textures/brown_floor_tiles_diff_1k.jpg"
+			"uri":"../../assets/textures/brown_floor_tiles_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"brown_floor_tiles_rough",
-			"uri":"../textures/brown_floor_tiles_rough.png"
+			"uri":"../../assets/textures/brown_floor_tiles_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"white_stucco_nor_gl",
-			"uri":"../textures/white_stucco_nor_gl.png"
+			"uri":"../../assets/textures/white_stucco_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"white_stucco_diff_1k",
-			"uri":"../textures/white_stucco_diff_1k.jpg"
+			"uri":"../../assets/textures/white_stucco_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"white_stucco_rough",
-			"uri":"../textures/white_stucco_rough.png"
+			"uri":"../../assets/textures/white_stucco_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"laminate_floor_03_nor_gl_8k",
-			"uri":"../textures/laminate_floor_03_nor_gl_8k.png"
+			"uri":"../../assets/textures/laminate_floor_03_nor_gl_8k.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"laminate_floor_03_diff_1k",
-			"uri":"../textures/laminate_floor_03_diff_1k.jpg"
+			"uri":"../../assets/textures/laminate_floor_03_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"laminate_floor_03_rough_8k",
-			"uri":"../textures/laminate_floor_03_rough_8k.png"
+			"uri":"../../assets/textures/laminate_floor_03_rough_8k.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"pavement_01_nor_4k",
-			"uri":"../textures/pavement_01_nor_4k.png"
+			"uri":"../../assets/textures/pavement_01_nor_4k.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"pavement_01_diff_1k",
-			"uri":"../textures/pavement_01_diff_1k.jpg"
+			"uri":"../../assets/textures/pavement_01_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"pavement_01_rough_1k",
-			"uri":"../textures/pavement_01_rough_1k.png"
+			"uri":"../../assets/textures/pavement_01_rough_1k.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"corrugated_iron_03_nor_gl",
-			"uri":"../textures/corrugated_iron_03_nor_gl.png"
+			"uri":"../../assets/textures/corrugated_iron_03_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"corrugated_iron_03_diff_1k",
-			"uri":"../textures/corrugated_iron_03_diff_1k.jpg"
+			"uri":"../../assets/textures/corrugated_iron_03_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"corrugated_iron_03_rough",
-			"uri":"../textures/corrugated_iron_03_rough.png"
+			"uri":"../../assets/textures/corrugated_iron_03_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"Image",
-			"uri":"../textures/Image.png"
+			"uri":"../../assets/textures/Image.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"distressed_painted_planks_nor_gl",
-			"uri":"../textures/distressed_painted_planks_nor_gl.png"
+			"uri":"../../assets/textures/distressed_painted_planks_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"distressed_painted_planks_diff_1k",
-			"uri":"../textures/distressed_painted_planks_diff_1k.jpg"
+			"uri":"../../assets/textures/distressed_painted_planks_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"distressed_painted_planks_rough",
-			"uri":"../textures/distressed_painted_planks_rough.png"
+			"uri":"../../assets/textures/distressed_painted_planks_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"brown_planks_04_nor_4k",
-			"uri":"../textures/brown_planks_04_nor_4k.png"
+			"uri":"../../assets/textures/brown_planks_04_nor_4k.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"brown_planks_04_diff_1k",
-			"uri":"../textures/brown_planks_04_diff_1k.jpg"
+			"uri":"../../assets/textures/brown_planks_04_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"brown_planks_04_rough_1k",
-			"uri":"../textures/brown_planks_04_rough_1k.png"
+			"uri":"../../assets/textures/brown_planks_04_rough_1k.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"rough_wood_nor_4k",
-			"uri":"../textures/rough_wood_nor_4k.png"
+			"uri":"../../assets/textures/rough_wood_nor_4k.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"rough_wood_diff_1k",
-			"uri":"../textures/rough_wood_diff_1k.jpg"
+			"uri":"../../assets/textures/rough_wood_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"rough_wood_rough_1k",
-			"uri":"../textures/rough_wood_rough_1k.png"
+			"uri":"../../assets/textures/rough_wood_rough_1k.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"folding_wooden_stool_nor_gl",
-			"uri":"../textures/folding_wooden_stool_nor_gl.png"
+			"uri":"../../assets/textures/folding_wooden_stool_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"folding_wooden_stool_diff_1k",
-			"uri":"../textures/folding_wooden_stool_diff_1k.jpg"
+			"uri":"../../assets/textures/folding_wooden_stool_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"folding_wooden_stool_metal-folding_wooden_stool_rough",
-			"uri":"../textures/folding_wooden_stool_metal-folding_wooden_stool_rough.png"
+			"uri":"../../assets/textures/folding_wooden_stool_metal-folding_wooden_stool_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"free grass",
-			"uri":"../textures/free%20grass.png"
+			"uri":"../../assets/textures/free%20grass.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"concrete_moss_nor_gl",
-			"uri":"../textures/concrete_moss_nor_gl.png"
+			"uri":"../../assets/textures/concrete_moss_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"concrete_moss_diff_1k",
-			"uri":"../textures/concrete_moss_diff_1k.jpg"
+			"uri":"../../assets/textures/concrete_moss_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"concrete_moss_rough",
-			"uri":"../textures/concrete_moss_rough.png"
+			"uri":"../../assets/textures/concrete_moss_rough.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"kitchenCorona_Beauty",
-			"uri":"../textures/kitchenCorona_Beauty.jpg"
+			"uri":"../../assets/textures/kitchenCorona_Beauty.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"white_oak_veneer_nor_gl",
-			"uri":"../textures/white_oak_veneer_nor_gl.png"
+			"uri":"../../assets/textures/white_oak_veneer_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"white_oak_veneer_diff_1k",
-			"uri":"../textures/white_oak_veneer_diff_1k.jpg"
+			"uri":"../../assets/textures/white_oak_veneer_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"white_oak_veneer_rough",
-			"uri":"../textures/white_oak_veneer_rough.png"
+			"uri":"../../assets/textures/white_oak_veneer_rough.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"Leaf 1_Dis",
-			"uri":"../textures/Leaf%201_Dis.jpg"
+			"uri":"../../assets/textures/Leaf%201_Dis.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"Leaf 1_Alb",
-			"uri":"../textures/Leaf%201_Alb.png"
+			"uri":"../../assets/textures/Leaf%201_Alb.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"Leaf 1_Rou",
-			"uri":"../textures/Leaf%201_Rou.png"
+			"uri":"../../assets/textures/Leaf%201_Rou.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"TexturesCom_Leaves0198_1_alphamasked_S",
-			"uri":"../textures/TexturesCom_Leaves0198_1_alphamasked_S.png"
+			"uri":"../../assets/textures/TexturesCom_Leaves0198_1_alphamasked_S.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"_auto_",
-			"uri":"../textures/_auto_.jpg"
+			"uri":"../../assets/textures/_auto_.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"outdoor_table_chair_set_01_chair_nor_gl_1k",
-			"uri":"../textures/outdoor_table_chair_set_01_chair_nor_gl_1k.png"
+			"uri":"../../assets/textures/outdoor_table_chair_set_01_chair_nor_gl_1k.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"outdoor_table_chair_set_01_chair_diff_1k",
-			"uri":"../textures/outdoor_table_chair_set_01_chair_diff_1k.jpg"
+			"uri":"../../assets/textures/outdoor_table_chair_set_01_chair_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"outdoor_table_chair_set_01_chair_metal-outdoor_table_chair_set_01_chair_rough",
-			"uri":"../textures/outdoor_table_chair_set_01_chair_metal-outdoor_table_chair_set_01_chair_rough.png"
+			"uri":"../../assets/textures/outdoor_table_chair_set_01_chair_metal-outdoor_table_chair_set_01_chair_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"outdoor_table_chair_set_01_table_nor_gl_1k",
-			"uri":"../textures/outdoor_table_chair_set_01_table_nor_gl_1k.png"
+			"uri":"../../assets/textures/outdoor_table_chair_set_01_table_nor_gl_1k.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"outdoor_table_chair_set_01_table_diff_1k",
-			"uri":"../textures/outdoor_table_chair_set_01_table_diff_1k.jpg"
+			"uri":"../../assets/textures/outdoor_table_chair_set_01_table_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"outdoor_table_chair_set_01_table_metal-outdoor_table_chair_set_01_table_rough",
-			"uri":"../textures/outdoor_table_chair_set_01_table_metal-outdoor_table_chair_set_01_table_rough.png"
+			"uri":"../../assets/textures/outdoor_table_chair_set_01_table_metal-outdoor_table_chair_set_01_table_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"brown_mud_leaves_01_nor_gl",
-			"uri":"../textures/brown_mud_leaves_01_nor_gl.png"
+			"uri":"../../assets/textures/brown_mud_leaves_01_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"brown_mud_leaves_01_diff_1k",
-			"uri":"../textures/brown_mud_leaves_01_diff_1k.jpg"
+			"uri":"../../assets/textures/brown_mud_leaves_01_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"brown_mud_leaves_01_rough",
-			"uri":"../textures/brown_mud_leaves_01_rough.png"
+			"uri":"../../assets/textures/brown_mud_leaves_01_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"planter_box_01_nor_gl",
-			"uri":"../textures/planter_box_01_nor_gl.png"
+			"uri":"../../assets/textures/planter_box_01_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"planter_box_01_diff_1k",
-			"uri":"../textures/planter_box_01_diff_1k.jpg"
+			"uri":"../../assets/textures/planter_box_01_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"planter_box_01_metal-planter_box_01_rough",
-			"uri":"../textures/planter_box_01_metal-planter_box_01_rough.png"
+			"uri":"../../assets/textures/planter_box_01_metal-planter_box_01_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"planter_pot_clay_nor_gl",
-			"uri":"../textures/planter_pot_clay_nor_gl.png"
+			"uri":"../../assets/textures/planter_pot_clay_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"planter_pot_clay_diff_1k",
-			"uri":"../textures/planter_pot_clay_diff_1k.jpg"
+			"uri":"../../assets/textures/planter_pot_clay_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"planter_pot_clay_rough",
-			"uri":"../textures/planter_pot_clay_rough.png"
+			"uri":"../../assets/textures/planter_pot_clay_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"jersey_melange_spec_ior_1k",
-			"uri":"../textures/jersey_melange_spec_ior_1k.png"
+			"uri":"../../assets/textures/jersey_melange_spec_ior_1k.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"Image",
-			"uri":"../textures/Image-1.png"
+			"uri":"../../assets/textures/Image-1.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"jersey_melange_nor_gl",
-			"uri":"../textures/jersey_melange_nor_gl.png"
+			"uri":"../../assets/textures/jersey_melange_nor_gl.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"jersey_melange_diff_1k",
-			"uri":"../textures/jersey_melange_diff_1k.jpg"
+			"uri":"../../assets/textures/jersey_melange_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"jersey_melange_metal-jersey_melange_rough",
-			"uri":"../textures/jersey_melange_metal-jersey_melange_rough.png"
+			"uri":"../../assets/textures/jersey_melange_metal-jersey_melange_rough.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"rock_boulder_dry_nor_gl_16k",
-			"uri":"../textures/rock_boulder_dry_nor_gl_16k.png"
+			"uri":"../../assets/textures/rock_boulder_dry_nor_gl_16k.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"rock_boulder_dry_diff_1k",
-			"uri":"../textures/rock_boulder_dry_diff_1k.jpg"
+			"uri":"../../assets/textures/rock_boulder_dry_diff_1k.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"rock_boulder_dry_rough_16k",
-			"uri":"../textures/rock_boulder_dry_rough_16k.png"
+			"uri":"../../assets/textures/rock_boulder_dry_rough_16k.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"Bark 7_Dis",
-			"uri":"../textures/Bark%207_Dis.jpg"
+			"uri":"../../assets/textures/Bark%207_Dis.jpg"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"Bark 7_Alb",
-			"uri":"../textures/Bark%207_Alb.jpg"
+			"uri":"../../assets/textures/Bark%207_Alb.jpg"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"Bark 7_Rou",
-			"uri":"../textures/Bark%207_Rou.png"
+			"uri":"../../assets/textures/Bark%207_Rou.png"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"Wood013_1K_NormalDX",
-			"uri":"../textures/Wood013_1K_NormalDX.jpg"
+			"uri":"../../assets/textures/Wood013_1K_NormalDX.jpg"
 		},
 		{
 			"mimeType":"image/jpeg",
 			"name":"Wood013_1K_Color",
-			"uri":"../textures/Wood013_1K_Color.jpg"
+			"uri":"../../assets/textures/Wood013_1K_Color.jpg"
 		}
 	],
 	"accessors":[
@@ -8480,6 +8554,40 @@
 			"componentType":5123,
 			"count":84,
 			"type":"SCALAR"
+		},
+		{
+			"bufferView":477,
+			"componentType":5126,
+			"count":565,
+			"max":[
+				5.806789398193359,
+				10.353719711303711,
+				7.912099838256836
+			],
+			"min":[
+				-19.344356536865234,
+				-328.14483642578125,
+				-9.607254981994629
+			],
+			"type":"VEC3"
+		},
+		{
+			"bufferView":478,
+			"componentType":5126,
+			"count":565,
+			"type":"VEC3"
+		},
+		{
+			"bufferView":479,
+			"componentType":5126,
+			"count":565,
+			"type":"VEC2"
+		},
+		{
+			"bufferView":480,
+			"componentType":5123,
+			"count":906,
+			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
@@ -11344,6 +11452,30 @@
 			"byteLength":168,
 			"byteOffset":36818960,
 			"target":34963
+		},
+		{
+			"buffer":0,
+			"byteLength":6780,
+			"byteOffset":36819128,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":6780,
+			"byteOffset":36825908,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":4520,
+			"byteOffset":36832688,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":1812,
+			"byteOffset":36837208,
+			"target":34963
 		}
 	],
 	"samplers":[
@@ -11354,7 +11486,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":36819128,
+			"byteLength":36839020,
 			"uri":"frontrooms_0.bin"
 		}
 	]

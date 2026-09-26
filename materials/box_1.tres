@@ -1,0 +1,8 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bl3xtl40x16ag"]
+
+[ext_resource type="Texture2D" uid="uid://bv2llcnedu1yx" path="res://assets/textures/box_01.jpg" id="1_4lxei"]
+
+[resource]
+albedo_color = Color(0.7581918, 0.7581918, 0.7581917, 1)
+albedo_texture = ExtResource("1_4lxei")
+metallic_specular = 0.0

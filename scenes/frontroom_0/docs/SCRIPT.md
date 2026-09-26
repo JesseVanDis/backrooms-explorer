@@ -31,3 +31,10 @@
 | **Speak: MC**                                   | `[yells while falling]` WHAT THE HEEEEEEELLLLL!!!!                    |
 
 
+[Steps off parked bysicle] [outside in the wind] aaaah.. finally home again after a long day of work
+[pause][excited] Time to unpack some more moving boxes!
+[surprised] wait... what are those boxes doing in the middle.
+[yells] JEN?? I I'M HOME!. MIND YOU THAT NEXT TIME THE BOXES SHOULD NOT BLOCK ANY PATHS!!
+[yells harder] JENNN????
+[sighs] more boxes... [yells] JEN?
+[Startled]
