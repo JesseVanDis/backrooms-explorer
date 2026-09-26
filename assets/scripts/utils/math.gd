@@ -13,13 +13,13 @@ static func smooth_step(x: float) -> float:
 static func pseudo_random(x: float, h1: float = 12.9989, h2: float = 43758.54) -> float:
 	return fraction(sin(x*h1)*h2)
 
-static func pseudo_random_2d(x: float, y: float, h1x: float = 12.9989, h1y: float = 31.6382, h2: float = 43758.54) -> float:
+static func pseudo_random_2d(x: float, y: float, h1x: float = 12.9989, h1y: float = 13.1536, h2: float = 43758.54) -> float:
 	return fraction(sin(x * h1x + y * h1y) * h2)
 
 static func value_noise(x: float, h1: float = 12.9989, h2: float = 43758.54) -> float:
 	return _smooth_fraction(x) * _cell_hash(x + 1.0, h1, h2) + (1.0 - _smooth_fraction(x)) * _cell_hash(x, h1, h2)
 
-static func value_noise_2d(x: float, y: float, h1x: float = 12.9989, h1y: float = 31.6382, h2: float = 43758.54) -> float:
+static func value_noise_2d(x: float, y: float, h1x: float = 12.9989, h1y: float = 13.1536, h2: float = 43758.54) -> float:
 	var x0 := floorf(x)
 	var y0 := floorf(y)
 	var tx := smooth_step(fraction(x))
@@ -39,7 +39,7 @@ static func fractal_noise(x: float, h1: float = 12.9989, h2: float = 43758.54, i
 		retval = retval + value_noise(x * pow(2.0, float(j)), h1, h2) / pow(2.0, float(j))	
 	return retval * 0.5
 
-static func fractal_noise_2d(x: float, y: float, h1x: float = 12.9989, h1y: float = 31.6382, h2: float = 43758.54, iterations: int = 8) -> float:
+static func fractal_noise_2d(x: float, y: float, h1x: float = 12.9989, h1y: float = 13.1536, h2: float = 43758.54, iterations: int = 8) -> float:
 	var value := 0.0
 	var amplitude := 1.0
 	var frequency := 1.0
@@ -58,7 +58,7 @@ static func _cell_hash(x: float, h1: float = 12.9989, h2: float = 43758.54) -> f
 	return pseudo_random(floorf(x), h1, h2)
 
 
-static func _cell_hash_2d(x: float, y: float, h1x: float = 12.9989, h1y: float = 31.6382, h2: float = 43758.54) -> float:
+static func _cell_hash_2d(x: float, y: float, h1x: float = 12.9989, h1y: float = 13.1536, h2: float = 43758.54) -> float:
 	return pseudo_random_2d(floorf(x), floorf(y), h1x, h1y, h2)
 
 
