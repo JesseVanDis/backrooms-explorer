@@ -107,11 +107,11 @@ func _gen(pass_index: int, ctx: Context) -> Pixel:
 		var biome_pass_index: int = pass_index - NUM_PASSES_IN_GEN_BIOMES
 		match pp.biome_c:
 			Pixel.BIOME_MESS:
-				retval = _gen_biome_mess(biome_pass_index, ctx)
+				retval = _gen_biome_rooms(biome_pass_index, ctx)
 			Pixel.BIOME_ROOMS:
 				retval = _gen_biome_rooms(biome_pass_index, ctx)
 			Pixel.BIOME_PILLARS:
-				retval = _gen_biome_pillars(biome_pass_index, ctx)
+				retval = _gen_biome_rooms(biome_pass_index, ctx)
 	
 	# force empty area at spawn point
 	if (ctx.x * ctx.x) < 100 && (ctx.y * ctx.y) < 100 && retval != Pixel.INVALID && pp.tile_c == Pixel.TILE_WALL:
@@ -162,11 +162,13 @@ func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
 func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	
-	const grid_cell_size = 4
+	const grid_cell_size = 10
 	var grid_x := floori(ctx.x_flt / grid_cell_size)
 	var grid_y := floori(ctx.y_flt / grid_cell_size)
 	var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
 	var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
+
+	var noise_upscale: float = 0.1
 	
 	match pass_index:
 		0:
@@ -179,13 +181,21 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
 			return pp.no_change()
 			
-		2: # make some lights blinking
+		2: # grid
 			if grid_local_x == 0:
 				return pp.with_tile(Pixel.TILE_WALL)
 			if grid_local_y == 0:
 				return pp.with_tile(Pixel.TILE_WALL)
 			return pp.no_change()
-		
+
+		3: # openings
+			var noise := Math.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
+			return int(noise * 255.0) as Pixel
+			#if ctx.random() < 0.3:
+			#	return pp.with_tile(Pixel.TILE_WALL)
+			#else:
+			#	return pp.with_tile(Pixel.TILE_EMPTY)
+
 	return Pixel.INVALID
 
 
@@ -328,7 +338,7 @@ class Context:
 		rng.seed = seed_value
 		return rng.randf()
 	
-	func random_with_seed(seed_val: int) -> float:
+	func random_with_seed(seed_val: Variant) -> float:
 		var seed_value: int = hash(seed_val)
 		var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 		rng.seed = seed_value
@@ -429,6 +439,9 @@ class TileUtils:
 		return pixel - get_biome(pixel) as Pixel
 	
 	static func to_color(pixel: Pixel) -> Color:
+		if true:
+			return Color(float(pixel) / 255.0, float(pixel) / 255.0, float(pixel) / 255.0, 1.0)
+
 		match pixel:
 			Pixel.BIOME_MESS:                         return Color(0.887, 0.975, 1.0, 1.0)
 			Pixel.BIOME_ROOMS:                        return Color(0.924, 0.934, 1.0, 1.0)
