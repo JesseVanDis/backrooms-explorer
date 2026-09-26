@@ -91,11 +91,11 @@ func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 			var grid_low_y: int = int(roundf(float(ctx.y) / 40.0))
 			var random: float = ctx.random_with_seed(hash(Vector2i(grid_low_x, grid_low_y)))
 			if random < 0.2:
-				return Pixel.BIOME_PILLARS
+				return Pixel.BIOME_ROOMS
 			if random < 0.6:
 				return Pixel.BIOME_ROOMS
 			else:
-				return Pixel.BIOME_MESS
+				return Pixel.BIOME_ROOMS
 	return Pixel.INVALID
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
@@ -162,11 +162,11 @@ func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
 func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	
-	#const grid_cell_size = 3
-	#var grid_x := floori(ctx.x_flt / grid_cell_size)
-	#var grid_y := floori(ctx.y_flt / grid_cell_size)
-	#var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
-	#var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
+	const grid_cell_size = 4
+	var grid_x := floori(ctx.x_flt / grid_cell_size)
+	var grid_y := floori(ctx.y_flt / grid_cell_size)
+	var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
+	var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
 	
 	match pass_index:
 		0:
@@ -177,6 +177,13 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 		1: # make some lights blinking
 			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
 				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
+			return pp.no_change()
+			
+		2: # make some lights blinking
+			if grid_local_x == 0:
+				return pp.with_tile(Pixel.TILE_WALL)
+			if grid_local_y == 0:
+				return pp.with_tile(Pixel.TILE_WALL)
 			return pp.no_change()
 		
 	return Pixel.INVALID
