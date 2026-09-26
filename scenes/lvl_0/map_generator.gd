@@ -172,7 +172,7 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 	
 	match pass_index:
 		0:
-			if _ceiling_light(ctx, 0.0, 3, 2):
+			if _ceiling_light(ctx, 0.0, 4, 2):
 				return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
 			return pp.with_tile(Pixel.TILE_EMPTY)
 		

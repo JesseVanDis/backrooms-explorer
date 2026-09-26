@@ -7,16 +7,16 @@
 [node name="hands" unique_id=1296432070 instance=ExtResource("1_c54j8")]
 script = ExtResource("2_es30p")
 
-[node name="_ignore_groundreference" parent="." index="0" unique_id=1633137944]
+[node name="_ignore_groundreference" parent="." index="0" unique_id=694272132]
 visible = false
 
-[node name="_cam" parent="." index="1" unique_id=568423152]
-transform = Transform3D(0.9999991, 0, 0, 0, 0.9999991, 0, 0, 0, 0.9999994, 0, 0.65, 0)
+[node name="_cam" parent="." index="1" unique_id=664267276]
+transform = Transform3D(0.9999991, 0, 0, 0, 0.9999991, 0, 0, 0, 0.9999994, 0, 0.825, 0)
 
-[node name="Camera" parent="_cam" index="0" unique_id=1206286980]
+[node name="Camera" parent="_cam" index="0" unique_id=574460805]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0)
 
-[node name="Skeleton3D" parent="_hands/armature" parent_id_path=PackedInt32Array(890453277) index="0" unique_id=150719193]
+[node name="Skeleton3D" parent="_hands/armature" parent_id_path=PackedInt32Array(104098384) index="0" unique_id=692810740]
 bones/0/position = Vector3(-0.123904556, 0.019387752, -0.016176606)
 bones/0/rotation = Quaternion(-0.544595, 0, 0, 0.8386992)
 bones/2/rotation = Quaternion(-0.08242139, -7.460541e-15, -1.9650795e-08, 0.9965976)
@@ -55,5 +55,5 @@ bones/41/rotation = Quaternion(-0.28403002, -0.083283305, 0.4593351, 0.8374976)
 bones/42/rotation = Quaternion(-0.012069586, 0.170764, -0.29880786, 0.93883324)
 bones/43/rotation = Quaternion(0.089636594, 0.06843789, -0.14495467, 0.9829902)
 
-[node name="Hand_3D" parent="_hands/armature/Skeleton3D" index="0" unique_id=1789898464]
+[node name="Hand_3D" parent="_hands/armature/Skeleton3D" index="0" unique_id=138904900]
 surface_material_override/0 = ExtResource("2_dpncg")
