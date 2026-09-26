@@ -24,6 +24,7 @@ var _player: Player = null
 var _initial_rotation_y: float = 0.0
 var _target_angle: float = CLOSE_ANGLE
 var _state: DoorState = DoorState.CLOSED
+var _state_time: float = 0.0
 var _audio_player: AudioStreamPlayer3D = null
 
 func _ready() -> void:
@@ -45,7 +46,9 @@ func _process(delta: float) -> void:
 	var player: Player = get_player()
 	if not player:
 		return
-
+	
+	_state_time = _state_time + delta
+	var old_state: DoorState = _state
 	var distance: float = global_position.distance_to(player.global_position)
 	var current_detection_range: float = _get_detection_distance(player)
 	
@@ -62,8 +65,6 @@ func _process(delta: float) -> void:
 		if _state == DoorState.OPEN or _state == DoorState.OPENING:
 			_state = DoorState.CLOSING
 	
-	rotation.y = lerp_angle(rotation.y, _target_angle, delta * DOOR_SPEED)
-	
 	# Check if we reached the target
 	if abs(angle_difference(rotation.y, _target_angle)) < 0.01:
 		if _state == DoorState.OPENING:
@@ -71,6 +72,11 @@ func _process(delta: float) -> void:
 		elif _state == DoorState.CLOSING:
 			_state = DoorState.CLOSED
 			_play_sound(sound_close)
+	
+	if old_state != _state:
+		_state_time = 0.0
+	
+	rotation.y = lerp_angle(rotation.y, _target_angle, minf(1.0, delta * (_state_time * 8.0) * DOOR_SPEED))
 
 func _play_sound(stream: AudioStream) -> void:
 	if not stream:
