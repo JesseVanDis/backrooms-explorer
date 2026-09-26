@@ -8,11 +8,13 @@ enum Pixel {
 	NONE                         = 0,
 	BIOME_MESS                   = 1 << 1,
 	BIOME_ROOMS                  = 1 << 2,
-	BIOME_PILLARS                = 1 << 3,
+	BIOME_ARCHES                 = 1 << 3,
+	BIOME_PILLARS                = 1 << 4,
 	TILE_EMPTY                   = 1 << 16,
 	TILE_CEILING_LIGHT           = 2 << 16,
 	TILE_CEILING_LIGHT_BLINKING  = 3 << 16,
 	TILE_WALL                    = 4 << 16,
+	TILE_ARCH                    = 5 << 16,
 	INVALID                      = 1 << 31
 }
 
@@ -112,8 +114,12 @@ func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 			var noise := Math.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
 			if noise < 0.4:
 				return Pixel.BIOME_ROOMS
+			if noise < 0.44:
+				return Pixel.BIOME_ARCHES
 			if noise < 0.6:
 				return Pixel.BIOME_MESS
+			if noise < 0.62:
+				return Pixel.BIOME_ARCHES
 			else:
 				return Pixel.BIOME_PILLARS
 
@@ -140,6 +146,8 @@ func _gen(pass_index: int, ctx: Context) -> Pixel:
 				retval = _gen_biome_mess(biome_pass_index, ctx)
 			Pixel.BIOME_ROOMS:
 				retval = _gen_biome_rooms(biome_pass_index, ctx)
+			Pixel.BIOME_ARCHES:
+				retval = _gen_biome_arches(biome_pass_index, ctx)
 			Pixel.BIOME_PILLARS:
 				retval = _gen_biome_pillars(biome_pass_index, ctx)
 	
@@ -237,9 +245,23 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
 				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
 			return pp.no_change()
-
-
+	
 	return Pixel.INVALID
+
+func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	var result: Pixel = _gen_biome_mess(pass_index, ctx)
+	if result == Pixel.INVALID:
+		var old_result: Pixel = _gen_biome_mess(pass_index - 1, ctx)
+		if old_result == Pixel.INVALID:
+			return Pixel.INVALID
+		else:
+			# change some walls to arches
+			if pp.wall_c:
+				return pp.with_tile(Pixel.TILE_ARCH)
+			return pp.no_change()
+		
+	return result
 
 
 func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
@@ -486,19 +508,22 @@ class TileUtils:
 	static func remove_biome(pixel: Pixel) -> Pixel:
 		return pixel - get_biome(pixel) as Pixel
 	
+	
 	static func to_color(pixel: Pixel) -> Color:
 		#if true:
 		#	return Color(float(pixel) / 255.0, float(pixel) / 255.0, float(pixel) / 255.0, 1.0)
 
 		match pixel:
-			Pixel.BIOME_MESS | Pixel.TILE_EMPTY:      return Color(0.587, 0.723, 1.0, 1.0)
-			Pixel.BIOME_ROOMS | Pixel.TILE_EMPTY:     return Color(0.739, 0.634, 1.0, 1.0)
+			Pixel.BIOME_MESS    | Pixel.TILE_EMPTY:   return Color(0.587, 0.723, 1.0, 1.0)
+			Pixel.BIOME_ROOMS   | Pixel.TILE_EMPTY:   return Color(0.739, 0.634, 1.0, 1.0)
+			Pixel.BIOME_ARCHES  | Pixel.TILE_EMPTY:   return Color(1.0, 0.559, 0.567, 1.0)
 			Pixel.BIOME_PILLARS | Pixel.TILE_EMPTY:   return Color(0.962, 0.576, 1.0, 1.0)
 		
 		match pixel & TILE_MASK:
 			Pixel.TILE_CEILING_LIGHT:               return Color(0,1,1)
 			Pixel.TILE_CEILING_LIGHT_BLINKING:      return Color(0.0, 0.58, 0.614, 1.0)
 			Pixel.TILE_WALL:                        return Color(0,0,0)
+			Pixel.TILE_ARCH:                        return Color(0.622, 0.428, 0.0, 1.0)
 		
 		var h := fmod(absf(sin(float(pixel) * 12.9898) * 43758.5453), 1.0)
 		return Color.from_hsv(h, 0.7, 1.0)

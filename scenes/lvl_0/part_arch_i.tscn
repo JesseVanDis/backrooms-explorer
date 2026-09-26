@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://bo6435t61cyna"]
+
+[ext_resource type="PackedScene" uid="uid://dnodl7ebimfhn" path="res://scenes/lvl_0/saves/part_arch_i.blend" id="1_2xqyq"]
+
+[node name="part_arch_i" unique_id=1800049546 instance=ExtResource("1_2xqyq")]

@@ -16,6 +16,7 @@ var model_wall_t:                 Model = _load_model(preload("res://scenes/lvl_
 var model_wall_i:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_i.tscn"))
 var model_wall_l:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_l.tscn"))
 var model_wall_e:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_end.tscn"))
+var model_arch_i:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_i.tscn"))
 
 @onready var _node_map: Node3D = $Map
 var _player: Player = null
