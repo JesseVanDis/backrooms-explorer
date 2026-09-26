@@ -66,7 +66,10 @@ func _is_isolated_wall_dot(ctx: Context) -> bool:
 func _is_open_corner(ctx: Context) -> bool:
 	var pp: PreviousPass = ctx.previous_pass
 	if !pp.wall_c:
-		if (pp.wall_w || pp.wall_e) && (pp.wall_n || pp.wall_s): return true
+		if (pp.wall_w && pp.wall_ww) && (pp.wall_n || pp.wall_s): return true
+		if (pp.wall_e && pp.wall_ee) && (pp.wall_n || pp.wall_s): return true
+		if (pp.wall_n && pp.wall_nn) && (pp.wall_e || pp.wall_w): return true
+		if (pp.wall_s && pp.wall_ss) && (pp.wall_e || pp.wall_w): return true
 	return false
 
 func _is_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
@@ -81,21 +84,48 @@ func _is_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
 		if(!wall_w && !wall_n && wall_s && !wall_e): return true
 		if(!wall_w && !wall_n && !wall_s && wall_e): return true
 	return false
-
+	
+func _get_wall_length(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, visited: Dictionary = {}) -> int:
+	var key := Vector2i(offset_x, offset_y)
+	if visited.has(key):
+		return 0
+	visited[key] = true
+	if (ctx.get_at_offset(pp.data, offset_x, offset_y) & TILE_MASK) != Pixel.TILE_WALL:
+		return 0
+	var count := 1
+	if count >= limit: return limit
+	count += _get_wall_length(pp, ctx, limit - count, offset_x + 1, offset_y, visited);     if count >= limit:	return limit
+	count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y, visited);     if count >= limit:	return limit
+	count += _get_wall_length(pp, ctx, limit - count, offset_x, offset_y + 1, visited);     if count >= limit:	return limit
+	count += _get_wall_length(pp, ctx, limit - count, offset_x, offset_y - 1, visited);     if count >= limit:	return limit
+	count += _get_wall_length(pp, ctx, limit - count, offset_x + 1, offset_y - 1, visited); if count >= limit:	return limit
+	count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y - 1, visited); if count >= limit:	return limit
+	count += _get_wall_length(pp, ctx, limit - count, offset_x + 1, offset_y + 1, visited); if count >= limit:	return limit
+	count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y + 1, visited); if count >= limit:	return limit
+	return count
 
 const NUM_PASSES_IN_GEN_BIOMES = 1 # change this everytime you change the amount of cases in 'match pass_index' below
 func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
+	var noise_upscale: float = 0.01
 	match pass_index:
 		0:
-			var grid_low_x: int = int(roundf(float(ctx.x) / 40.0))
-			var grid_low_y: int = int(roundf(float(ctx.y) / 40.0))
-			var random: float = ctx.random_with_seed(hash(Vector2i(grid_low_x, grid_low_y)))
-			if random < 0.2:
+			var noise := Math.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
+			if noise < 0.4:
 				return Pixel.BIOME_ROOMS
-			if random < 0.6:
-				return Pixel.BIOME_ROOMS
+			if noise < 0.6:
+				return Pixel.BIOME_MESS
 			else:
-				return Pixel.BIOME_ROOMS
+				return Pixel.BIOME_PILLARS
+
+			# var grid_low_x: int = int(roundf(float(ctx.x) / 40.0))
+			# var grid_low_y: int = int(roundf(float(ctx.y) / 40.0))
+			# var random: float = ctx.random_with_seed(hash(Vector2i(grid_low_x, grid_low_y)))
+			# if random < 0.2:
+			# 	return Pixel.BIOME_PILLARS
+			# if random < 0.6:
+			# 	return Pixel.BIOME_MESS
+			# else:
+			# 	return Pixel.BIOME_ROOMS
 	return Pixel.INVALID
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
@@ -158,47 +188,56 @@ func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
 		
 	return Pixel.INVALID
 
-
 func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	
-	const grid_cell_size = 8
+	const grid_cell_size = 7
 	var grid_x := floori(ctx.x_flt / grid_cell_size)
 	var grid_y := floori(ctx.y_flt / grid_cell_size)
 	var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
 	var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
 
-	var noise_upscale: float = 0.1
+	var noise_upscale: float = 0.4
 	
-	match pass_index:
-		0:
-			if _ceiling_light(ctx, 0.0, 4, 2):
-				return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
-			return pp.with_tile(Pixel.TILE_EMPTY)
-		
-		1: # make some lights blinking
-			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
-				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
-			return pp.no_change()
-			
-		2: # grid
+	match pass_index:			
+		0: # grid
 			if grid_local_x == 0:
 				return pp.with_tile(Pixel.TILE_WALL)
 			if grid_local_y == 0:
 				return pp.with_tile(Pixel.TILE_WALL)
-			return pp.no_change()
+			return pp.with_tile(Pixel.TILE_EMPTY)
 
-		3: # openings
+		1: # openings
 			if pp.tile_c == Pixel.TILE_WALL:
 				var noise := Math.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
-				if noise > 0.5:
+				if noise > 0.55:
 					return pp.with_tile(Pixel.TILE_EMPTY)
-			#return int(noise * 255.0) as Pixel
-			#if ctx.random() < 0.3:
-			#	return pp.with_tile(Pixel.TILE_WALL)
-			#else:
-			#	return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
+		
+		2: # coridors
+			return pp.no_change()
+
+		3: # close open corners
+			if _is_open_corner(ctx):
+				return pp.with_tile(Pixel.TILE_WALL)
+			return pp.no_change()
+
+		4: # filter small walls
+			if pp.wall_c && _get_wall_length(pp, ctx, 5) < 4:
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+
+		5: # lights
+			if !pp.wall_c:
+				if _ceiling_light(ctx, 0.1, 4, 2):
+					return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
+			return pp.no_change()
+		
+		6: # make some lights blinking
+			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
+			return pp.no_change()
+
 
 	return Pixel.INVALID
 
@@ -232,6 +271,11 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 1)):
 					return pp.with_tile(Pixel.TILE_WALL)
 		
+		3:
+			if pp.wall_c && _get_wall_length(pp, ctx, 5) < 4:
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+			
 	return Pixel.INVALID
 
 class Section:
@@ -447,12 +491,9 @@ class TileUtils:
 		#	return Color(float(pixel) / 255.0, float(pixel) / 255.0, float(pixel) / 255.0, 1.0)
 
 		match pixel:
-			Pixel.BIOME_MESS:                         return Color(0.887, 0.975, 1.0, 1.0)
-			Pixel.BIOME_ROOMS:                        return Color(0.924, 0.934, 1.0, 1.0)
-			Pixel.BIOME_PILLARS:                      return Color(0.811, 1.0, 0.792, 1.0)
 			Pixel.BIOME_MESS | Pixel.TILE_EMPTY:      return Color(0.587, 0.723, 1.0, 1.0)
-			Pixel.BIOME_ROOMS | Pixel.TILE_EMPTY:     return Color(0.63, 0.679, 1.0, 1.0)
-			Pixel.BIOME_PILLARS | Pixel.TILE_EMPTY:   return Color(0.0, 0.886, 0.522, 1.0)
+			Pixel.BIOME_ROOMS | Pixel.TILE_EMPTY:     return Color(0.739, 0.634, 1.0, 1.0)
+			Pixel.BIOME_PILLARS | Pixel.TILE_EMPTY:   return Color(0.962, 0.576, 1.0, 1.0)
 		
 		match pixel & TILE_MASK:
 			Pixel.TILE_CEILING_LIGHT:               return Color(0,1,1)
