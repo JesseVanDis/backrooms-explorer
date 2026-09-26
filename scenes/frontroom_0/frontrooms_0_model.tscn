@@ -4,6 +4,8 @@
 [ext_resource type="ArrayMesh" uid="uid://noik808al32k" path="res://assets/models/grass_0.tres" id="2_rjqso"]
 [ext_resource type="Script" uid="uid://dk0vlo6pbu4hg" path="res://assets/scripts/door.gd" id="3_2fkw3"]
 [ext_resource type="Material" uid="uid://bysq1tmv358b6" path="res://scenes/frontroom_0/frontroom_0_tunnel_to_lvl_0.tres" id="4_2fkw3"]
+[ext_resource type="AudioStream" uid="uid://c5iusvof0ijn2" path="res://assets/sounds/door_open_2.wav" id="4_dd4mf"]
+[ext_resource type="AudioStream" uid="uid://bqbpxtjwsytsp" path="res://assets/sounds/door_close_2.wav" id="5_fkha6"]
 
 [sub_resource type="MultiMesh" id="MultiMesh_rjqso"]
 transform_format = 1
@@ -37,6 +39,8 @@ mesh_rotation_degrees = 90.0
 [node name="Door3" parent="Scene" parent_id_path=PackedInt32Array(1020746072) index="24" unique_id=150614603]
 gi_lightmap_texel_scale = 1.1
 script = ExtResource("3_2fkw3")
+sound_open = ExtResource("4_dd4mf")
+sound_close = ExtResource("5_fkha6")
 
 [node name="FENCEWOOD_004" parent="Scene" parent_id_path=PackedInt32Array(1020746072) index="27" unique_id=720633067]
 gi_lightmap_texel_scale = 2.0

@@ -237,7 +237,7 @@ transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-
 shape = SubResource("BoxShape3D_qjbi0")
 
 [node name="MovingBox2" type="RigidBody3D" parent="." unique_id=654344532]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.102476, 1.5609629, -1.5114428)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.3938484, 1.5609629, -1.5114428)
 collision_layer = 6
 collision_mask = 5
 

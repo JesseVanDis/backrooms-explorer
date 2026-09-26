@@ -1,5 +1,12 @@
 extends MeshInstance3D
 
+enum DoorState {
+	CLOSED,
+	OPENING,
+	OPEN,
+	CLOSING
+}
+
 const OPEN_ANGLE: float = PI / 2.0
 const CLOSE_ANGLE: float = 0.0
 const DOOR_SPEED: float = 5.0
@@ -10,14 +17,23 @@ const OPENING_SIDE_DETECTION_RANGE: float = 2.5
 @export var detection_distance: float = DETECTION_RANGE
 @export var opening_side_detection_distance: float = OPENING_SIDE_DETECTION_RANGE
 @export var mesh_rotation_degrees: float = 0.0
+@export var sound_open: AudioStream = load("res://assets/sounds/door_open_1.wav")
+@export var sound_close: AudioStream = load("res://assets/sounds/door_close_1.wav")
 
 var _player: Player = null
 var _initial_rotation_y: float = 0.0
 var _target_angle: float = CLOSE_ANGLE
+var _state: DoorState = DoorState.CLOSED
+var _audio_player: AudioStreamPlayer3D = null
 
 func _ready() -> void:
 	_initial_rotation_y = rotation.y
 	_target_angle = _initial_rotation_y
+	_state = DoorState.CLOSED
+	
+	_audio_player = AudioStreamPlayer3D.new()
+	add_child(_audio_player)
+	
 	get_player()
 
 func get_player() -> Player:
@@ -36,10 +52,36 @@ func _process(delta: float) -> void:
 	if distance < current_detection_range:
 		var offset: float = -OPEN_ANGLE if open_clockwise else OPEN_ANGLE
 		_target_angle = _initial_rotation_y + offset
+		
+		if _state == DoorState.CLOSED or _state == DoorState.CLOSING:
+			_state = DoorState.OPENING
+			_play_sound(sound_open)
 	else:
 		_target_angle = _initial_rotation_y
+		
+		if _state == DoorState.OPEN or _state == DoorState.OPENING:
+			_state = DoorState.CLOSING
 	
 	rotation.y = lerp_angle(rotation.y, _target_angle, delta * DOOR_SPEED)
+	
+	# Check if we reached the target
+	if abs(angle_difference(rotation.y, _target_angle)) < 0.01:
+		if _state == DoorState.OPENING:
+			_state = DoorState.OPEN
+		elif _state == DoorState.CLOSING:
+			_state = DoorState.CLOSED
+			_play_sound(sound_close)
+
+func _play_sound(stream: AudioStream) -> void:
+	if not stream:
+		return
+	
+	if not _audio_player:
+		push_error("AudioStreamPlayer3D is null in door.gd")
+		return
+		
+	_audio_player.stream = stream
+	_audio_player.play()
 
 func _get_detection_distance(player: Player) -> float:
 	# Determine if the player is on the side the door opens towards.
