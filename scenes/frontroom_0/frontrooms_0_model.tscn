@@ -23,34 +23,45 @@ data = PackedVector3Array(-18.6222, -328.1448, 2.3033, -18.6222, 1.1103, -8.2892
 transform = Transform3D(1.3000001, 0, 0, 0, 1.3000001, 0, 0, 0, 1.3000001, 1.3566308, 1.0273447, 0.6894779)
 multimesh = SubResource("MultiMesh_rjqso")
 
-[node name="GrassPlatform" parent="." index="1" unique_id=1695073277]
+[node name="GrassPlatform" parent="." index="1" unique_id=50885423]
 visible = false
 
-[node name="Cube_005" parent="Scene" parent_id_path=PackedInt32Array(479400039) index="9" unique_id=430254854]
-gi_lightmap_texel_scale = 4.0
+[node name="Cube_005" parent="Scene" parent_id_path=PackedInt32Array(1020746072) index="9" unique_id=325727499]
+gi_lightmap_texel_scale = 3.5
 
-[node name="Door" parent="Scene" parent_id_path=PackedInt32Array(479400039) index="22" unique_id=1738546992]
+[node name="Door" parent="Scene" parent_id_path=PackedInt32Array(1020746072) index="22" unique_id=1707628406]
 script = ExtResource("3_2fkw3")
 open_clockwise = false
 mesh_rotation_degrees = 90.0
 
-[node name="Door3" parent="Scene" parent_id_path=PackedInt32Array(479400039) index="24" unique_id=282761090]
-gi_lightmap_texel_scale = 2.0
+[node name="Door3" parent="Scene" parent_id_path=PackedInt32Array(1020746072) index="24" unique_id=150614603]
+gi_lightmap_texel_scale = 1.1
 script = ExtResource("3_2fkw3")
 
-[node name="FENCEWOOD_004" parent="Scene" parent_id_path=PackedInt32Array(479400039) index="27" unique_id=1466452616]
+[node name="FENCEWOOD_004" parent="Scene" parent_id_path=PackedInt32Array(1020746072) index="27" unique_id=720633067]
 gi_lightmap_texel_scale = 2.0
 
-[node name="Cube" parent="." index="3" unique_id=1541840694]
+[node name="GrassPlatform_001" parent="Scene" parent_id_path=PackedInt32Array(1020746072) index="35" unique_id=1651184219]
+gi_lightmap_texel_scale = 0.5
+
+[node name="outdoor_table_chair_set_01_chair_02" parent="Scene" parent_id_path=PackedInt32Array(1020746072) index="46" unique_id=1787023000]
+gi_lightmap_texel_scale = 1.1
+
+[node name="outdoor_table_chair_set_01_table" parent="Scene" parent_id_path=PackedInt32Array(1020746072) index="47" unique_id=375026531]
+gi_lightmap_texel_scale = 1.1
+
+[node name="Cube" parent="." index="3" unique_id=1591026210]
+gi_lightmap_texel_scale = 0.1
 surface_material_override/0 = ExtResource("4_2fkw3")
 
-[node name="Cube_001" parent="." index="4" unique_id=24986239]
+[node name="Cube_001" parent="." index="4" unique_id=1799399956]
+gi_lightmap_texel_scale = 0.1
 surface_material_override/0 = ExtResource("4_2fkw3")
 
-[node name="_collision" parent="." index="5" unique_id=1740169577]
+[node name="_collision" parent="." index="5" unique_id=2064019321]
 visible = false
 
-[node name="_collision_noboxes" parent="." index="6" unique_id=315702769]
+[node name="_collision_noboxes" parent="." index="6" unique_id=583671567]
 visible = false
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="7" unique_id=724065638]
@@ -73,7 +84,31 @@ light_energy = 0.7
 area_range = 6.0
 area_size = Vector2(1.8168244, 1.2682438)
 
-[node name="AreaLight3D2" type="AreaLight3D" parent="." index="10" unique_id=276623578]
+[node name="AreaLight3D3" type="AreaLight3D" parent="." index="10" unique_id=413513681]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.3787143, 4.8498673, -4.254155)
+light_energy = 0.7
+area_range = 6.0
+area_size = Vector2(0.662343, 0.96869946)
+
+[node name="AreaLight3D4" type="AreaLight3D" parent="." index="11" unique_id=1231250775]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.3787143, 4.8498673, -1.9393487)
+light_energy = 0.7
+area_range = 6.0
+area_size = Vector2(0.662343, 0.96869946)
+
+[node name="AreaLight3D5" type="AreaLight3D" parent="." index="12" unique_id=582941937]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.3787143, 4.8498673, -0.52062166)
+light_energy = 0.7
+area_range = 6.0
+area_size = Vector2(0.662343, 0.96869946)
+
+[node name="AreaLight3D6" type="AreaLight3D" parent="." index="13" unique_id=673969685]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.3787143, 4.8498673, 1.9692923)
+light_energy = 0.7
+area_range = 6.0
+area_size = Vector2(0.662343, 0.96869946)
+
+[node name="AreaLight3D2" type="AreaLight3D" parent="." index="14" unique_id=276623578]
 transform = Transform3D(1.3113416e-07, 0, -1, 0, 1, 0, 1, 0, 1.3113416e-07, -14.419474, 2.0488334, -3.5955267)
 light_energy = 0.8
 area_range = 8.0

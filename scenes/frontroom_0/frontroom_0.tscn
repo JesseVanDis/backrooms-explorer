@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://bv2llcnedu1yx" path="res://assets/textures/box_01.jpg" id="5_qjbi0"]
 [ext_resource type="PackedScene" uid="uid://b8fv4gxs3jk1l" path="res://scenes/frontroom_0/frontrooms_0_model.tscn" id="6_gvot5"]
 [ext_resource type="Material" uid="uid://bl3xtl40x16ag" path="res://materials/box_1.tres" id="6_m4q7u"]
+[ext_resource type="AudioStream" uid="uid://bwy1igbrhtynm" path="res://scenes/lvl_0/bg_outside.mp3" id="7_03f2e"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uy0mw"]
 shader = ExtResource("1_uy0mw")
@@ -252,3 +253,14 @@ shape = SubResource("BoxShape3D_gvot5")
 
 [node name="frontrooms_0" parent="." unique_id=1493336842 instance=ExtResource("6_gvot5")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1666489, 0, 3.0103292)
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="." unique_id=985815139]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.651413, 6.246973, 3.501903)
+stream = ExtResource("7_03f2e")
+attenuation_model = 2
+autoplay = true
+max_distance = 20.0
+playback_type = 1
+emission_angle_enabled = true
+emission_angle_degrees = 0.1
+parameters/looping = true
