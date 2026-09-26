@@ -2,12 +2,13 @@ extends Node
 
 class_name MapGenerator
 
-const CHANCE_BLINKING_LIGHT = 0.003
+const CHANCE_BLINKING_LIGHT = 0.004
 
 enum Pixel {
 	NONE                         = 0,
-	BIOME_DEFAULT                = 1 << 1,
-	BIOME_PILLARS                = 1 << 2,
+	BIOME_MESS                   = 1 << 1,
+	BIOME_ROOMS                  = 1 << 2,
+	BIOME_PILLARS                = 1 << 3,
 	TILE_EMPTY                   = 1 << 16,
 	TILE_CEILING_LIGHT           = 2 << 16,
 	TILE_CEILING_LIGHT_BLINKING  = 3 << 16,
@@ -88,11 +89,13 @@ func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 		0:
 			var grid_low_x: int = int(roundf(float(ctx.x) / 40.0))
 			var grid_low_y: int = int(roundf(float(ctx.y) / 40.0))
-			var random_low: float = ctx.random_with_seed(hash(Vector2i(grid_low_x, grid_low_y)))
-			if random_low < 0.2:
+			var random: float = ctx.random_with_seed(hash(Vector2i(grid_low_x, grid_low_y)))
+			if random < 0.2:
 				return Pixel.BIOME_PILLARS
+			if random < 0.6:
+				return Pixel.BIOME_ROOMS
 			else:
-				return Pixel.BIOME_DEFAULT
+				return Pixel.BIOME_MESS
 	return Pixel.INVALID
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
@@ -103,8 +106,10 @@ func _gen(pass_index: int, ctx: Context) -> Pixel:
 	else:
 		var biome_pass_index: int = pass_index - NUM_PASSES_IN_GEN_BIOMES
 		match pp.biome_c:
-			Pixel.BIOME_DEFAULT:
-				retval = _gen_biome_default(biome_pass_index, ctx)
+			Pixel.BIOME_MESS:
+				retval = _gen_biome_mess(biome_pass_index, ctx)
+			Pixel.BIOME_ROOMS:
+				retval = _gen_biome_rooms(biome_pass_index, ctx)
 			Pixel.BIOME_PILLARS:
 				retval = _gen_biome_pillars(biome_pass_index, ctx)
 	
@@ -113,7 +118,7 @@ func _gen(pass_index: int, ctx: Context) -> Pixel:
 		retval = pp.with_tile(Pixel.TILE_EMPTY)
 	return retval
 	
-func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
+func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	var num_neighbour_walls: int = 0;
 	if pp.wall_w: num_neighbour_walls = num_neighbour_walls + 1
@@ -152,6 +157,30 @@ func _gen_biome_default(pass_index: int, ctx: Context) -> Pixel:
 			return pp.no_change()
 		
 	return Pixel.INVALID
+
+
+func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	
+	#const grid_cell_size = 3
+	#var grid_x := floori(ctx.x_flt / grid_cell_size)
+	#var grid_y := floori(ctx.y_flt / grid_cell_size)
+	#var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
+	#var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
+	
+	match pass_index:
+		0:
+			if _ceiling_light(ctx, 0.0, 5, 2):
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
+			return pp.with_tile(Pixel.TILE_EMPTY)
+		
+		1: # make some lights blinking
+			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
+			return pp.no_change()
+		
+	return Pixel.INVALID
+
 
 func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
@@ -394,10 +423,12 @@ class TileUtils:
 	
 	static func to_color(pixel: Pixel) -> Color:
 		match pixel:
-			Pixel.BIOME_DEFAULT:                    return Color(0.887, 0.975, 1.0, 1.0)
-			Pixel.BIOME_PILLARS:                    return Color(0.811, 1.0, 0.792, 1.0)
-			Pixel.BIOME_DEFAULT | Pixel.TILE_EMPTY: return Color(0.587, 0.723, 1.0, 1.0)
-			Pixel.BIOME_PILLARS | Pixel.TILE_EMPTY: return Color(0.0, 0.886, 0.522, 1.0)
+			Pixel.BIOME_MESS:                         return Color(0.887, 0.975, 1.0, 1.0)
+			Pixel.BIOME_ROOMS:                        return Color(0.924, 0.934, 1.0, 1.0)
+			Pixel.BIOME_PILLARS:                      return Color(0.811, 1.0, 0.792, 1.0)
+			Pixel.BIOME_MESS | Pixel.TILE_EMPTY:      return Color(0.587, 0.723, 1.0, 1.0)
+			Pixel.BIOME_ROOMS | Pixel.TILE_EMPTY:     return Color(0.63, 0.679, 1.0, 1.0)
+			Pixel.BIOME_PILLARS | Pixel.TILE_EMPTY:   return Color(0.0, 0.886, 0.522, 1.0)
 		
 		match pixel & TILE_MASK:
 			Pixel.TILE_CEILING_LIGHT:               return Color(0,1,1)
