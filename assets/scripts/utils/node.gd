@@ -52,3 +52,14 @@ static func find_player(tree: SceneTree) -> Player:
 			return node as Player
 			
 	return null
+
+static func find_hands_recursive(root_node: Node) -> PlayerHands:
+	if root_node is PlayerHands:
+		return root_node
+	
+	for child in root_node.get_children():
+		var result: PlayerHands = find_hands_recursive(child)
+		if result:
+			return result
+			
+	return null

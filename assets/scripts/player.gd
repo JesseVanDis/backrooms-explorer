@@ -12,6 +12,8 @@ const HANDS_APPEAR_DURATION: float = 0.1
 enum Wieldable {NONE, PUSH, LVL_0_HITGROUND}
 
 @onready var _node_camera : Camera3D = null
+@onready var _node_hands_yaw : Node3D = null
+var push_target: Node3D = null
 
 @export var max_fall_speed: float = 0.0
 @export var initial_velocity: Vector3 = Vector3.ZERO
@@ -58,6 +60,10 @@ func _ready() -> void:
 		push_error("_node_camera is null")
 		return
 		
+	_node_hands_yaw = $_Hands/_hands
+	if _node_hands_yaw == null:
+		push_error("_node_hands is null")
+
 	rotation.y = deg_to_rad(initial_yaw)
 	_node_camera.rotation.x = deg_to_rad(initial_pitch)
 	velocity = initial_velocity
@@ -114,6 +120,7 @@ func _physics_process(delta: float) -> void:
 		_play_landing_sound()
 	
 	_wield.update(delta)
+	_handle_hands_aim(delta)
 	_handle_camera_limits(delta)
 	_handle_head_bob(delta)
 	_handle_footsteps(delta)
@@ -246,3 +253,12 @@ func _handle_footsteps(delta: float) -> void:
 	else:
 		_is_moving = false
 		_footstep_timer = 0.0
+
+func _handle_hands_aim(dt: float) -> void:
+	var target_yaw: float = 0.0
+	if active_wieldable == Wieldable.PUSH and push_target != null:
+		var direction_to_target: Vector3 = (push_target.global_position - global_position).normalized()
+		var local_direction: Vector3 = (transform.basis.inverse() * direction_to_target).normalized()
+		target_yaw = atan2(-local_direction.x, -local_direction.z)
+	
+	_node_hands_yaw.rotation.y = lerp_angle(_node_hands_yaw.rotation.y, target_yaw, minf(1.0, dt * 30.0))

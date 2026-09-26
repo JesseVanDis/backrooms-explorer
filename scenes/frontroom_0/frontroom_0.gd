@@ -58,8 +58,10 @@ func _update_player_speed() -> void:
 		
 	if push_node != null:
 		_player.active_wieldable = Player.Wieldable.PUSH
+		_player.push_target = push_node
 	else:
 		_player.active_wieldable = Player.Wieldable.NONE
+		_player.push_target = null
 
 
 func _handle_loading_lvl_0() -> void:
