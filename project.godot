@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="backrooms-explorer"
-run/main_scene="uid://ctkngyu5rcixj"
+run/main_scene="uid://45tnqabyxba8"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 

@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://b8fv4gxs3jk1l" path="res://scenes/frontroom_0/frontrooms_0_model.tscn" id="6_gvot5"]
 [ext_resource type="Material" uid="uid://bl3xtl40x16ag" path="res://materials/box_1.tres" id="6_m4q7u"]
 [ext_resource type="AudioStream" uid="uid://bwy1igbrhtynm" path="res://scenes/lvl_0/bg_outside.mp3" id="7_03f2e"]
+[ext_resource type="Script" uid="uid://db62uy3m6hb32" path="res://assets/scripts/sound_controller.gd" id="9_32rw2"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uy0mw"]
 shader = ExtResource("1_uy0mw")
@@ -264,3 +265,6 @@ playback_type = 1
 emission_angle_enabled = true
 emission_angle_degrees = 0.1
 parameters/looping = true
+
+[node name="Node" type="Node" parent="." unique_id=1913521068]
+script = ExtResource("9_32rw2")
