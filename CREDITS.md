@@ -33,9 +33,6 @@ This game uses the following third-party assets:
 * **level frontrooms trashbin** ([url](https://www.turbosquid.com/FullPreview/2432954)) - Vee Animation, TurboSquid's Standard 3D Model License
 
 
-
-
-
 * **Hand** ([url](https://blendswap.com/blend/16177)) - archived, CC-BY License
 * **Trees** ([url](https://www.turbosquid.com/FullPreview/1386578)) - Omansh Dixit, TurboSquid's Standard 3D Model License
 * **Plant** ([url](https://www.turbosquid.com/FullPreview/1770446)) - SPACESCAN, TurboSquid's Standard 3D Model License 
@@ -45,6 +42,7 @@ This game uses the following third-party assets:
 * [Format this] https://www.turbosquid.com/FullPreview/1541942
 * [Format this] https://www.turbosquid.com/FullPreview/532163
 * **Clouds shader** ([url](https://godotshaders.com/shader/realistic-spatial-clouds/)) - sebashtioon, CC0
+* [Format this] https://github.com/WhoStoleMyCoffee/raytraced-audio
 
 
 ---

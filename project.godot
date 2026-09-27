@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="backrooms-explorer"
-run/main_scene="uid://45tnqabyxba8"
+run/main_scene="uid://ctkngyu5rcixj"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
+
+[audio]
+
+buses/default_bus_layout="uid://bbann6iux08g2"
 
 [debug]
 
@@ -38,6 +42,10 @@ window/stretch/aspect="expand"
 
 movie_writer/movie_file="/home/jesse/Downloads/backrooms_game/backrooms.ogv"
 movie_writer/fps=30
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/raytraced_audio/plugin.cfg")
 
 [input]
 
@@ -65,6 +73,11 @@ right={
 [physics]
 
 3d/physics_engine="Jolt Physics"
+
+[raytraced_audio]
+
+reverb_bus=&"RaytracedReverb"
+ambient_bus=&"RaytracedAmbient"
 
 [rendering]
 

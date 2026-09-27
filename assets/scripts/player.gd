@@ -14,6 +14,7 @@ enum Wieldable {NONE, PUSH, LVL_0_HITGROUND}
 
 @onready var _node_camera : Camera3D = null
 @onready var _node_hands_yaw : Node3D = null
+@onready var _audio_player: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D
 var push_target: Node3D = null
 
 @export var max_fall_speed: float = 0.0
@@ -43,7 +44,8 @@ var _footstep_start_sound: AudioStream = FOOTSTEP_START_SOUND
 var _jump_sounds: Array[AudioStream] = JUMP_SOUNDS
 var _landing_sounds: Array[AudioStream] = LANDING_SOUNDS
 var _footstep_timer: float = 0.0
-var _audio_player: AudioStreamPlayer3D
+
+#RaytracedAudioPlayer3D_Footsteps
 
 var _wield: PlayerWield = PlayerWield.new(self)
 var active_wieldable: Wieldable:
@@ -68,9 +70,6 @@ func _ready() -> void:
 	rotation.y = deg_to_rad(initial_yaw)
 	_node_camera.rotation.x = deg_to_rad(initial_pitch)
 	velocity = initial_velocity
-	
-	_audio_player = AudioStreamPlayer3D.new()
-	add_child(_audio_player)
 	_camera_default_position = _node_camera.position
 	
 	_wield.add_wieldable(Wieldable.NONE,             "")

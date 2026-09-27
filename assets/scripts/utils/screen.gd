@@ -66,4 +66,5 @@ static func fade_out(root_node: Node, duration: float, callback: Callable) -> vo
 static func fade_out_screen(tree: SceneTree) -> void:
 	const DURATION = 0.3
 	var loading_screen: Node = tree.root.get_node_or_null("_Screen")
-	fade_out(loading_screen, DURATION, loading_screen.queue_free)
+	if loading_screen != null:
+		fade_out(loading_screen, DURATION, loading_screen.queue_free)

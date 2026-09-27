@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://e0meeo45d2ya" path="res://assets/scripts/player.gd" id="1_l7vax"]
 [ext_resource type="PackedScene" uid="uid://cos6ltyy7wpm1" path="res://assets/models/hands.tscn" id="2_ormyk"]
+[ext_resource type="Script" uid="uid://dkb8ltjc6067n" path="res://addons/raytraced_audio/raytraced_audio_player_3d.gd" id="3_jffvu"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_khlrb"]
 radius = 0.3
@@ -29,3 +30,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12651366, 0)
 shape = SubResource("CapsuleShape3D_knwgh")
 
 [node name="_Hands" parent="." unique_id=1296432070 instance=ExtResource("2_ormyk")]
+
+[node name="_RaytracedAudioPlayer3D" type="AudioStreamPlayer3D" parent="." unique_id=964657692]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7559766, 0)
+max_polyphony = 4
+script = ExtResource("3_jffvu")
+metadata/_custom_type_script = "uid://dkb8ltjc6067n"
