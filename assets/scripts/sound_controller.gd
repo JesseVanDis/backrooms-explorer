@@ -11,11 +11,11 @@ const DEFAULT_HIGH_PASS: float = 1.0
 const DEFAULT_DRY: float = 1.0
 const DEFAULT_WET: float = 0.5
 
-@export var enabled: bool = true:
+@export var reverb_enabled: bool = true:
 	set(value):
-		enabled = value
+		reverb_enabled = value
 		_update_sound_settings()
-
+	
 @export_range(0.0, 1.0) var room_size: float = DEFAULT_ROOM_SIZE:
 	set(value):
 		room_size = value
@@ -61,7 +61,7 @@ func _update_sound_settings() -> void:
 		push_error("AudioBus 'RaytracedReverb' not found.")
 		return
 	
-	AudioServer.set_bus_mute(bus_index, not enabled)
+	AudioServer.set_bus_effect_enabled(bus_index, 0, reverb_enabled)
 	
 	var effect := AudioServer.get_bus_effect(bus_index, 0)
 	if effect == null:
@@ -86,7 +86,7 @@ func _reset_to_defaults() -> void:
 		push_error("AudioBus 'RaytracedReverb' not found.")
 		return
 		
-	AudioServer.set_bus_mute(bus_index, true)
+	AudioServer.set_bus_effect_enabled(bus_index, 0, false)
 	
 	var effect := AudioServer.get_bus_effect(bus_index, 0)
 	if effect == null:
