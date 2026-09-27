@@ -8,7 +8,6 @@
 [ext_resource type="PackedScene" uid="uid://b8fv4gxs3jk1l" path="res://scenes/frontroom_0/frontrooms_0_model.tscn" id="6_gvot5"]
 [ext_resource type="Material" uid="uid://bl3xtl40x16ag" path="res://materials/box_1.tres" id="6_m4q7u"]
 [ext_resource type="AudioStream" uid="uid://bwy1igbrhtynm" path="res://scenes/lvl_0/bg_outside.mp3" id="7_03f2e"]
-[ext_resource type="Script" uid="uid://db62uy3m6hb32" path="res://assets/scripts/sound_controller.gd" id="9_32rw2"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uy0mw"]
 shader = ExtResource("1_uy0mw")
@@ -185,10 +184,6 @@ size = Vector3(0.65, 0.65, 0.68)
 
 [node name="Frontroom0" type="Node3D" unique_id=1630197344]
 script = ExtResource("1_gvot5")
-
-[node name="SoundController" type="Node" parent="." unique_id=1083834581]
-script = ExtResource("9_32rw2")
-reverb_enabled = false
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1700331174]
 transform = Transform3D(-0.6824485, -0.597579, 0.42090786, -0.03334599, 0.6007038, 0.79877603, -0.7301727, 0.5310879, -0.42987633, 0, 5.527685, 0)

@@ -14,7 +14,7 @@ const DEFAULT_PREDELAY_MSEC: float = 150.0
 const DEFAULT_PREDELAY_FEEDBACK: float = 0.4
 
 @export_group("Reverb Options")
-@export var reverb_enabled: bool = true:
+@export var reverb_enabled: bool = false:
 	set(value):
 		reverb_enabled = value
 		_update_sound_settings()

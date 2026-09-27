@@ -76,6 +76,33 @@ func _ready() -> void:
 	_wield.add_wieldable(Wieldable.PUSH,             "wield_push", true, false, {"movement_multiplier": 0.2})
 	_wield.add_wieldable(Wieldable.LVL_0_HITGROUND,  "lvl_0_landing", false, true, {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0, "movement_multiplier": 0.0})
 
+	_ensure_sound_controller()
+
+
+func _ensure_sound_controller() -> void:
+	if not is_inside_tree():
+		return
+		
+	# Check if a SoundController already exists in the scene
+	var root := get_tree().current_scene
+	if root == null:
+		# Fallback if current_scene is not set (e.g. running a scene independently)
+		root = get_tree().root
+		
+	var existing_controllers := root.find_children("*", "SoundController", true, false)
+	if existing_controllers.is_empty():
+		# SoundController is not in the scene, add one to the player
+		var sound_controller_script := load("res://assets/scripts/sound_controller.gd")
+		if sound_controller_script == null:
+			push_error("Could not load sound_controller.gd")
+			return
+			
+		var sound_controller := Node.new()
+		sound_controller.name = "SoundController"
+		sound_controller.set_script(sound_controller_script)
+		add_child(sound_controller)
+		print("Scene foes not contain a sound controller. Sound controller has been automatically added by the player node")
+
 
 func apply_footsteps(sounds: Array[AudioStream]) -> void:
 	_footstep_sounds = sounds
