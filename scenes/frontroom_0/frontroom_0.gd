@@ -111,7 +111,10 @@ func _handle_level_transition() -> void:
 			_loading_lvl_0_state = 1
 		if _loading_lvl_0_state == 4 and _fade_in_complete:
 			print("Switching to lvl_0")
-			get_tree().current_scene.queue_free()
+			var tree: SceneTree = get_tree()
+			var old_scene: Node = tree.current_scene
+			old_scene.queue_free()
+			await old_scene.tree_exited
 			# Note: _loading_screen is already a child of root, so it stays when current_scene is freed
-			get_tree().root.add_child(_lvl_0)
-			get_tree().current_scene = _lvl_0
+			tree.root.add_child(_lvl_0)
+			tree.current_scene = _lvl_0

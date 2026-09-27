@@ -86,7 +86,6 @@ func _process(_delta: float) -> void:
 	_handle_tile_graphics()
 	_handle_static_collision_shapes()
 
-
 func _handle_player_landing() -> void:
 	var player: Player = $Player
 	if player:

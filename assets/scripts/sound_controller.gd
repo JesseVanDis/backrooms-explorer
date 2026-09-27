@@ -59,13 +59,21 @@ const DEFAULT_PREDELAY_FEEDBACK: float = 0.4
 		predelay_feedback = value
 		_update_sound_settings()
 
+var _is_ready: bool = false
+
 func _ready() -> void:
+	_is_ready = true
+	print("Sound controller STARTED")
 	_update_sound_settings()
 
 func _exit_tree() -> void:
 	_reset_to_defaults()
+	print("Sound controller KILLED")
 
 func _update_sound_settings() -> void:
+	if not _is_ready:
+		return
+		
 	if not is_inside_tree():
 		return
 		
