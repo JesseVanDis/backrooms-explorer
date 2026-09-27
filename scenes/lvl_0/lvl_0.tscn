@@ -48,6 +48,7 @@ script = ExtResource("1_j6thp")
 [node name="SoundController" type="Node" parent="." unique_id=1699843859]
 script = ExtResource("10_mkhuw")
 reverb_enabled = true
+room_size = 0.612
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=538118835]
 environment = SubResource("Environment_j6thp")
