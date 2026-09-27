@@ -268,3 +268,4 @@ parameters/looping = true
 
 [node name="Node" type="Node" parent="." unique_id=1913521068]
 script = ExtResource("9_32rw2")
+reverb_enabled = false

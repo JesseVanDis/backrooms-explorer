@@ -45,6 +45,9 @@ size = Vector3(7.057373, 7.6053467, 1)
 [node name="lvl_0" type="Node3D" unique_id=1577277307]
 script = ExtResource("1_j6thp")
 
+[node name="SoundController" type="Node" parent="." unique_id=1699843859]
+script = ExtResource("10_mkhuw")
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=538118835]
 environment = SubResource("Environment_j6thp")
 
@@ -183,6 +186,3 @@ transform = Transform3D(-0.84877837, -0.119614236, -0.51504195, 0.50583285, 0.09
 [node name="CollisionShape3D3" type="CollisionShape3D" parent="StaticBody3D" unique_id=530382544]
 transform = Transform3D(0.70710677, -0.70710677, 3.090862e-08, 0.70710677, 0.70710677, 1.2802772e-08, -3.090862e-08, 1.2802778e-08, 1, -1.5868654, 2.4288433, -2.5260518)
 shape = SubResource("BoxShape3D_f4hk2")
-
-[node name="SoundController" type="Node" parent="." unique_id=1699843859]
-script = ExtResource("10_mkhuw")

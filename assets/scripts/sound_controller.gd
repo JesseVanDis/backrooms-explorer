@@ -10,7 +10,10 @@ const DEFAULT_SPREAD: float = 1.0
 const DEFAULT_HIGH_PASS: float = 1.0
 const DEFAULT_DRY: float = 1.0
 const DEFAULT_WET: float = 0.5
+const DEFAULT_PREDELAY_MSEC: float = 150.0
+const DEFAULT_PREDELAY_FEEDBACK: float = 0.4
 
+@export_group("Reverb Options")
 @export var reverb_enabled: bool = true:
 	set(value):
 		reverb_enabled = value
@@ -46,6 +49,16 @@ const DEFAULT_WET: float = 0.5
 		wet = value
 		_update_sound_settings()
 
+@export_range(0.0, 500.0) var predelay_msec: float = DEFAULT_PREDELAY_MSEC:
+	set(value):
+		predelay_msec = value
+		_update_sound_settings()
+
+@export_range(0.0, 1.0) var predelay_feedback: float = DEFAULT_PREDELAY_FEEDBACK:
+	set(value):
+		predelay_feedback = value
+		_update_sound_settings()
+
 func _ready() -> void:
 	_update_sound_settings()
 
@@ -79,6 +92,8 @@ func _update_sound_settings() -> void:
 	reverb_effect.hipass = high_pass
 	reverb_effect.dry = dry
 	reverb_effect.wet = wet
+	reverb_effect.predelay_msec = predelay_msec
+	reverb_effect.predelay_feedback = predelay_feedback
 
 func _reset_to_defaults() -> void:
 	var bus_index := AudioServer.get_bus_index(RAYTRACED_REVERB_BUS_NAME)
@@ -105,3 +120,5 @@ func _reset_to_defaults() -> void:
 	reverb_effect.hipass = DEFAULT_HIGH_PASS
 	reverb_effect.dry = DEFAULT_DRY
 	reverb_effect.wet = DEFAULT_WET
+	reverb_effect.predelay_msec = DEFAULT_PREDELAY_MSEC
+	reverb_effect.predelay_feedback = DEFAULT_PREDELAY_FEEDBACK
