@@ -4,7 +4,6 @@ var _path_to_preload_now: String = ""
 var _loading_state: int = 0
 var _loading_level: Node = null
 var _next_level_path: String = ""
-var _next_level: Node = null
 var _loading_screen: Node = null
 var _fade_in_complete: bool = false
 var _tree: SceneTree = null
@@ -18,7 +17,7 @@ func _init(tree: SceneTree) -> void:
 	_tree = tree
 
 func preload_level(scene_path: String) -> void:
-	if !_loaded_levels.has(scene_path):
+	if !_loaded_levels.has(scene_path) && _levels_to_preload.count(scene_path) == 0:
 		_levels_to_preload.append(scene_path)
 
 func _preload_level(scene_path: String) -> int:
@@ -51,28 +50,17 @@ func switch_to_level(scene_path: String) -> bool:
 		push_error("Cannot switch to level '" + scene_path + "' Already transitioning to another level")
 		return false
 	
-	_next_level_path = scene_path
 	_fade_in_complete = false
-	
-	if _tree == null:
-		push_error("SceneTree is null")
-		return false
-
 	_transition_state = 1
 	if _loading_screen == null:
 		print("Fading in screen")
 		_loading_screen = UtilsScreen.fade_in_screen(_tree, "res://scenes/frontroom_0/transition_frontrooms_lvl_0.tscn", func() -> void: _fade_in_complete = true)
 	else:
 		_fade_in_complete = true
-
-	if _loaded_levels.has(scene_path):
-		_next_level = _loaded_levels[scene_path]
-		print("Next level set")
-		return true
-	else:
-		push_error("Switch to level failed. level not loaded yet.")
-		preload_level(scene_path)
-		return false
+	
+	preload_level(scene_path)
+	_next_level_path = scene_path
+	return true
 
 func update() -> void:
 	if _levels_to_preload.size() > 0:
@@ -132,14 +120,17 @@ func update() -> void:
 				print("level '" + _path_to_preload_now + "' loaded")
 				_path_to_preload_now = ""
 				_loading_state = 0
-
-	if _next_level != null and _fade_in_complete and not _transition_state == 2:
+	
+	var next_level: Node = null
+	if _next_level_path != "" && _loaded_levels.has(_next_level_path):
+		next_level = _loaded_levels[_next_level_path]
+	
+	if next_level != null and _fade_in_complete and not _transition_state == 2:
 		_transition_state = 2
-		await _perform_transition()
-		_next_level = null
+		await _perform_transition(next_level)
 		_transition_state = 0
 
-func _perform_transition() -> void:
+func _perform_transition(target_level: Node) -> void:
 	print("Switching to level")
 	var old_scene: Node = _tree.current_scene
 	if old_scene == null:
@@ -149,14 +140,13 @@ func _perform_transition() -> void:
 	old_scene.queue_free()
 	await old_scene.tree_exited
 	
-	if _next_level == null:
+	if target_level == null:
 		push_error("_next_level is null during transition")
 		return
 
 	# Note: _loading_screen is already a child of root, so it stays when current_scene is freed
-	_tree.root.add_child(_next_level)
-	_tree.current_scene = _next_level
+	_tree.root.add_child(target_level)
+	_tree.current_scene = target_level
 	_loaded_levels.clear()
-	_next_level = null
 	
 	
