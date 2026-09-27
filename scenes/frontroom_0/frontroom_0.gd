@@ -15,12 +15,13 @@ func _ready() -> void:
 		push_error("Player not found in scene tree")
 	
 	_level_transition = LevelTransition.new(get_tree())
+	_level_transition.preload_level(LVL_0_PATH)
 
 func _physics_process(_dt: float) -> void:
 	_update_player_speed()
 	_update_environment_effects()
 	_handle_level_transition()
-	_level_transition.update()
+	await _level_transition.update()
 
 # When falling trough the tunnel towards lvl_0 of the backrooms
 const Y_START: float = -5.0
