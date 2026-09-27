@@ -49,6 +49,9 @@ func switch_to_level(scene_path: String) -> bool:
 	if _transition_state > 0:
 		push_error("Cannot switch to level '" + scene_path + "' Already transitioning to another level")
 		return false
+
+	preload_level(scene_path)
+	_check_and_preload()
 	
 	_fade_in_complete = false
 	_transition_state = 1
@@ -58,14 +61,17 @@ func switch_to_level(scene_path: String) -> bool:
 	else:
 		_fade_in_complete = true
 	
-	preload_level(scene_path)
 	_next_level_path = scene_path
 	return true
 
-func update() -> void:
+func _check_and_preload() -> void:
 	if _levels_to_preload.size() > 0:
 		if _preload_level(_levels_to_preload[0]) != 0:
 			_levels_to_preload.pop_front()
+
+func update() -> void:
+	#print("update!: " + str(_loading_state))
+	_check_and_preload()
 	
 	# print("update. fade in: " + str(_fade_in_complete))
 	if _loading_state > 0:
