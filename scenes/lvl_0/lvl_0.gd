@@ -71,8 +71,7 @@ func initialized() -> bool:
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	_player = $Player
-	UtilsScreen.fade_out_screen(get_tree())
-		
+	
 	# Initial generation
 	_get_or_create_chunk(Vector2i(0, 0), false)
 	_get_or_create_chunk(Vector2i(-1, -1), false)

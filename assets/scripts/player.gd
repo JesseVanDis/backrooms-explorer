@@ -58,6 +58,7 @@ var _bob_phase: float = 0.0
 var _is_moving: bool = false
 
 func _ready() -> void:
+	UtilsScreen.fade_out_screen(get_tree())
 	_node_camera = UtilsNode.find_camera_recursive(self)
 	if _node_camera == null:
 		push_error("_node_camera is null")

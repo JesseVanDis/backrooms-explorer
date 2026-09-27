@@ -1,6 +1,6 @@
 class_name LevelTransition
 
-var _scene_path: String = ""
+var _path_to_preload_now: String = ""
 var _loading_state: int = 0
 var _loading_level: Node = null
 var _next_level_path: String = ""
@@ -10,6 +10,7 @@ var _fade_in_complete: bool = false
 var _tree: SceneTree = null
 var _loaded_levels: Dictionary = {}
 var _transition_state: int = 0
+var _levels_to_preload: Array[String] = []
 
 func _init(tree: SceneTree) -> void:
 	if tree == null:
@@ -17,23 +18,26 @@ func _init(tree: SceneTree) -> void:
 	_tree = tree
 
 func preload_level(scene_path: String) -> void:
+	if !_loaded_levels.has(scene_path):
+		_levels_to_preload.append(scene_path)
+
+func _preload_level(scene_path: String) -> int:
 	if scene_path == "":
 		push_error("Scene path is empty")
-		return
-	
-	if _transition_state > 0:
-		return
+		return 0
 
 	if _loaded_levels.has(scene_path):
-		return
-
-	if _scene_path != "" and _scene_path != scene_path:
-		push_error("Another level is already being loaded or preloaded: " + _scene_path)
-		return
-
-	_scene_path = scene_path
+		# already preloaded
+		return 1
+	
+	if _transition_state > 0 || _path_to_preload_now != "":
+		# another level is being preloaded
+		return 0
+		
+	_path_to_preload_now = scene_path
 	if _loading_state == 0:
 		_loading_state = 1
+	return 2
 
 func switch_to_level(scene_path: String) -> bool:
 	if _transition_state > 0 && _next_level_path == scene_path:
@@ -47,7 +51,6 @@ func switch_to_level(scene_path: String) -> bool:
 		push_error("Cannot switch to level '" + scene_path + "' Already transitioning to another level")
 		return false
 	
-	_scene_path = scene_path
 	_next_level_path = scene_path
 	_fade_in_complete = false
 	
@@ -72,23 +75,27 @@ func switch_to_level(scene_path: String) -> bool:
 		return false
 
 func update() -> void:
+	if _levels_to_preload.size() > 0:
+		if _preload_level(_levels_to_preload[0]) != 0:
+			_levels_to_preload.pop_front()
+	
 	# print("update. fade in: " + str(_fade_in_complete))
 	if _loading_state > 0:
 		match _loading_state:
 			1:
-				var err: Error = ResourceLoader.load_threaded_request(_scene_path)
+				var err: Error = ResourceLoader.load_threaded_request(_path_to_preload_now)
 				if err != OK:
-					push_error("Failed to start asynchronous loading of level: " + _scene_path + " Error: " + str(err))
+					push_error("Failed to start asynchronous loading of level: " + _path_to_preload_now + " Error: " + str(err))
 					return
 				_loading_state = 2
 				
 			2:
 				var progress: Array[float] = []
-				var status: ResourceLoader.ThreadLoadStatus = ResourceLoader.load_threaded_get_status(_scene_path, progress)
+				var status: ResourceLoader.ThreadLoadStatus = ResourceLoader.load_threaded_get_status(_path_to_preload_now, progress)
 				
 				match status:
 					ResourceLoader.THREAD_LOAD_LOADED:
-						var packed_scene: PackedScene = ResourceLoader.load_threaded_get(_scene_path) as PackedScene
+						var packed_scene: PackedScene = ResourceLoader.load_threaded_get(_path_to_preload_now) as PackedScene
 						if packed_scene == null:
 							push_error("Loaded resource is not a PackedScene")
 							return
@@ -105,10 +112,10 @@ func update() -> void:
 							_loading_state = 4
 
 					ResourceLoader.THREAD_LOAD_FAILED:
-						push_error("Failed to load level asynchronously: " + _scene_path)
+						push_error("Failed to load level asynchronously: " + _path_to_preload_now)
 						_loading_state = 1
 					ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
-						push_error("Invalid resource path: " + _scene_path)
+						push_error("Invalid resource path: " + _path_to_preload_now)
 						_loading_state = 1
 			3:
 				var is_initialized: bool = true
@@ -121,14 +128,15 @@ func update() -> void:
 					print("Initializing level... done")
 					_loading_state = 4
 			4:
-				_loaded_levels[_scene_path] = _loading_level
-				print("level '" + _scene_path + "' loaded")
+				_loaded_levels[_path_to_preload_now] = _loading_level
+				print("level '" + _path_to_preload_now + "' loaded")
+				_path_to_preload_now = ""
 				_loading_state = 0
 
 	if _next_level != null and _fade_in_complete and not _transition_state == 2:
 		_transition_state = 2
 		await _perform_transition()
-		_scene_path = ""
+		_next_level = null
 		_transition_state = 0
 
 func _perform_transition() -> void:
@@ -148,7 +156,7 @@ func _perform_transition() -> void:
 	# Note: _loading_screen is already a child of root, so it stays when current_scene is freed
 	_tree.root.add_child(_next_level)
 	_tree.current_scene = _next_level
-	_loaded_levels.erase(_scene_path)
+	_loaded_levels.clear()
 	_next_level = null
 	
 	
