@@ -203,10 +203,12 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 	
 	# ALWAYS add a floor and ceiling
 	_instantiate_model(model_floor, tile_index, 0)
-
+	if (((pixel & MapGenerator.TILE_MASK) != MapGenerator.Pixel.TILE_CEILING_LIGHT) && 
+		((pixel & MapGenerator.TILE_MASK) != MapGenerator.Pixel.TILE_CEILING_LIGHT_BLINKING)):
+		_instantiate_model(model_ceiling, tile_index, 0)
+	
 	match pixel & MapGenerator.TILE_MASK:
 		MapGenerator.Pixel.TILE_EMPTY:
-			_instantiate_model(model_ceiling, tile_index, 0)
 			return
 			
 		MapGenerator.Pixel.TILE_CEILING_LIGHT:
@@ -216,7 +218,6 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 			_instantiate_model(model_ceiling_light_blinking, tile_index, 0)
 			
 		MapGenerator.Pixel.TILE_WALL:
-			_instantiate_model(model_ceiling, tile_index, 0)
 			# Use _get_pixel_at for seamless transitions between chunks
 			var wall_n: bool = (_get_pixel_at(x, y + 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
 			var wall_s: bool = (_get_pixel_at(x, y - 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
