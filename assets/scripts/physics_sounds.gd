@@ -4,6 +4,7 @@ class_name PhysicsSounds
 const SLIDE_DEFAULT: AudioStream = preload("res://assets/sounds/slide_1.wav")
 const BONK_DEFAULT: AudioStream = preload("res://assets/sounds/bonk_1.wav")
 const VELOCITY_THRESHOLD: float = 0.3
+const ANGULAR_VELOCITY_THRESHOLD: float = 1.0
 const MIN_IMPULSE_FOR_BONK: float = 0.5
 
 @export var slide_sound: AudioStreamWAV = SLIDE_DEFAULT
@@ -47,8 +48,9 @@ func _physics_process(dt: float) -> void:
 		return
 		
 	var velocity: float = linear_velocity.length()
+	var angular_vel: float = angular_velocity.length()
 	
-	if velocity > VELOCITY_THRESHOLD:
+	if velocity > VELOCITY_THRESHOLD and angular_vel < ANGULAR_VELOCITY_THRESHOLD:
 		if not _audio_slide.playing:
 			print("Playing slide!: " + str(_audio_slide.playing))
 			_audio_slide.play()
