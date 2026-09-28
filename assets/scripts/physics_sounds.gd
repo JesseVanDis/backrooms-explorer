@@ -15,6 +15,7 @@ const MIN_IMPULSE_FOR_BONK: float = 0.5
 
 var _audio_slide: AudioStreamPlayer3D = null
 var _audio_bonk: AudioStreamPlayer3D = null
+var _startup_timer: float = 2.0
 
 func _ready() -> void:
 	# Setup slide audio player
@@ -40,7 +41,10 @@ func _ready() -> void:
 	
 	body_entered.connect(_on_body_entered)
 
-func _physics_process(_dt: float) -> void:
+func _physics_process(dt: float) -> void:
+	if _startup_timer > 0.0:
+		_startup_timer -= dt
+		return
 		
 	var velocity: float = linear_velocity.length()
 	
@@ -57,6 +61,9 @@ func _physics_process(_dt: float) -> void:
 			_audio_slide.stop()
 
 func _on_body_entered(body: Node) -> void:
+	if _startup_timer > 0.0:
+		return
+		
 	if body is Player:
 		return
 		
