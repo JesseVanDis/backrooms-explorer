@@ -28,6 +28,8 @@ This game uses the following third-party assets:
 * [Format this] https://pixabay.com/sound-effects/nature-morning-bird-song-597463/
 * [Format this] https://pixabay.com/sound-effects/household-door-open-close-45475/
 * [Format this] https://pixabay.com/sound-effects/film-special-effects-open-and-closed-door-156814/
+* [Format this] https://pixabay.com/sound-effects/film-special-effects-ice-drag-44100-95892/
+* [Format this] https://pixabay.com/sound-effects/film-special-effects-dragging-84771/
 * **level 0 footsteps** ([url](https://pixabay.com/sound-effects/household-walking-footsteps-on-carpet-34094/)) - Abolla (Freesound), Pixabay Content License
 * **level frontrooms kitchen** ([url](https://www.turbosquid.com/FullPreview/1611240)) - Marcin Lubecki, TurboSquid's Standard 3D Model License
 * **level frontrooms trashbin** ([url](https://www.turbosquid.com/FullPreview/2432954)) - Vee Animation, TurboSquid's Standard 3D Model License

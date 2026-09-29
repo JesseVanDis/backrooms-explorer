@@ -1,11 +1,11 @@
 extends RigidBody3D
 class_name PhysicsSounds
 
-const SLIDE_DEFAULT: AudioStream = preload("res://assets/sounds/slide_1.wav")
+const SLIDE_DEFAULT: AudioStream = preload("res://assets/sounds/slide_2.wav")
 const BONK_DEFAULT: AudioStream = preload("res://assets/sounds/bonk_1.wav")
 const SLIDE_SOUND_VELOCITY_THRESHOLD: float = 0.3
-const SLIDE_SOUND_FADE_IN_SPEED: float = 0.5
-const SLIDE_SOUND_FADE_OUT_SPEED: float = 0.1
+const SLIDE_SOUND_FADE_IN_SPEED: float = 10.0
+const SLIDE_SOUND_FADE_OUT_SPEED: float = 10.0
 const MIN_IMPULSE_FOR_BONK: float = 0.5
 
 @export var slide_sound: AudioStreamWAV = SLIDE_DEFAULT
@@ -19,6 +19,7 @@ var _audio_slide: AudioStreamPlayer3D = null
 var _audio_bonk: AudioStreamPlayer3D = null
 var _startup_timer: float = 2.0
 var _sliding_volume: float = 0.0
+var _sliding_sound_playing: bool = false
 
 # var _seconds_since_slide_state_change: float = 0.0
 
@@ -28,7 +29,7 @@ func _ready() -> void:
 	_audio_slide.stream = slide_sound
 	_audio_slide.autoplay = false
 	_audio_slide.volume_db = slide_volume_db
-	_audio_slide.pitch_scale = slide_pitch_scale	
+	_audio_slide.pitch_scale = slide_pitch_scale
 	add_child(_audio_slide)
 
 	# Setup bonk audio player
@@ -59,17 +60,14 @@ func _physics_process(dt: float) -> void:
 	else:
 		var fraction: float = min(1.0, SLIDE_SOUND_FADE_OUT_SPEED * dt)
 		_sliding_volume = _sliding_volume * (1.0 - fraction)
-	
-	if _sliding_volume > 0.0:
-		print("sliding_volume: " + str(_sliding_volume))
-	
+		
 	_audio_slide.volume_linear = _sliding_volume
-	if _sliding_volume > 0.001 && not _audio_slide.playing:
+	if _sliding_volume > 0.001 && not _sliding_sound_playing:
 		_audio_slide.play()
-		print("PLAY!")
-	elif _sliding_volume <= 0.001 && _audio_slide.playing:
+		_sliding_sound_playing = true
+	elif _sliding_volume <= 0.001 && _sliding_sound_playing:
 		_audio_slide.stop()
-		print("STOP!")
+		_sliding_sound_playing = false
 	
 
 func _on_body_entered(body: Node) -> void:
