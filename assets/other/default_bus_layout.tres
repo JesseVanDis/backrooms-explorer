@@ -2,6 +2,7 @@
 
 [sub_resource type="AudioEffectReverb" id="AudioEffectReverb_qrgjs"]
 resource_name = "reverb"
+hipass = 1.0
 
 [sub_resource type="AudioEffectPanner" id="AudioEffectPanner_r63fk"]
 resource_name = "pan"

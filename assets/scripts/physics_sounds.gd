@@ -17,6 +17,7 @@ const MIN_IMPULSE_FOR_BONK: float = 0.5
 var _audio_slide: AudioStreamPlayer3D = null
 var _audio_bonk: AudioStreamPlayer3D = null
 var _startup_timer: float = 2.0
+var _seconds_since_slide_state_change: float = 0.0
 
 func _ready() -> void:
 	# Setup slide audio player
@@ -46,20 +47,26 @@ func _physics_process(dt: float) -> void:
 	if _startup_timer > 0.0:
 		_startup_timer -= dt
 		return
-		
+	
+	_seconds_since_slide_state_change += dt
+	
 	var velocity: float = linear_velocity.length()
 	var angular_vel: float = angular_velocity.length()
-	
+		
 	if velocity > VELOCITY_THRESHOLD and angular_vel < ANGULAR_VELOCITY_THRESHOLD:
 		if not _audio_slide.playing:
 			print("Playing slide!: " + str(_audio_slide.playing))
 			_audio_slide.play()
+			_seconds_since_slide_state_change = 0.0
 			print("Playing slide!: " + str(_audio_slide.playing))
+		var volume: float = min(1.0, _seconds_since_slide_state_change * 3.0)
 		# Adjust volume based on velocity if desired
-		# _audio_slide.unit_size = clampf(velocity * 2.0, 1.0, 5.0)
+		_audio_slide.volume_linear = volume
+		# _audio_slide.unit_size = volume# clampf(velocity * 2.0, 1.0, 5.0)
 	else:
 		if _audio_slide.playing:
 			print("Stopping slide")
+			_seconds_since_slide_state_change = 0.0
 			_audio_slide.stop()
 
 func _on_body_entered(body: Node) -> void:

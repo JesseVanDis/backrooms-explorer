@@ -229,6 +229,7 @@ collision_layer = 9
 collision_mask = 9
 script = ExtResource("7_32rw2")
 slide_volume_db = 40.0
+bonk_pitch_scale = 0.5
 
 [node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox3" unique_id=27932876]
 transform = Transform3D(1.4, 0, 0, 0, -6.119594e-08, -1.4, 0, 1.4, -6.119594e-08, 0, 0.55220044, 0)
