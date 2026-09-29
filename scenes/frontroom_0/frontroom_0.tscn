@@ -212,6 +212,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2216473, 0.6885196, -1.511
 collision_layer = 6
 collision_mask = 5
 script = ExtResource("7_32rw2")
+slide_pitch_scale = 0.7
+bonk_pitch_scale = 0.3
 
 [node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox1" unique_id=847687666]
 transform = Transform3D(1.4, 0, 0, 0, -6.119594e-08, -1.4, 0, 1.4, -6.119594e-08, 0, 0.55220044, 0)
@@ -229,7 +231,7 @@ collision_layer = 9
 collision_mask = 9
 script = ExtResource("7_32rw2")
 slide_volume_db = 40.0
-bonk_pitch_scale = 0.5
+bonk_pitch_scale = 0.3
 
 [node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox3" unique_id=27932876]
 transform = Transform3D(1.4, 0, 0, 0, -6.119594e-08, -1.4, 0, 1.4, -6.119594e-08, 0, 0.55220044, 0)
@@ -246,6 +248,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.3938484, 1.5609629, -1.511
 collision_layer = 6
 collision_mask = 5
 script = ExtResource("7_32rw2")
+slide_pitch_scale = 0.8
+bonk_pitch_scale = 0.4
 
 [node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox2" unique_id=1589079478]
 transform = Transform3D(1.0942383, -0.11243936, 4.9148805e-09, 0, -4.8082526e-08, -1.1, 0.11243936, 1.0942383, -4.7830675e-08, 0, 0.55220044, 0.024617076)

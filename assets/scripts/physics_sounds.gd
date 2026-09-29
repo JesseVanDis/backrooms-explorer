@@ -3,8 +3,8 @@ class_name PhysicsSounds
 
 const SLIDE_DEFAULT: AudioStream = preload("res://assets/sounds/slide_1.wav")
 const BONK_DEFAULT: AudioStream = preload("res://assets/sounds/bonk_1.wav")
-const VELOCITY_THRESHOLD: float = 0.3
-const ANGULAR_VELOCITY_THRESHOLD: float = 1.0
+const SLIDE_SOUND_VELOCITY_THRESHOLD: float = 0.3
+const SLIDE_SOUND_FADE_IN_DURATION: float = 0.7
 const MIN_IMPULSE_FOR_BONK: float = 0.5
 
 @export var slide_sound: AudioStreamWAV = SLIDE_DEFAULT
@@ -51,15 +51,16 @@ func _physics_process(dt: float) -> void:
 	_seconds_since_slide_state_change += dt
 	
 	var velocity: float = linear_velocity.length()
-	var angular_vel: float = angular_velocity.length()
 		
-	if velocity > VELOCITY_THRESHOLD and angular_vel < ANGULAR_VELOCITY_THRESHOLD:
+	if is_boxshape_laying_float(5.0) && velocity > SLIDE_SOUND_VELOCITY_THRESHOLD:
 		if not _audio_slide.playing:
 			print("Playing slide!: " + str(_audio_slide.playing))
 			_audio_slide.play()
 			_seconds_since_slide_state_change = 0.0
 			print("Playing slide!: " + str(_audio_slide.playing))
-		var volume: float = min(1.0, _seconds_since_slide_state_change * 3.0)
+		var volume: float = 1.0
+		if SLIDE_SOUND_FADE_IN_DURATION > 0.0:
+			volume = min(1.0, _seconds_since_slide_state_change * (1.0 / SLIDE_SOUND_FADE_IN_DURATION))
 		# Adjust volume based on velocity if desired
 		_audio_slide.volume_linear = volume
 		# _audio_slide.unit_size = volume# clampf(velocity * 2.0, 1.0, 5.0)
@@ -80,3 +81,26 @@ func _on_body_entered(body: Node) -> void:
 	if not _audio_bonk.playing or _audio_bonk.get_playback_position() > 0.1:
 		_audio_bonk.pitch_scale = bonk_pitch_scale * randf_range(0.9, 1.1)
 		_audio_bonk.play()
+
+
+func is_boxshape_laying_float(tollerance_degrees: float) -> bool:
+	const UP: Vector3 = Vector3.UP
+	var _basis: Basis = global_transform.basis
+	var _tolerance_radians: float = deg_to_rad(tollerance_degrees)
+
+	# Check local X axis
+	var _x_angle: float = _basis.x.angle_to(UP)
+	if _x_angle < _tolerance_radians or abs(_x_angle - PI) < _tolerance_radians:
+		return true
+
+	# Check local Y axis
+	var _y_angle: float = _basis.y.angle_to(UP)
+	if _y_angle < _tolerance_radians or abs(_y_angle - PI) < _tolerance_radians:
+		return true
+
+	# Check local Z axis
+	var _z_angle: float = _basis.z.angle_to(UP)
+	if _z_angle < _tolerance_radians or abs(_z_angle - PI) < _tolerance_radians:
+		return true
+
+	return false
