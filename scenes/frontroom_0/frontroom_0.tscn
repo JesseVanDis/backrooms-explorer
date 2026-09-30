@@ -9,6 +9,9 @@
 [ext_resource type="Material" uid="uid://bl3xtl40x16ag" path="res://materials/box_1.tres" id="6_m4q7u"]
 [ext_resource type="AudioStream" uid="uid://bwy1igbrhtynm" path="res://scenes/lvl_0/bg_outside.mp3" id="7_03f2e"]
 [ext_resource type="Script" uid="uid://te5oqh2fyrck" path="res://assets/scripts/physics_sounds.gd" id="7_32rw2"]
+[ext_resource type="Script" uid="uid://tlc6a6hl8tfg" path="res://assets/scripts/trigger_sfx.gd" id="10_rppe7"]
+[ext_resource type="AudioStream" uid="uid://bba7j6eltxf1e" path="res://scenes/frontroom_0/voice/voice_first_box_encounter.ogg" id="11_m8kbl"]
+[ext_resource type="AudioStream" uid="uid://bt3eqo00lr8e4" path="res://scenes/frontroom_0/voice/voice_home.ogg" id="12_sfm4i"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uy0mw"]
 shader = ExtResource("1_uy0mw")
@@ -180,8 +183,17 @@ shadow_mesh = SubResource("ArrayMesh_jgmky")
 [sub_resource type="BoxShape3D" id="BoxShape3D_qjbi0"]
 size = Vector3(0.65, 0.65, 0.68)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_sfm4i"]
+size = Vector3(0.25, 0.25, 0.15)
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_gvot5"]
 size = Vector3(0.65, 0.65, 0.68)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_khlrb"]
+radius = 0.925
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_jgr8k"]
+radius = 1.215
 
 [node name="Frontroom0" type="Node3D" unique_id=1630197344]
 script = ExtResource("1_gvot5")
@@ -243,6 +255,24 @@ surface_material_override/0 = ExtResource("6_m4q7u")
 transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-08, 0, 0.37513602, 0)
 shape = SubResource("BoxShape3D_qjbi0")
 
+[node name="MovingBox4" type="RigidBody3D" parent="." unique_id=356866854]
+transform = Transform3D(0.8994232, 0, -0.43707883, 0, 1, 0, 0.43707883, 0, 0.8994232, -3.6275575, 1.6841257, 0.013358653)
+collision_layer = 9
+collision_mask = 9
+script = ExtResource("7_32rw2")
+slide_pitch_scale = 0.5
+bonk_pitch_scale = 0.3
+
+[node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox4" unique_id=1129377444]
+transform = Transform3D(0.5, 0, 0, 0, -2.1855694e-08, -0.3, 0, 0.5, -1.3113417e-08, 0, 0, 0)
+gi_mode = 2
+mesh = SubResource("ArrayMesh_xv7e5")
+surface_material_override/0 = ExtResource("6_m4q7u")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox4" unique_id=2096170940]
+transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-08, 0, -0.038426638, 0)
+shape = SubResource("BoxShape3D_sfm4i")
+
 [node name="MovingBox2" type="RigidBody3D" parent="." unique_id=654344532]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.3938484, 1.5609629, -1.5114428)
 collision_layer = 6
@@ -274,3 +304,21 @@ playback_type = 1
 emission_angle_enabled = true
 emission_angle_degrees = 0.1
 parameters/looping = true
+
+[node name="trigger_sfx_first_box_encounter" type="Area3D" parent="." unique_id=1481960487]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.347052, 1.1094898, 0.786355)
+script = ExtResource("10_rppe7")
+sound = ExtResource("11_m8kbl")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_first_box_encounter" unique_id=803637745]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.38919926, 0, 0)
+shape = SubResource("SphereShape3D_khlrb")
+
+[node name="trigger_sfx_first_box_encounter2" type="Area3D" parent="." unique_id=1383819099]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1417344, 1.1094898, -1.5103629)
+script = ExtResource("10_rppe7")
+sound = ExtResource("12_sfm4i")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_first_box_encounter2" unique_id=213028683]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.38919926, 0, 0)
+shape = SubResource("SphereShape3D_jgr8k")
