@@ -58,7 +58,20 @@ convert_flac_to_ogg() {
     fi
 }
 
+run_default_tasks() {
+    echo "Running default parsing tasks..."
+    
+    # List of default tasks to execute
+    check_ffmpeg
+    convert_flac_to_ogg
+}
+
 # Main execution
+if [ $# -eq 0 ]; then
+    run_default_tasks
+    exit 0
+fi
+
 case "$1" in
     --help)
         show_help
