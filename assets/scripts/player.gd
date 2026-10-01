@@ -15,7 +15,12 @@ enum Wieldable {NONE, PUSH, LVL_0_HITGROUND}
 @onready var _node_camera : Camera3D = null
 @onready var _node_hands_yaw : Node3D = null
 @onready var _audio_player: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D
-@onready var audio_player_voice: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D_Voice
+@export var active_voice_sequence: Array[AudioStream] = []:
+	set(value):
+		active_voice_sequence = value
+		_on_active_voice_sequence_changed()
+@onready var _audio_player_voice: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D_Voice
+var _remaining_voice_sequence: Array[AudioStream] = []
 var push_target: Node3D = null
 
 @export var max_fall_speed: float = 0.0
@@ -79,6 +84,32 @@ func _ready() -> void:
 	_wield.add_wieldable(Wieldable.LVL_0_HITGROUND,  "lvl_0_landing", false, true, {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0, "movement_multiplier": 0.0})
 
 	_ensure_sound_controller()
+	_audio_player_voice.finished.connect(_on_voice_finished)
+
+
+func _on_active_voice_sequence_changed() -> void:
+	if _audio_player_voice == null:
+		return
+		
+	_audio_player_voice.stop()
+	_remaining_voice_sequence = active_voice_sequence.duplicate()
+	_play_next_voice()
+
+func _on_voice_finished() -> void:
+	_play_next_voice()
+
+func _play_next_voice() -> void:
+	if _remaining_voice_sequence.is_empty():
+		return
+	
+	var next_stream: AudioStream = _remaining_voice_sequence.pop_front()
+	if next_stream == null:
+		push_error("AudioStream is null in voice sequence")
+		_play_next_voice()
+		return
+	
+	_audio_player_voice.stream = next_stream
+	_audio_player_voice.play()
 
 
 func _ensure_sound_controller() -> void:

@@ -34,3 +34,4 @@ godot --path . --export-release "Windows Desktop" ./build/debug/windows/backgroo
 - Avoid `preload()` gd scripts.
 - Do not correct any code that is not related to the current task.
 - Use `tools/static_check.sh` to check for warnings and errors.
+  - you can supply a path to the .gd file to let it only check that file. otherwise it will check the whole project 

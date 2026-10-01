@@ -10,8 +10,11 @@
 [ext_resource type="AudioStream" uid="uid://bwy1igbrhtynm" path="res://scenes/lvl_0/bg_outside.mp3" id="7_03f2e"]
 [ext_resource type="Script" uid="uid://te5oqh2fyrck" path="res://assets/scripts/physics_sounds.gd" id="7_32rw2"]
 [ext_resource type="Script" uid="uid://tlc6a6hl8tfg" path="res://assets/scripts/trigger_sfx.gd" id="10_rppe7"]
+[ext_resource type="AudioStream" uid="uid://drufv1gxa8rx5" path="res://scenes/frontroom_0/voice/voice_im_home.ogg" id="11_jgr8k"]
 [ext_resource type="AudioStream" uid="uid://bba7j6eltxf1e" path="res://scenes/frontroom_0/voice/voice_first_box_encounter.ogg" id="11_m8kbl"]
 [ext_resource type="AudioStream" uid="uid://bt3eqo00lr8e4" path="res://scenes/frontroom_0/voice/voice_home.ogg" id="12_sfm4i"]
+[ext_resource type="AudioStream" uid="uid://lbeyoqgsy1hx" path="res://scenes/frontroom_0/voice/voice_more_boxes.ogg" id="13_eoeoy"]
+[ext_resource type="AudioStream" uid="uid://dvs7gnp4u7hs5" path="res://scenes/frontroom_0/voice/voice_scream_jen.ogg" id="14_0oem1"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uy0mw"]
 shader = ExtResource("1_uy0mw")
@@ -192,6 +195,9 @@ size = Vector3(0.65, 0.65, 0.68)
 [sub_resource type="SphereShape3D" id="SphereShape3D_khlrb"]
 radius = 0.925
 
+[sub_resource type="SphereShape3D" id="SphereShape3D_0oem1"]
+radius = 1.505
+
 [sub_resource type="SphereShape3D" id="SphereShape3D_jgr8k"]
 radius = 1.215
 
@@ -223,6 +229,7 @@ transform = Transform3D(-0.50000006, 0, 0.8660254, 0, 1, 0, -0.8660254, 0, -0.50
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2216473, 0.6885196, -1.5114428)
 collision_layer = 6
 collision_mask = 5
+mass = 3.0
 script = ExtResource("7_32rw2")
 slide_pitch_scale = 0.5
 bonk_pitch_scale = 0.3
@@ -275,9 +282,10 @@ transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-
 shape = SubResource("BoxShape3D_sfm4i")
 
 [node name="MovingBox2" type="RigidBody3D" parent="." unique_id=654344532]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.3938484, 1.5609629, -1.5114428)
+transform = Transform3D(0.9325698, 0, -0.36098975, 0, 1, 0, 0.36098975, 0, 0.9325698, -7.3938484, 1.5609629, -1.5114428)
 collision_layer = 6
 collision_mask = 5
+mass = 0.2
 script = ExtResource("7_32rw2")
 slide_pitch_scale = 0.5
 bonk_pitch_scale = 0.4
@@ -310,18 +318,38 @@ parameters/looping = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.347052, 1.1094898, 0.786355)
 script = ExtResource("10_rppe7")
 mode = 1
-sound = ExtResource("11_m8kbl")
+sounds = Array[AudioStream]([ExtResource("11_m8kbl"), ExtResource("11_jgr8k")])
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_first_box_encounter" unique_id=803637745]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.38919926, 0, 0)
 shape = SubResource("SphereShape3D_khlrb")
 
-[node name="trigger_sfx_first_box_encounter2" type="Area3D" parent="." unique_id=1383819099]
+[node name="trigger_sfx_second_box_encounter" type="Area3D" parent="." unique_id=379097528]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.8849316, 1.1094898, -1.696607)
+script = ExtResource("10_rppe7")
+mode = 1
+sounds = Array[AudioStream]([ExtResource("13_eoeoy"), ExtResource("14_0oem1")])
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_second_box_encounter" unique_id=516168881]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.38919926, 0, 0)
+shape = SubResource("SphereShape3D_khlrb")
+
+[node name="trigger_sfx_boxes_clip" type="Area3D" parent="." unique_id=1336410933]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.032335, -0.40320003, -1.696607)
+script = ExtResource("10_rppe7")
+mode = 1
+sounds = Array[AudioStream]([ExtResource("13_eoeoy"), ExtResource("14_0oem1")])
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_boxes_clip" unique_id=977030643]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.38919926, -0.938792, 0)
+shape = SubResource("SphereShape3D_0oem1")
+
+[node name="trigger_sfx_start" type="Area3D" parent="." unique_id=1383819099]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1417344, 1.1094898, -1.5103629)
 script = ExtResource("10_rppe7")
 mode = 1
-sound = ExtResource("12_sfm4i")
+sounds = Array[AudioStream]([ExtResource("12_sfm4i")])
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_first_box_encounter2" unique_id=213028683]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_start" unique_id=213028683]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.38919926, 0, 0)
 shape = SubResource("SphereShape3D_jgr8k")
