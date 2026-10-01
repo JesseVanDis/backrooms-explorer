@@ -6,6 +6,8 @@ enum Mode {
 }
 
 @export var mode: Mode = Mode.None
+## If empty, it will use the player as default.
+@export var trigger_object: Node3D = null
 @export var sounds: Array[AudioStream] = []
 @export var play_once: bool = true
 
@@ -23,15 +25,22 @@ func _on_body_entered(body: Node3D) -> void:
 	if play_once and _has_played:
 		return
 	
-	if _player == null:
-		_player = UtilsNode.find_player(get_tree())
-	
-	if _player == null:
-		push_error("Player not found in trigger_sfx.gd")
+	print("Body entered: " + body.name)
+	var target_trigger: Node3D = trigger_object
+	if target_trigger == null:
+		if _player == null:
+			_player = UtilsNode.find_player(get_tree())
+		
+		if _player == null:
+			push_error("Player not found in trigger_sfx.gd")
+			return
+		
+		target_trigger = _player
+		
+	if body != target_trigger:
 		return
 		
-	if body != _player:
-		return
+	print("Body entered: " + body.name + " TRIGGER!")
 	
 	match mode:
 		Mode.None:
@@ -45,7 +54,13 @@ func _on_body_entered(body: Node3D) -> void:
 				push_error("Non-voice sound sequence not implemented yet.")
 		
 		Mode.PlayerVoice:
-			_player.active_voice_sequence = sounds.duplicate()
+			if _player == null:
+				_player = UtilsNode.find_player(get_tree())
+			
+			if _player != null:
+				_player.active_voice_sequence = sounds.duplicate()
+			else:
+				push_error("Player not found for PlayerVoice mode in trigger_sfx.gd")
 				
 	_has_played = true
 	

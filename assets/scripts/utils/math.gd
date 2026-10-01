@@ -51,6 +51,11 @@ static func fractal_noise_2d(x: float, y: float, h1x: float = 12.9989, h1y: floa
 		amplitude *= 0.5
 	return value / amplitude_sum
 
+static func xz_distance(pos1: Vector3, pos2: Vector3) -> float:
+	var dx: float = pos1.x - pos2.x
+	var dz: float = pos1.z - pos2.z
+	return sqrt(dx * dx + dz * dz)
+
 static func _smooth_fraction(x: float) -> float:
 	return smooth_step(fraction(x))
 

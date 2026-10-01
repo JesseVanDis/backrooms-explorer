@@ -3,6 +3,7 @@ extends Node3D
 
 @onready var _node_moving_box_1: RigidBody3D = $MovingBox1
 @onready var _node_moving_box_2: RigidBody3D = $MovingBox2
+#@onready var _node_moving_box_3: RigidBody3D = $MovingBox3
 @onready var _node_world_environment: WorldEnvironment = $WorldEnvironment
 var _player: Player
 var _level_transition: LevelTransition
@@ -47,7 +48,7 @@ func _update_environment_effects() -> void:
 
 
 func _update_player_speed() -> void:
-	const DETECTION_DISTANCE: float = 0.8
+	const DETECTION_DISTANCE: float = 1.0
 	
 	var push_node: Node3D = null
 	
@@ -55,6 +56,8 @@ func _update_player_speed() -> void:
 		push_node = _node_moving_box_1
 	elif _player.global_position.distance_to(_node_moving_box_2.global_position) < DETECTION_DISTANCE:
 		push_node = _node_moving_box_2
+	#elif Math.xz_distance(_player.global_position, _node_moving_box_3.global_position) < DETECTION_DISTANCE:
+		#push_node = _node_moving_box_3
 		
 	if push_node != null:
 		_player.active_wieldable = Player.Wieldable.PUSH

@@ -80,7 +80,7 @@ func _ready() -> void:
 	_camera_default_position = _node_camera.position
 	
 	_wield.add_wieldable(Wieldable.NONE,             "")
-	_wield.add_wieldable(Wieldable.PUSH,             "wield_push", true, false, {"movement_multiplier": 0.2})
+	_wield.add_wieldable(Wieldable.PUSH,             "wield_push", true, false, {"movement_multiplier": 0.1})
 	_wield.add_wieldable(Wieldable.LVL_0_HITGROUND,  "lvl_0_landing", false, true, {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0, "movement_multiplier": 0.0})
 
 	_ensure_sound_controller()
@@ -168,8 +168,8 @@ func _physics_process(delta: float) -> void:
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
 	if direction:
-		velocity.x = direction.x * SPEED * _get_movement_speed_multiplier()
-		velocity.z = direction.z * SPEED * _get_movement_speed_multiplier()
+		velocity.x = direction.x * SPEED * _get_movement_speed_multiplier(delta)
+		velocity.z = direction.z * SPEED * _get_movement_speed_multiplier(delta)
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
 		velocity.z = move_toward(velocity.z, 0, SPEED)
@@ -272,11 +272,19 @@ func _unhandled_input(event: InputEvent) -> void:
 			if not is_rotating_limited:
 				_handle_camera_limits(9999.0)
 
-func _get_movement_speed_multiplier() -> float:
+var _current_speed_multiplier: float = 1.0
+func _get_movement_speed_multiplier(delta: float) -> float:
+	const SLOWER_CHANGE_SPEED: float = 10.0
+	const FASTER_CHANGE_SPEED: float = 1.0
+	var target: float = 1.0
 	var active_wieldable_data := _wield.active_wieldable_data
 	if active_wieldable_data:
-		return active_wieldable_data.movement_multiplier
-	return 1.0
+		target = active_wieldable_data.movement_multiplier
+	var change_speed: float = min(1.0, SLOWER_CHANGE_SPEED * delta)
+	if target > _current_speed_multiplier:
+		change_speed = min(1.0, FASTER_CHANGE_SPEED * delta)
+	_current_speed_multiplier = (_current_speed_multiplier * (1.0 - change_speed)) + (target * change_speed)
+	return _current_speed_multiplier
 
 func _get_animation_speed_multiplier() -> float:
 	match active_wieldable:
