@@ -1,5 +1,11 @@
 extends Area3D
 
+enum Mode {
+	None,
+	PlayerVoice,
+}
+
+@export var mode: Mode = Mode.None
 @export var sound: AudioStream = null
 @export var play_once: bool = true
 
@@ -29,6 +35,17 @@ func _on_body_entered(body: Node3D) -> void:
 		if _audio_player == null:
 			push_error("_audio_player is null in trigger_sfx.gd")
 			return
+		
+		var target_player: AudioStreamPlayer3D = _audio_player
+		if mode == Mode.PlayerVoice:
+			target_player = _player.audio_player_voice
+			if target_player == null:
+				push_error("Player audio_player is null in trigger_sfx.gd")
+				return
 			
-		_audio_player.play()
+			if target_player.playing:
+				target_player.stop()
+			
+		target_player.stream = sound
+		target_player.play()
 		_has_played = true

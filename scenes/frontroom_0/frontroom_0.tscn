@@ -259,6 +259,7 @@ shape = SubResource("BoxShape3D_qjbi0")
 transform = Transform3D(0.8994232, 0, -0.43707883, 0, 1, 0, 0.43707883, 0, 0.8994232, -3.6275575, 1.6841257, 0.013358653)
 collision_layer = 9
 collision_mask = 9
+mass = 0.3
 script = ExtResource("7_32rw2")
 slide_pitch_scale = 0.5
 bonk_pitch_scale = 0.3
@@ -308,6 +309,7 @@ parameters/looping = true
 [node name="trigger_sfx_first_box_encounter" type="Area3D" parent="." unique_id=1481960487]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.347052, 1.1094898, 0.786355)
 script = ExtResource("10_rppe7")
+mode = 1
 sound = ExtResource("11_m8kbl")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_first_box_encounter" unique_id=803637745]
@@ -317,6 +319,7 @@ shape = SubResource("SphereShape3D_khlrb")
 [node name="trigger_sfx_first_box_encounter2" type="Area3D" parent="." unique_id=1383819099]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1417344, 1.1094898, -1.5103629)
 script = ExtResource("10_rppe7")
+mode = 1
 sound = ExtResource("12_sfm4i")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_first_box_encounter2" unique_id=213028683]

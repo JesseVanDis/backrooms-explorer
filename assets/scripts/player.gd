@@ -15,6 +15,7 @@ enum Wieldable {NONE, PUSH, LVL_0_HITGROUND}
 @onready var _node_camera : Camera3D = null
 @onready var _node_hands_yaw : Node3D = null
 @onready var _audio_player: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D
+@onready var audio_player_voice: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D_Voice
 var push_target: Node3D = null
 
 @export var max_fall_speed: float = 0.0
