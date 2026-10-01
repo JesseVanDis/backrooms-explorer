@@ -8,15 +8,47 @@ extends Node3D
 var _player: Player
 var _level_transition: LevelTransition
 const LVL_0_PATH: String = "res://scenes/lvl_0/lvl_0.tscn"
+const MENU_INTRO_PATH: String = "res://scenes/menu_intro/menu_intro.tscn"
 
 
 func _ready() -> void:
 	_player = UtilsNode.find_player(get_tree())
 	if _player == null:
 		push_error("Player not found in scene tree")
+	else:
+		_player.control_enabled = false
 	
 	_level_transition = LevelTransition.new(get_tree())
 	_level_transition.preload_level(LVL_0_PATH)
+	
+	await _show_intro()
+
+func _show_intro() -> void:
+	const INTRO_WAIT_TIME: float = 3.0
+	const FADE_OUT_DURATION: float = 2.0
+	
+	var intro_scene: PackedScene = load(MENU_INTRO_PATH)
+	if intro_scene == null:
+		push_error("Failed to load intro scene: " + MENU_INTRO_PATH)
+		if _player != null:
+			_player.control_enabled = true
+		return
+		
+	var intro_node: Node = intro_scene.instantiate()
+	if intro_node == null:
+		push_error("Failed to instantiate intro scene")
+		if _player != null:
+			_player.control_enabled = true
+		return
+	
+	get_tree().root.add_child.call_deferred(intro_node)
+	
+	await get_tree().create_timer(INTRO_WAIT_TIME).timeout
+	
+	if _player != null:
+		_player.control_enabled = true
+	
+	UtilsScreen.fade_out(intro_node, FADE_OUT_DURATION, intro_node.queue_free)
 
 func _physics_process(_dt: float) -> void:
 	_update_player_speed()

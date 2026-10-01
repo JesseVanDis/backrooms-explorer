@@ -54,6 +54,7 @@ var _footstep_timer: float = 0.0
 #RaytracedAudioPlayer3D_Footsteps
 
 var _wield: PlayerWield = PlayerWield.new(self)
+var control_enabled: bool = true
 var active_wieldable: Wieldable:
 	get:        return _wield.active_wieldable as Wieldable
 	set(value): _wield.active_wieldable = value
@@ -150,6 +151,14 @@ func _process(_delta: float) -> void:
 	pass
 
 func _physics_process(delta: float) -> void:
+	if not control_enabled:
+		velocity.x = move_toward(velocity.x, 0, SPEED)
+		velocity.z = move_toward(velocity.z, 0, SPEED)
+		if not is_on_floor():
+			velocity += get_gravity() * delta
+		move_and_slide()
+		return
+
 	var was_in_air: bool = not is_on_floor()
 	# Add the gravity.
 	if not is_on_floor():
@@ -255,6 +264,9 @@ func _handle_camera_limits(dt: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not control_enabled:
+		return
+		
 	if event is InputEventMouseButton:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	elif event.is_action_pressed("ui_cancel"):
