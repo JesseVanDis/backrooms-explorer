@@ -39,6 +39,17 @@ awk -v tmp="$tmp2" '
     }
 ' project.godot > ${tmp3} && mv ${tmp3} project.godot
 
+if [ -n "$1" ]; then
+  if [[ "$1" == *.gd ]] && [ -f "$1" ]; then
+    echo "checking file: '$1'"
+    godot --headless --path . --check-only --script "$1"
+    exit 0
+  else
+    echo "Error: Argument '$1' is not a valid .gd file."
+    exit 1
+  fi
+fi
+
 find . -name "*.gd" -print0 | while IFS= read -r -d '' file; do
   echo "checking file: '${file}'"
   godot --headless --path . --check-only --script "$file"
