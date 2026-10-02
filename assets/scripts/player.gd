@@ -14,7 +14,7 @@ enum Wieldable {NONE, PUSH, LVL_0_HITGROUND}
 
 @onready var _node_camera : Camera3D = null
 @onready var _node_hands_yaw : Node3D = null
-@onready var _node_subtitles : Label = $_UI/_Subtitles
+@onready var _node_subtitles : PlayerSubtitles = $_UI/_Subtitles
 @onready var _audio_player: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D
 @export var active_voice_sequence: Array[AudioStream] = []:
 	set(value):
@@ -86,6 +86,7 @@ func _ready() -> void:
 	_wield.add_wieldable(Wieldable.LVL_0_HITGROUND,  "lvl_0_landing", false, true, {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0, "movement_multiplier": 0.0})
 
 	_ensure_sound_controller()
+	_node_subtitles.setup(_audio_player_voice)
 	_audio_player_voice.finished.connect(_on_voice_finished)
 
 
@@ -94,6 +95,7 @@ func _on_active_voice_sequence_changed() -> void:
 		return
 		
 	_audio_player_voice.stop()
+	_node_subtitles.stop_subtitles()
 	_remaining_voice_sequence = active_voice_sequence.duplicate()
 	_play_next_voice()
 
@@ -102,6 +104,7 @@ func add_sub_en(path: String) -> String:
 	return base + "_sub_en.srt"
 
 func _on_voice_finished() -> void:
+	_node_subtitles.stop_subtitles()
 	_play_next_voice()
 
 func _play_next_voice() -> void:
@@ -114,12 +117,12 @@ func _play_next_voice() -> void:
 		_play_next_voice()
 		return
 	
-	var subtitle_path = add_sub_en(next_stream.resource_path)
+	var subtitle_path: String = add_sub_en(next_stream.resource_path)
 	print("Player stream: " + subtitle_path)
 	
 	_audio_player_voice.stream = next_stream
 	_audio_player_voice.play()
-
+	_node_subtitles.play_subtitles(subtitle_path)
 
 func _ensure_sound_controller() -> void:
 	if not is_inside_tree():
