@@ -264,9 +264,6 @@ func _handle_camera_limits(dt: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not control_enabled:
-		return
-		
 	if event is InputEventMouseButton:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	elif event.is_action_pressed("ui_cancel"):
@@ -279,10 +276,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			var is_rotating_limited: bool = active_wieldable_data and (active_wieldable_data.max_look_freedom_degrees_h < 360.0 or active_wieldable_data.max_look_freedom_degrees_v < 360.0)
 			if is_rotating_limited:
 				motion_speed = 0.0005
-			rotate_y(-event_mouse_motion.relative.x * motion_speed)
-			_node_camera.rotate_x(-event_mouse_motion.relative.y * motion_speed)
-			if not is_rotating_limited:
-				_handle_camera_limits(9999.0)
+			if control_enabled:
+				rotate_y(-event_mouse_motion.relative.x * motion_speed)
+				_node_camera.rotate_x(-event_mouse_motion.relative.y * motion_speed)
+				if not is_rotating_limited:
+					_handle_camera_limits(9999.0)
 
 var _current_speed_multiplier: float = 1.0
 func _get_movement_speed_multiplier(delta: float) -> float:
