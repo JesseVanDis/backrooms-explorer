@@ -14,6 +14,7 @@ enum Wieldable {NONE, PUSH, LVL_0_HITGROUND}
 
 @onready var _node_camera : Camera3D = null
 @onready var _node_hands_yaw : Node3D = null
+@onready var _node_subtitles : Label = $_UI/_Subtitles
 @onready var _audio_player: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D
 @export var active_voice_sequence: Array[AudioStream] = []:
 	set(value):
@@ -96,6 +97,10 @@ func _on_active_voice_sequence_changed() -> void:
 	_remaining_voice_sequence = active_voice_sequence.duplicate()
 	_play_next_voice()
 
+func add_sub_en(path: String) -> String:
+	var base := path.get_basename()
+	return base + "_sub_en.srt"
+
 func _on_voice_finished() -> void:
 	_play_next_voice()
 
@@ -108,6 +113,9 @@ func _play_next_voice() -> void:
 		push_error("AudioStream is null in voice sequence")
 		_play_next_voice()
 		return
+	
+	var subtitle_path = add_sub_en(next_stream.resource_path)
+	print("Player stream: " + subtitle_path)
 	
 	_audio_player_voice.stream = next_stream
 	_audio_player_voice.play()
