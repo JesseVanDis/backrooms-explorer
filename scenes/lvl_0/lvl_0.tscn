@@ -10,6 +10,8 @@
 [ext_resource type="PackedScene" uid="uid://3lboeybp8vsi" path="res://scenes/lvl_0/entry_tube.tscn" id="8_qmsdi"]
 [ext_resource type="PackedScene" uid="uid://giixkepmc5qq" path="res://assets/models/box.gltf" id="9_63adb"]
 [ext_resource type="Script" uid="uid://db62uy3m6hb32" path="res://assets/scripts/sound_controller.gd" id="10_mkhuw"]
+[ext_resource type="Script" uid="uid://tlc6a6hl8tfg" path="res://assets/scripts/trigger.gd" id="11_ns1bo"]
+[ext_resource type="AudioStream" uid="uid://cnoiuwlkje0sx" path="res://scenes/lvl_0/voice/gen/voice_landing.ogg" id="12_n8t5v"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -41,6 +43,9 @@ size = Vector3(0.6553345, 0.62701416, 0.8041992)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_f4hk2"]
 size = Vector3(7.057373, 7.6053467, 1)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_khlrb"]
+radius = 4.696
 
 [node name="lvl_0" type="Node3D" unique_id=1577277307]
 script = ExtResource("1_j6thp")
@@ -190,3 +195,12 @@ transform = Transform3D(-0.84877837, -0.119614236, -0.51504195, 0.50583285, 0.09
 [node name="CollisionShape3D3" type="CollisionShape3D" parent="StaticBody3D" unique_id=530382544]
 transform = Transform3D(0.70710677, -0.70710677, 3.090862e-08, 0.70710677, 0.70710677, 1.2802772e-08, -3.090862e-08, 1.2802778e-08, 1, -1.5868654, 2.4288433, -2.5260518)
 shape = SubResource("BoxShape3D_f4hk2")
+
+[node name="Area3D" type="Area3D" parent="." unique_id=1740220397]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.392723, 0)
+script = ExtResource("11_ns1bo")
+mode = 1
+sounds = Array[AudioStream]([ExtResource("12_n8t5v")])
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=611511678]
+shape = SubResource("SphereShape3D_khlrb")

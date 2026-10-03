@@ -1,4 +1,5 @@
 extends Area3D
+class_name Trigger
 
 enum Mode {
 	None,
@@ -25,7 +26,6 @@ func _on_body_entered(body: Node3D) -> void:
 	if play_once and _has_played:
 		return
 	
-	print("Body entered: " + body.name)
 	var target_trigger: Node3D = trigger_object
 	if target_trigger == null:
 		if _player == null:
@@ -40,7 +40,7 @@ func _on_body_entered(body: Node3D) -> void:
 	if body != target_trigger:
 		return
 		
-	print("Body entered: " + body.name + " TRIGGER!")
+	print("Body entered: " + body.name + ". ")
 	
 	match mode:
 		Mode.None:
