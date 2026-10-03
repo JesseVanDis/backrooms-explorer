@@ -18,16 +18,23 @@ enum Condition {
 ## If empty, it will use the player as default.
 @export var trigger_object: Node3D = null
 @export var sounds: Array[AudioStream] = []
-@export var play_once: bool = true
 @export var trigger_delay_ms: int = 0
 
 @export_group("Condition")
 @export var condition: Condition = Condition.None
 @export var condition_arg_node: Node3D = null
 
-var _has_played: bool = false
+var _has_triggered: bool = false
 var _audio_player: AudioStreamPlayer3D = null
 var _player: Player = null
+var _is_target_inside: bool = false
+
+func get_player() -> Player:
+	if _player == null:
+		_player = UtilsNode.find_player(get_tree())
+	if _player == null:
+		push_error("Player not found in trigger.gd")
+	return _player
 
 func _ready() -> void:
 	_audio_player = AudioStreamPlayer3D.new()
@@ -36,46 +43,51 @@ func _ready() -> void:
 		push_error("condition Condition.PlayerLookAtNode requires a valid condition_arg_node")
 	
 	body_entered.connect(_on_body_entered)
+	body_exited.connect(_on_body_exited)
 
-func _on_body_entered(body: Node3D) -> void:
-	if play_once and _has_played:
-		return
-	
+func _on_body_exited(body: Node3D) -> void:
 	var target_trigger: Node3D = trigger_object
 	if target_trigger == null:
-		if _player == null:
-			_player = UtilsNode.find_player(get_tree())
-		
-		if _player == null:
-			push_error("Player not found in trigger.gd")
-			return
-		
-		target_trigger = _player
-		
-	if body != target_trigger:
+		target_trigger = get_player()
+	if body == target_trigger:
+		_is_target_inside = false
+
+func _on_body_entered(body: Node3D) -> void:
+	var target_trigger: Node3D = trigger_object
+	if target_trigger == null:
+		target_trigger = get_player()
+	if body == target_trigger:
+		_is_target_inside = true
+
+func _process(_delta: float) -> void:
+	if _has_triggered:
 		return
-		
-	print("Body entered: " + body.name + ". ")
-
-	if play_once:
-		_has_played = true
-
-	if trigger_delay_ms > 0:
-		await get_tree().create_timer(trigger_delay_ms / 1000.0).timeout
+	
+	var trigger: bool = false
 	
 	match condition:
 		Condition.None:
-			_trigger()
+			if _is_target_inside:
+				trigger = true
 		
 		Condition.PlayerLookAtNode:
-			if _player == null:
-				_player = UtilsNode.find_player(get_tree())
-			TODO: Implement.
+			if _is_target_inside:
+				var camera: Camera3D = UtilsNode.find_camera_recursive(get_player())
+				var to_node: Vector3 = (condition_arg_node.global_position - camera.global_position).normalized()
+				var forward: Vector3 = -camera.global_basis.z
+				var dot: float = forward.dot(to_node)
+				if dot > 0.85: # Approximately 30 degrees
+					trigger = true
+	
+	if trigger:
+		_has_triggered = true
+		await _trigger()
+
 
 func _trigger() -> void:
-	if _player == null:
-		_player = UtilsNode.find_player(get_tree())
-	
+	if trigger_delay_ms > 0:
+		await get_tree().create_timer(trigger_delay_ms / 1000.0).timeout
+
 	match mode:
 		Mode.None:
 			if sounds.size() == 0:
@@ -88,12 +100,12 @@ func _trigger() -> void:
 				push_error("Non-voice sound sequence not implemented yet.")
 		
 		Mode.PlayerVoice_Replace:
-			_player.replace_voice(sounds)
+			get_player().replace_voice(sounds)
 		
 		Mode.PlayerVoice_PushBack:
-			_player.push_back_voice(sounds)
+			get_player().push_back_voice(sounds)
 				
 		Mode.PlayerVoice_PushFront:
-			_player.push_front_voice(sounds)
+			get_player().push_front_voice(sounds)
 	
 	

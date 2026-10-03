@@ -17,3 +17,4 @@
 ./scenes/lvl_0/voice/voice_whats_it_doing_under_my_house.flac:1791053683
 ./scenes/lvl_0/voice/voice_moving_boxes_found.flac:1791056076
 ./scenes/lvl_0/voice/voice_why_stuck.flac:1791056088
+./scenes/lvl_0/voice/voice_still_intact.flac:1791063726
