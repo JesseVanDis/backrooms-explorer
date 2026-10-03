@@ -1,0 +1,17 @@
+./scenes/lvl_0/voice/voice_anybody_there.flac:1791038396
+./scenes/lvl_0/voice/voice_bad_taste.flac:1791037628
+./scenes/lvl_0/voice/voice_fell_from_above.flac:1791038267
+./scenes/lvl_0/voice/voice_find_the_exit_then.flac:1791038468
+./scenes/lvl_0/voice/voice_moving_boxes_found.flac:1791038316
+./scenes/lvl_0/voice/voice_scream_hello.flac:1791038448
+./scenes/lvl_0/voice/voice_scream_jen.flac:1791038239
+./scenes/lvl_0/voice/voice_yell_hello.flac:1791038364
+./scenes/lvl_0/voice/voice_yell_jen.flac:1791038219
+./scenes/frontroom_0/voice/voice_boxes_gone.flac:1790881303
+./scenes/frontroom_0/voice/voice_first_box_encounter.flac:1790801243
+./scenes/frontroom_0/voice/voice_home.flac:1790714967
+./scenes/frontroom_0/voice/voice_im_home.flac:1790880328
+./scenes/frontroom_0/voice/voice_more_boxes.flac:1790885833
+./scenes/frontroom_0/voice/voice_scream_jen.flac:1790880497
+./scenes/frontroom_0/voice/voice_slip_fall.flac:1790882102
+./scenes/lvl_0/voice/voice_landing.flac:1791040622

@@ -2,6 +2,8 @@
 
 # parse.sh - Parsing tools for backrooms-explorer
 
+TRACKING_FILE="$(dirname "$0")/.parse_sh_latest_changes.txt"
+
 show_help() {
     echo "Usage: parse.sh [OPTION] [ARGS]"
     echo ""
@@ -16,6 +18,47 @@ check_ffmpeg() {
         echo "Error: ffmpeg is not found on the machine. Please install it to continue." >&2
         exit 1
     fi
+}
+
+# Function to get mtime in epoch
+get_mtime() {
+    stat -c %Y "$1"
+}
+
+# Function to check if file has changed
+has_changed() {
+    local file="$1"
+    local current_mtime
+    current_mtime=$(get_mtime "$file")
+    
+    if [ ! -f "$TRACKING_FILE" ]; then
+        return 0 # Has changed (or rather, no record exists)
+    fi
+    
+    local recorded_mtime
+    recorded_mtime=$(grep "^$file:" "$TRACKING_FILE" | cut -d: -f2)
+    
+    if [ -z "$recorded_mtime" ] || [ "$current_mtime" -gt "$recorded_mtime" ]; then
+        return 0 # Changed
+    fi
+    
+    return 1 # Not changed
+}
+
+# Function to update tracking file
+update_tracking() {
+    local file="$1"
+    local current_mtime
+    current_mtime=$(get_mtime "$file")
+    
+    # Create tracking file if it doesn't exist
+    touch "$TRACKING_FILE"
+    
+    # Remove old entry if exists and append new one
+    # Using a temp file for safety
+    grep -v "^$file:" "$TRACKING_FILE" > "${TRACKING_FILE}.tmp" 2>/dev/null || true
+    echo "$file:$current_mtime" >> "${TRACKING_FILE}.tmp"
+    mv "${TRACKING_FILE}.tmp" "$TRACKING_FILE"
 }
 
 convert_flac_to_ogg() {
@@ -38,8 +81,16 @@ convert_flac_to_ogg() {
                 filename=$(basename "$flac_file" .flac)
                 local output_file="$gen_dir/$filename.ogg"
                 
-                echo "Converting $flac_file to $output_file"
-                ffmpeg -i "$flac_file" -y -acodec libvorbis "$output_file" </dev/null
+                if has_changed "$flac_file"; then
+                    echo "Converting $flac_file to $output_file"
+                    if ffmpeg -i "$flac_file" -y -acodec libvorbis "$output_file" </dev/null >/dev/null 2>&1; then
+                        update_tracking "$flac_file"
+                    else
+                        echo "Error: Failed to convert $flac_file" >&2
+                    fi
+                else
+                    echo "Skipping $flac_file (unchanged)"
+                fi
             done
         done
     else
@@ -59,8 +110,16 @@ convert_flac_to_ogg() {
             filename=$(basename "$flac_file" .flac)
             local output_file="$output_folder/$filename.ogg"
             
-            echo "Converting $flac_file to $output_file"
-            ffmpeg -i "$flac_file" -y -acodec libvorbis "$output_file" </dev/null
+            if has_changed "$flac_file"; then
+                echo "Converting $flac_file to $output_file"
+                if ffmpeg -i "$flac_file" -y -acodec libvorbis "$output_file" </dev/null >/dev/null 2>&1; then
+                    update_tracking "$flac_file"
+                else
+                    echo "Error: Failed to convert $flac_file" >&2
+                fi
+            else
+                echo "Skipping $flac_file (unchanged)"
+            fi
         done
     fi
 }
