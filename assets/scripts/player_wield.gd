@@ -11,12 +11,20 @@ var _wield_state: WieldState = WieldState.NONE
 var _seconds_since_equiping_start: float = 0.0
 var _wieldables: Dictionary = {}
 var _player: Node3D = null
+var _old_animation_time_ms: int = 0
 
 func _init(player: Node3D) -> void:
 	_player = player
 
 func add_wieldable(unique_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void:
 	_wieldables[unique_name] = WieldableData.new(_player, unique_name, p_rewind_for_dequip, p_clear_wield_when_finish, p_additional_args)
+
+func _on_animation_action(wieldable: WieldableData, action_name: String, action_value: Variant) -> void:
+	print("animation action '" + action_name + "' fired with value: '" + str(action_value) + "'")
+	if action_name == "set_animation_speed":
+		var value: float = action_value
+		wieldable.animation_player.speed_scale = value
+	
 
 func update(dt: float) -> void:
 	_seconds_since_equiping_start = _seconds_since_equiping_start + dt
@@ -44,6 +52,7 @@ func update(dt: float) -> void:
 			else:
 				_wield_state = WieldState.NONE
 			_wieldable_old = active_wieldable
+			_old_animation_time_ms = 0
 			
 		WieldState.EQUIPING:
 			var new_wieldable: WieldableData = _wieldables[active_wieldable]
@@ -52,7 +61,12 @@ func update(dt: float) -> void:
 					active_wieldable = ""
 				_wield_state = WieldState.NONE
 			else:
-				var actions_to_file: Array[Action] = []
+				var current_anim_time_ms: int = int(new_wieldable.animation_player.current_animation_position * 1000.0)
+				for action: Action in new_wieldable.actions_at_millisecond:
+					if action.trigger_time_millis > _old_animation_time_ms and action.trigger_time_millis <= current_anim_time_ms:
+						_on_animation_action(new_wieldable, action.action_name, action.action_value)
+				
+				_old_animation_time_ms = current_anim_time_ms
 	
 
 var active_wieldable_data: WieldableData:

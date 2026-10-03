@@ -27,15 +27,16 @@ class SpeedScale:
 @export var initial_yaw: float = 0.0
 @export var initial_pitch: float = 0.0
 
-@export var active_voice_sequence: Array[AudioStream] = []:
-	set(value):
-		active_voice_sequence = value
-		_on_active_voice_sequence_changed()
 @onready var _audio_player_voice: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D_Voice
 @onready var _node_camera : Camera3D = null
 @onready var _node_hands_yaw : Node3D = null
 @onready var _node_subtitles : PlayerSubtitles = $_UI/_Subtitles
 @onready var _audio_player: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D
+
+var active_voice_sequence: Array[AudioStream] = []:
+	set(value):
+		active_voice_sequence = value
+		_on_active_voice_sequence_changed()
 
 var _remaining_voice_sequence: Array[AudioStream] = []
 var wield_target: Node3D = null

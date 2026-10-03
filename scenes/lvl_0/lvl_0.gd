@@ -77,9 +77,9 @@ func _ready() -> void:
 							"max_look_freedom_degrees_h": 0.0, 
 							"movement_multiplier": 0.0,
 							"actions_at_millisecond": [
-								{600:  {"set_animation_speed": 0.2}},
-								{600:  {"set_animation_speed": 0.2}},
-								{1000: {"set_animation_speed": 1.0}}
+								{600:  {"set_animation_speed": 0.13}},
+								{1000: {"set_animation_speed": 0.3}},
+								{2000: {"set_animation_speed": 1.0}}
 							]
 						})
 
