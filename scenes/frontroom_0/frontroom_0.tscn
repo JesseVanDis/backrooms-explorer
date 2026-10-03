@@ -232,6 +232,11 @@ surface_material_override/0 = SubResource("ShaderMaterial_f4hk2")
 
 [node name="Player" parent="." unique_id=1091834531 instance=ExtResource("4_8lqa0")]
 transform = Transform3D(-0.50000006, 0, 0.8660254, 0, 1, 0, -0.8660254, 0, -0.50000006, 1.1181391, 1.3164781, -0.92704856)
+max_fall_speed = 0.0
+initial_velocity = Vector3(0, 0, 0)
+initial_yaw = 0.0
+initial_pitch = 0.0
+active_voice_sequence = Array[AudioStream]([])
 
 [node name="MovingBox1" type="RigidBody3D" parent="." unique_id=841379533]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2216473, 0.6885196, -1.5114428)
@@ -254,27 +259,50 @@ surface_material_override/0 = ExtResource("6_m4q7u")
 transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-08, 0, 0.37513602, 0)
 shape = SubResource("BoxShape3D_qjbi0")
 
-[node name="MovingBox3" type="RigidBody3D" parent="." unique_id=1998759815]
-transform = Transform3D(0.9904443, 0, -0.13791342, 0, 1, 0, 0.13791342, 0, 0.9904443, -3.7499943, 1.023144, 0.34894997)
+[node name="MovingBox_kitchen_big" type="RigidBody3D" parent="." unique_id=1998759815]
+transform = Transform3D(0.9904443, 0, -0.13791342, 0, 1, 0, 0.13791342, 0, 0.9904443, -3.7436552, 1.0231439, 0.68941617)
 collision_layer = 262
 collision_mask = 261
-mass = 2.0
+mass = 5.0
+center_of_mass_mode = 1
+center_of_mass = Vector3(0, -2, 0)
 script = ExtResource("7_32rw2")
 slide_pitch_scale = 0.5
 bonk_pitch_scale = 0.3
 
-[node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox3" unique_id=27932876]
+[node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox_kitchen_big" unique_id=27932876]
 transform = Transform3D(1.4, 0, 0, 0, -5.2453668e-08, -2.2, 0, 1.2, -9.616505e-08, 0, 0.55220044, 0)
 gi_mode = 2
 mesh = SubResource("ArrayMesh_xv7e5")
 surface_material_override/0 = ExtResource("6_m4q7u")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox3" unique_id=2069263377]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox_kitchen_big" unique_id=2069263377]
 transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-08, 0, 0.2957585, 0)
 shape = SubResource("BoxShape3D_22odh")
 
-[node name="MovingBox4" type="RigidBody3D" parent="." unique_id=356866854]
-transform = Transform3D(0.8994232, 0, -0.43707883, 0, 1, 0, 0.43707883, 0, 0.8994232, -3.772182, 2.1948595, 0.12519318)
+[node name="MovingBox_kitchen_big2" type="RigidBody3D" parent="." unique_id=2106589891]
+transform = Transform3D(0.99463314, 0, 0.103464454, 0, 1, 0, -0.103464454, 0, 0.99463314, -3.466228, 1.0231439, -0.16540754)
+collision_layer = 262
+collision_mask = 261
+mass = 5.0
+center_of_mass_mode = 1
+center_of_mass = Vector3(0, -2, 0)
+script = ExtResource("7_32rw2")
+slide_pitch_scale = 0.5
+bonk_pitch_scale = 0.3
+
+[node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox_kitchen_big2" unique_id=1641440176]
+transform = Transform3D(1.4, 0, 0, 0, -5.2453668e-08, -2.2, 0, 1.2, -9.616505e-08, 0, 0.55220044, 0)
+gi_mode = 2
+mesh = SubResource("ArrayMesh_xv7e5")
+surface_material_override/0 = ExtResource("6_m4q7u")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox_kitchen_big2" unique_id=1212167262]
+transform = Transform3D(1.3, 0, 0, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6824803e-08, 0, 0.2957585, 0)
+shape = SubResource("BoxShape3D_22odh")
+
+[node name="MovingBox_kitchen_small" type="RigidBody3D" parent="." unique_id=356866854]
+transform = Transform3D(0.8994232, 0, -0.43707883, 0, 1, 0, 0.43707883, 0, 0.8994232, -3.4703858, 2.1948595, 0.26664257)
 collision_layer = 265
 collision_mask = 265
 mass = 0.3
@@ -282,17 +310,17 @@ script = ExtResource("7_32rw2")
 slide_pitch_scale = 0.5
 bonk_pitch_scale = 0.3
 
-[node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox4" unique_id=1129377444]
+[node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox_kitchen_small" unique_id=1129377444]
 transform = Transform3D(0.5, 0, 0, 0, -2.1855694e-08, -0.3, 0, 0.5, -1.3113417e-08, 0, 0, 0)
 gi_mode = 2
 mesh = SubResource("ArrayMesh_xv7e5")
 surface_material_override/0 = ExtResource("6_m4q7u")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox4" unique_id=2096170940]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox_kitchen_small" unique_id=2096170940]
 transform = Transform3D(1.3000003, -2.9802322e-07, 8.881784e-15, 0, -5.6824803e-08, -1.3, 2.9802322e-07, 1.3000003, -5.682664e-08, -0.0014986992, -0.04051423, 0.0006978512)
 shape = SubResource("BoxShape3D_hajl5")
 
-[node name="MovingBox5" type="RigidBody3D" parent="." unique_id=48673224]
+[node name="MovingBox_kitchen_medium" type="RigidBody3D" parent="." unique_id=48673224]
 transform = Transform3D(0.99887145, 0, 0.04749772, 0, 1, 0, -0.04749772, 0, 0.99887145, -2.8117137, 0.9589776, -1.979409)
 collision_layer = 265
 collision_mask = 265
@@ -301,13 +329,13 @@ script = ExtResource("7_32rw2")
 slide_pitch_scale = 0.5
 bonk_pitch_scale = 0.3
 
-[node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox5" unique_id=10658963]
+[node name="BoxesOBJ_001" type="MeshInstance3D" parent="MovingBox_kitchen_medium" unique_id=10658963]
 transform = Transform3D(1.4, 0, 0, 0, -4.371139e-08, -0.8, 0, 1, -3.4969112e-08, 0, 0, 0)
 gi_mode = 2
 mesh = SubResource("ArrayMesh_xv7e5")
 surface_material_override/0 = ExtResource("6_m4q7u")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox5" unique_id=1170627668]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBox_kitchen_medium" unique_id=1170627668]
 transform = Transform3D(1.3, 0, -3.330669e-15, 0, -5.6824803e-08, -1.3, 0, 1.3, -5.6826565e-08, -0.0009467602, -0.09876108, -0.00067281723)
 shape = SubResource("BoxShape3D_sfm4i")
 

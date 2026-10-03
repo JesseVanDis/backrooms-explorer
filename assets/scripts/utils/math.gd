@@ -1,6 +1,6 @@
 extends Node
 
-class_name Math
+class_name UtilsMath
 
 
 
@@ -55,6 +55,9 @@ static func xz_distance(pos1: Vector3, pos2: Vector3) -> float:
 	var dx: float = pos1.x - pos2.x
 	var dz: float = pos1.z - pos2.z
 	return sqrt(dx * dx + dz * dz)
+
+static func xz_normal(normal: Vector3) -> Vector2:
+	return Vector2(normal.x, normal.z).normalized()
 
 static func _smooth_fraction(x: float) -> float:
 	return smooth_step(fraction(x))

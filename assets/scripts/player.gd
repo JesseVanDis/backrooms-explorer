@@ -23,7 +23,7 @@ class SpeedScale:
 
 enum Wieldable {NONE, PUSH, LVL_0_HITGROUND}
 
-@export var speed: float = 3.0
+@export var max_speed: float = 3.0
 @export var max_fall_speed: float = 0.0
 @export var initial_velocity: Vector3 = Vector3.ZERO
 @export var initial_yaw: float = 0.0
@@ -40,7 +40,7 @@ enum Wieldable {NONE, PUSH, LVL_0_HITGROUND}
 @onready var _audio_player: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D
 
 var _remaining_voice_sequence: Array[AudioStream] = []
-var push_target: Node3D = null
+var wield_target: Node3D = null
 
 
 const FOOTSTEP_SOUNDS: Array[AudioStream] = [
@@ -65,6 +65,7 @@ var _footstep_start_sound: AudioStream = FOOTSTEP_START_SOUND
 var _jump_sounds: Array[AudioStream] = JUMP_SOUNDS
 var _landing_sounds: Array[AudioStream] = LANDING_SOUNDS
 var _footstep_timer: float = 0.0
+var _old_global_pos: Vector3 = Vector3(0,0,0)
 
 #RaytracedAudioPlayer3D_Footsteps
 
@@ -78,6 +79,13 @@ var active_wieldable: Wieldable:
 var _camera_default_position: Vector3 = Vector3.ZERO
 var _bob_phase: float = 0.0
 var _is_moving: bool = false
+
+var forward_2d: Vector2:
+	get(): return UtilsMath.xz_normal(-transform.basis.z)
+
+var moving_direction_2d: Vector2:
+	get(): return UtilsMath.xz_normal(global_position - _old_global_pos)
+
 
 func _ready() -> void:
 	UtilsScreen.fade_out_screen(get_tree())
@@ -96,7 +104,7 @@ func _ready() -> void:
 	_camera_default_position = _node_camera.position
 	
 	_wield.add_wieldable(Wieldable.NONE,             "")
-	_wield.add_wieldable(Wieldable.PUSH,             "wield_push", true, false, {"max_movement_speed": 0.2})
+	_wield.add_wieldable(Wieldable.PUSH,             "wield_push", true, false, {"max_movement_speed_to_target": 0.15})
 	_wield.add_wieldable(Wieldable.LVL_0_HITGROUND,  "lvl_0_landing", false, true, {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0, "movement_multiplier": 0.0})
 
 	_ensure_sound_controller()
@@ -177,13 +185,15 @@ func _process(_delta: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	if not control_enabled:
-		velocity.x = move_toward(velocity.x, 0, speed)
-		velocity.z = move_toward(velocity.z, 0, speed)
+		velocity.x = move_toward(velocity.x, 0, max_speed)
+		velocity.z = move_toward(velocity.z, 0, max_speed)
 		if not is_on_floor():
 			velocity += get_gravity() * delta
 		move_and_slide()
 		return
-
+	
+	#_update_speed_cap(delta)
+	
 	var was_in_air: bool = not is_on_floor()
 	# Add the gravity.
 	if not is_on_floor():
@@ -202,11 +212,11 @@ func _physics_process(delta: float) -> void:
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
 	if direction:
-		velocity.x = direction.x * speed * _get_movement_speed_multiplier(delta)
-		velocity.z = direction.z * speed * _get_movement_speed_multiplier(delta)
+		velocity.x = direction.x * _current_speed(Vector2(direction.x, direction.z))
+		velocity.z = direction.z * _current_speed(Vector2(direction.x, direction.z))
 	else:
-		velocity.x = move_toward(velocity.x, 0, speed)
-		velocity.z = move_toward(velocity.z, 0, speed)
+		velocity.x = move_toward(velocity.x, 0, max_speed)
+		velocity.z = move_toward(velocity.z, 0, max_speed)
 	
 	move_and_slide()
 	
@@ -224,6 +234,7 @@ func _physics_process(delta: float) -> void:
 	_handle_camera_limits(delta)
 	_handle_head_bob(delta)
 	_handle_footsteps(delta)
+	_old_global_pos = global_position
 
 func _play_footstep() -> void:
 	if _footstep_sounds.is_empty():
@@ -307,46 +318,47 @@ func _unhandled_input(event: InputEvent) -> void:
 				if not is_rotating_limited:
 					_handle_camera_limits(9999.0)
 
-var _current_speed_multiplier: float = 1.0
-func _get_movement_speed_multiplier(delta: float) -> float:
-	const SLOWER_CHANGE_SPEED: float = 10.0
-	const FASTER_CHANGE_SPEED: float = 1.0
-	var target: float = 1.0
+func _current_speed(direction: Vector2) -> float:
+	var dir: Vector2 = direction
+	if !dir.is_normalized():
+		dir = UtilsMath.xz_normal(-transform.basis.z) # fallback
+	var speed_target_multiplier: float = 1.0
+	var speed_limit: float = max_speed
 	var active_wieldable_data := _wield.active_wieldable_data
 	if active_wieldable_data:
-		target = active_wieldable_data.movement_multiplier
-		target = min(target, active_wieldable_data.max_movement_speed)
-	var change_speed: float = min(1.0, SLOWER_CHANGE_SPEED * delta)
-	if target > _current_speed_multiplier:
-		change_speed = min(1.0, FASTER_CHANGE_SPEED * delta)
-	_current_speed_multiplier = (_current_speed_multiplier * (1.0 - change_speed)) + (target * change_speed)
-	return _current_speed_multiplier
-
-func _get_animation_speed_multiplier() -> float:
-	match active_wieldable:
-		Wieldable.PUSH:
-			return 0.7
-		_:
-			return 1.0
+		speed_target_multiplier = active_wieldable_data.movement_multiplier
+		speed_limit = min(speed_limit, active_wieldable_data.max_movement_speed)
+		if wield_target && active_wieldable_data.max_movement_speed_to_target < max_speed:
+			var direction_to_target: Vector2 = UtilsMath.xz_normal(wield_target.global_position - global_position)
+			var factor: float = direction_to_target.distance_to(dir)
+			factor = factor * 0.5
+			factor = factor*factor
+			var new_max_speed: float = lerp(active_wieldable_data.max_movement_speed_to_target, max_speed, min(1.0, factor))
+			#print("max speed: " + str(new_max_speed))
+			speed_limit = min(new_max_speed, speed_limit)
+	speed_target_multiplier = min(speed_target_multiplier, speed_limit / max_speed)
+	return speed_target_multiplier * max_speed
 
 func _handle_head_bob(delta: float) -> void:
 	var vertical_offset: float = 0.0
 	var horizontal_offset: float = 0.0
 	var lowering_offset: float = 0.0
 	
-	var multiplier: float = _get_animation_speed_multiplier()
+	var actual_speed: float = _current_speed(moving_direction_2d)
 	
 	if is_on_floor() and velocity.length() > 0.1:
-		_bob_phase += delta * (PI / (FOOTSTEP_INTERVAL.at(speed))) * multiplier
+		_bob_phase += delta * (PI / (FOOTSTEP_INTERVAL.at(actual_speed)))
 		_bob_phase = fmod(_bob_phase, PI * 2.0)
-		vertical_offset = BOB_VERTICAL_AMPLITUDE.at(speed) * abs(sin(_bob_phase)) * multiplier
-		horizontal_offset = BOB_HORIZONTAL_AMPLITUDE.at(speed) * sin(_bob_phase) * multiplier
-		lowering_offset = -MOVEMENT_LOWERING.at(speed)
+		vertical_offset = BOB_VERTICAL_AMPLITUDE.at(actual_speed) * abs(sin(_bob_phase))
+		horizontal_offset = BOB_HORIZONTAL_AMPLITUDE.at(actual_speed) * sin(_bob_phase)
+		lowering_offset = -MOVEMENT_LOWERING.at(actual_speed)
 	
 	_node_camera.position.y = lerp(_node_camera.position.y, _camera_default_position.y + lowering_offset + vertical_offset, delta * 15.0)
 	_node_camera.position.x = lerp(_node_camera.position.x, _camera_default_position.x + horizontal_offset, delta * 15.0)
 
 func _handle_footsteps(delta: float) -> void:
+	var actual_speed: float = _current_speed(moving_direction_2d)
+
 	if is_on_floor() and velocity.length() > 0.1:
 		if not _is_moving:
 			_is_moving = true
@@ -356,7 +368,7 @@ func _handle_footsteps(delta: float) -> void:
 			return
 
 		_footstep_timer += delta
-		if _footstep_timer >= ((FOOTSTEP_INTERVAL.at(speed)) / _get_animation_speed_multiplier()):
+		if _footstep_timer >= (FOOTSTEP_INTERVAL.at(actual_speed)):
 			_play_footstep()
 			_footstep_timer = 0.0
 			_bob_phase = fmod(roundf(_bob_phase / PI) * PI, PI * 2.0)
@@ -366,8 +378,8 @@ func _handle_footsteps(delta: float) -> void:
 
 func _handle_hands_aim(dt: float) -> void:
 	var target_yaw: float = 0.0
-	if active_wieldable == Wieldable.PUSH and push_target != null:
-		var direction_to_target: Vector3 = (push_target.global_position - global_position).normalized()
+	if active_wieldable == Wieldable.PUSH and wield_target != null:
+		var direction_to_target: Vector3 = (wield_target.global_position - global_position).normalized()
 		var local_direction: Vector3 = (transform.basis.inverse() * direction_to_target).normalized()
 		target_yaw = atan2(-local_direction.x, -local_direction.z)
 	

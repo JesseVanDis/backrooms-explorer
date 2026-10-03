@@ -99,6 +99,9 @@ class WieldableData:
 
 	var max_movement_speed: float:
 		get: return _additional_args.get("max_movement_speed", 99999.0)
+
+	var max_movement_speed_to_target: float:
+		get: return _additional_args.get("max_movement_speed_to_target", 99999.0)
 	
 	func _init(_self_node: Node3D, p_animation_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void:
 		if _self_node:

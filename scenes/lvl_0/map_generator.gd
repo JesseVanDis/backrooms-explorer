@@ -111,7 +111,7 @@ func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 	var noise_upscale: float = 0.01
 	match pass_index:
 		0:
-			var noise := Math.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
+			var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
 			if noise < 0.4:
 				return Pixel.BIOME_ROOMS
 			if noise < 0.44:
@@ -217,7 +217,7 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 
 		1: # openings
 			if pp.tile_c == Pixel.TILE_WALL:
-				var noise := Math.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
+				var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
 				if noise > 0.55:
 					return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
