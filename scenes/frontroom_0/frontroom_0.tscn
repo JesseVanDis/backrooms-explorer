@@ -9,7 +9,7 @@
 [ext_resource type="Material" uid="uid://bl3xtl40x16ag" path="res://materials/box_1.tres" id="6_m4q7u"]
 [ext_resource type="AudioStream" uid="uid://bwy1igbrhtynm" path="res://scenes/lvl_0/bg_outside.mp3" id="7_03f2e"]
 [ext_resource type="Script" uid="uid://te5oqh2fyrck" path="res://assets/scripts/physics_sounds.gd" id="7_32rw2"]
-[ext_resource type="Script" uid="uid://tlc6a6hl8tfg" path="res://assets/scripts/trigger_sfx.gd" id="10_rppe7"]
+[ext_resource type="Script" uid="uid://tlc6a6hl8tfg" path="res://assets/scripts/trigger.gd" id="10_rppe7"]
 [ext_resource type="AudioStream" uid="uid://517yxc232qgj" path="res://scenes/frontroom_0/voice/gen/voice_im_home.ogg" id="11_jgr8k"]
 [ext_resource type="AudioStream" uid="uid://cxlrmi52de4p" path="res://scenes/frontroom_0/voice/gen/voice_first_box_encounter.ogg" id="11_m8kbl"]
 [ext_resource type="AudioStream" uid="uid://drn6odw3wsu57" path="res://scenes/frontroom_0/voice/gen/voice_home.ogg" id="12_sfm4i"]
