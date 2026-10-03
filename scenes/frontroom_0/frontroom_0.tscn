@@ -398,8 +398,8 @@ collision_layer = 5
 collision_mask = 5
 script = ExtResource("10_rppe7")
 mode = 1
-sounds = Array[AudioStream]([ExtResource("15_nsiha")])
 trigger_object = NodePath("../MovingBox1")
+sounds = Array[AudioStream]([ExtResource("15_nsiha")])
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_boxes_clip" unique_id=977030643]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.38919926, -0.938792, 0)

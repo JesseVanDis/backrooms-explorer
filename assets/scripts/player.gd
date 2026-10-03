@@ -121,8 +121,14 @@ func _on_active_voice_sequence_changed() -> void:
 	_remaining_voice_sequence = active_voice_sequence.duplicate()
 	_play_next_voice()
 
-func add_sub_en(path: String) -> String:
-	var base := path.get_basename()
+func get_subtitle_path(path_to_voice_ogg: String) -> String:
+	var base := path_to_voice_ogg.get_basename()
+	var filename := path_to_voice_ogg.get_file().get_basename()
+	var dir := path_to_voice_ogg.get_base_dir()
+	
+	if dir.ends_with("/gen") or dir.ends_with("\\gen"):
+		return dir.get_base_dir() + "/" + filename + "_sub_en.srt"
+		
 	return base + "_sub_en.srt"
 
 func _on_voice_finished() -> void:
@@ -139,8 +145,8 @@ func _play_next_voice() -> void:
 		_play_next_voice()
 		return
 	
-	var subtitle_path: String = add_sub_en(next_stream.resource_path)
-	print("Player stream: " + subtitle_path)
+	var subtitle_path: String = get_subtitle_path(next_stream.resource_path)
+	print("Playing subtitle: " + subtitle_path)
 	
 	_audio_player_voice.stream = next_stream
 	_audio_player_voice.play()
