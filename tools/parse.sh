@@ -8,7 +8,7 @@ show_help() {
     echo "Options:"
     echo "  --help                                 Show this help message"
     echo "  --flac_to_ogg_for_import [IN] [OUT]    Convert .flac files to .ogg"
-    echo "                                         If IN and OUT are not set, searches for all 'lossless' folders"
+    echo "                                         If IN and OUT are not set, searches for all 'voice' folders"
 }
 
 check_ffmpeg() {
@@ -23,19 +23,17 @@ convert_flac_to_ogg() {
     local output_folder="$2"
 
     if [ -z "$input_folder" ] || [ -z "$output_folder" ]; then
-        # Default behavior: search for 'lossless' folders
-        find . -type d -name "lossless" | while read -r lossless_dir; do
-            echo "Processing lossless folder: $lossless_dir"
-            local parent_dir
-            parent_dir=$(dirname "$lossless_dir")
-            local gen_dir="$parent_dir/gen"
+        # Default behavior: search for 'voice' folders
+        find . -type d -name "voice" | while read -r voice_dir; do
+            echo "Processing voice folder: $voice_dir"
+            local gen_dir="$voice_dir/gen"
             
             mkdir -p "$gen_dir"
             if [ ! -f "$gen_dir/README.txt" ]; then
                 echo "This folder contains files converted via tools/parse.sh. Do not edit the .ogg files. instead please change the .flac files, and run the parse.sh" > "$gen_dir/README.txt"
             fi
             
-            find "$lossless_dir" -maxdepth 1 -name "*.flac" | while read -r flac_file; do
+            find "$voice_dir" -maxdepth 1 -name "*.flac" | while read -r flac_file; do
                 local filename
                 filename=$(basename "$flac_file" .flac)
                 local output_file="$gen_dir/$filename.ogg"
