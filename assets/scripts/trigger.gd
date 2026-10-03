@@ -8,12 +8,22 @@ enum Mode {
 	PlayerVoice_PushFront,
 }
 
+enum Condition {
+	None,
+	PlayerLookAtNode,
+}
+
+
 @export var mode: Mode = Mode.None
 ## If empty, it will use the player as default.
 @export var trigger_object: Node3D = null
 @export var sounds: Array[AudioStream] = []
 @export var play_once: bool = true
 @export var trigger_delay_ms: int = 0
+
+@export_group("Condition")
+@export var condition: Condition = Condition.None
+@export var condition_arg_node: Node3D = null
 
 var _has_played: bool = false
 var _audio_player: AudioStreamPlayer3D = null
@@ -22,6 +32,8 @@ var _player: Player = null
 func _ready() -> void:
 	_audio_player = AudioStreamPlayer3D.new()
 	add_child(_audio_player)
+	if condition == Condition.PlayerLookAtNode && condition_arg_node == null:
+		push_error("condition Condition.PlayerLookAtNode requires a valid condition_arg_node")
 	
 	body_entered.connect(_on_body_entered)
 
@@ -51,7 +63,14 @@ func _on_body_entered(body: Node3D) -> void:
 	if trigger_delay_ms > 0:
 		await get_tree().create_timer(trigger_delay_ms / 1000.0).timeout
 	
-	_trigger()
+	match condition:
+		Condition.None:
+			_trigger()
+		
+		Condition.PlayerLookAtNode:
+			if _player == null:
+				_player = UtilsNode.find_player(get_tree())
+			TODO: Implement.
 
 func _trigger() -> void:
 	if _player == null:
