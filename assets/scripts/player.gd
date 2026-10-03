@@ -21,8 +21,6 @@ class SpeedScale:
 		var speed_perc: float = (speed - 1.0) / (3.0 - 1.0)
 		return at_speed_1 + speed_perc * (at_speed_3 - at_speed_1)
 
-enum Wieldable {NONE, PUSH, LVL_0_HITGROUND}
-
 @export var max_speed: float = 3.0
 @export var max_fall_speed: float = 0.0
 @export var initial_velocity: Vector3 = Vector3.ZERO
@@ -71,8 +69,8 @@ var _old_global_pos: Vector3 = Vector3(0,0,0)
 
 var _wield: PlayerWield = PlayerWield.new(self)
 var control_enabled: bool = true
-var active_wieldable: Wieldable:
-	get:        return _wield.active_wieldable as Wieldable
+var active_wieldable: String:
+	get:        return _wield.active_wieldable
 	set(value): _wield.active_wieldable = value
 
 # Animations
@@ -103,9 +101,9 @@ func _ready() -> void:
 	velocity = initial_velocity
 	_camera_default_position = _node_camera.position
 	
-	_wield.add_wieldable(Wieldable.NONE,             "")
-	_wield.add_wieldable(Wieldable.PUSH,             "wield_push", true, false, {"max_movement_speed_to_target": 0.15})
-	_wield.add_wieldable(Wieldable.LVL_0_HITGROUND,  "lvl_0_landing", false, true, {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0, "movement_multiplier": 0.0})
+	_wield.add_wieldable("")
+	_wield.add_wieldable("wield_push",    true,  false, {"max_movement_speed_to_target": 0.15})
+	_wield.add_wieldable("lvl_0_landing", false, true,  {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0, "movement_multiplier": 0.0})
 
 	_ensure_sound_controller()
 	_node_subtitles.setup(_audio_player_voice)
@@ -384,7 +382,7 @@ func _handle_footsteps(delta: float) -> void:
 
 func _handle_hands_aim(dt: float) -> void:
 	var target_yaw: float = 0.0
-	if active_wieldable == Wieldable.PUSH and wield_target != null:
+	if active_wieldable == "wield_push" and wield_target != null:
 		var direction_to_target: Vector3 = (wield_target.global_position - global_position).normalized()
 		var local_direction: Vector3 = (transform.basis.inverse() * direction_to_target).normalized()
 		target_yaw = atan2(-local_direction.x, -local_direction.z)

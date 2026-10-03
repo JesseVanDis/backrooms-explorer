@@ -4,9 +4,9 @@ extends Node
 
 enum WieldState {NONE, DEQUIPING, EQUIPING_START, EQUIPING}
 
-var active_wieldable: int = 0
+var active_wieldable: String = ""
 
-var _wieldable_old: int = 0
+var _wieldable_old: String = ""
 var _wield_state: WieldState = WieldState.NONE
 var _seconds_since_equiping_start: float = 0.0
 var _wieldables: Dictionary = {}
@@ -15,8 +15,8 @@ var _player: Node3D = null
 func _init(player: Node3D) -> void:
 	_player = player
 
-func add_wieldable(id: int, p_animation_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void:
-	_wieldables[id] = WieldableData.new(_player, p_animation_name, p_rewind_for_dequip, p_clear_wield_when_finish, p_additional_args)
+func add_wieldable(unique_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void:
+	_wieldables[unique_name] = WieldableData.new(_player, unique_name, p_rewind_for_dequip, p_clear_wield_when_finish, p_additional_args)
 
 func update(dt: float) -> void:
 	_seconds_since_equiping_start = _seconds_since_equiping_start + dt
@@ -49,7 +49,7 @@ func update(dt: float) -> void:
 			var new_wieldable: WieldableData = _wieldables[active_wieldable]
 			if !new_wieldable.is_playing_animation():
 				if new_wieldable.clear_wield_when_finish:
-					active_wieldable = 0
+					active_wieldable = ""
 				_wield_state = WieldState.NONE
 
 var active_wieldable_data: WieldableData:

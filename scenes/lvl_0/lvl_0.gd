@@ -89,7 +89,7 @@ func _handle_player_landing() -> void:
 	var player: Player = $Player
 	if player:
 		if !_did_hit_floor && player.is_on_floor():
-			player.active_wieldable = Player.Wieldable.LVL_0_HITGROUND
+			player.active_wieldable = "lvl_0_landing"
 			_did_hit_floor = true
 
 func _place_wall(model: Model, tile_index: Vector2i, angle: float) -> void:

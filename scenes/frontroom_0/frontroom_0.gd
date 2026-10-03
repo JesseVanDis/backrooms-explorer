@@ -95,10 +95,10 @@ func _update_player_speed() -> void:
 		push_node = _node_moving_box_4
 
 	if push_node != null:
-		_player.active_wieldable = Player.Wieldable.PUSH
+		_player.active_wieldable = "wield_push"
 		_player.wield_target = push_node
 	else:
-		_player.active_wieldable = Player.Wieldable.NONE
+		_player.active_wieldable = ""
 		_player.wield_target = null
 
 
