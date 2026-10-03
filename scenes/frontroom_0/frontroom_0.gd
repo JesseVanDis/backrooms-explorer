@@ -3,7 +3,7 @@ extends Node3D
 
 @onready var _node_moving_box_1: RigidBody3D = $MovingBox1
 @onready var _node_moving_box_2: RigidBody3D = $MovingBox2
-#@onready var _node_moving_box_3: RigidBody3D = $MovingBox3
+@onready var _node_moving_box_3: RigidBody3D = $MovingBox3
 @onready var _node_world_environment: WorldEnvironment = $WorldEnvironment
 var _player: Player
 var _level_transition: LevelTransition
@@ -24,7 +24,7 @@ func _ready() -> void:
 	await _show_intro()
 
 func _show_intro() -> void:
-	const INTRO_WAIT_TIME: float = 3.0
+	const INTRO_WAIT_TIME: float = 0.0
 	const FADE_OUT_DURATION: float = 2.0
 	
 	var intro_scene: PackedScene = load(MENU_INTRO_PATH)
@@ -88,8 +88,8 @@ func _update_player_speed() -> void:
 		push_node = _node_moving_box_1
 	elif _player.global_position.distance_to(_node_moving_box_2.global_position) < DETECTION_DISTANCE:
 		push_node = _node_moving_box_2
-	#elif Math.xz_distance(_player.global_position, _node_moving_box_3.global_position) < DETECTION_DISTANCE:
-		#push_node = _node_moving_box_3
+	elif Math.xz_distance(_player.global_position, _node_moving_box_3.global_position) < DETECTION_DISTANCE:
+		push_node = _node_moving_box_3
 		
 	if push_node != null:
 		_player.active_wieldable = Player.Wieldable.PUSH
