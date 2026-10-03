@@ -13,6 +13,9 @@
 [ext_resource type="Script" uid="uid://tlc6a6hl8tfg" path="res://assets/scripts/trigger.gd" id="11_ns1bo"]
 [ext_resource type="AudioStream" uid="uid://cnoiuwlkje0sx" path="res://scenes/lvl_0/voice/gen/voice_landing.ogg" id="12_n8t5v"]
 [ext_resource type="AudioStream" uid="uid://drqccc5slhxpa" path="res://scenes/lvl_0/voice/gen/voice_whats_it_doing_under_my_house.ogg" id="13_n8t5v"]
+[ext_resource type="AudioStream" uid="uid://dotpjs6rh4wyn" path="res://scenes/lvl_0/voice/gen/voice_moving_boxes_found.ogg" id="14_kftwb"]
+[ext_resource type="AudioStream" uid="uid://st7p5kdvv7ff" path="res://assets/sounds/silence_1s.ogg" id="16_spjc5"]
+[ext_resource type="AudioStream" uid="uid://c22g13axrml3u" path="res://scenes/lvl_0/voice/gen/voice_why_stuck.ogg" id="17_1blqs"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -58,7 +61,8 @@ script = ExtResource("1_j6thp")
 [node name="SoundController" type="Node" parent="." unique_id=1699843859]
 script = ExtResource("10_mkhuw")
 reverb_enabled = true
-room_size = 0.238
+room_size = 0.12
+damping = 0.369
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=538118835]
 environment = SubResource("Environment_j6thp")
@@ -200,21 +204,30 @@ transform = Transform3D(-0.84877837, -0.119614236, -0.51504195, 0.50583285, 0.09
 transform = Transform3D(0.70710677, -0.70710677, 3.090862e-08, 0.70710677, 0.70710677, 1.2802772e-08, -3.090862e-08, 1.2802778e-08, 1, -1.5868654, 2.4288433, -2.5260518)
 shape = SubResource("BoxShape3D_f4hk2")
 
-[node name="trigger_fall_voice" type="Area3D" parent="." unique_id=1740220397]
+[node name="trigger_sfx_fall_voice" type="Area3D" parent="." unique_id=1740220397]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.392723, 0)
 script = ExtResource("11_ns1bo")
 mode = 1
 sounds = Array[AudioStream]([ExtResource("12_n8t5v")])
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_fall_voice" unique_id=611511678]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_fall_voice" unique_id=611511678]
 shape = SubResource("SphereShape3D_khlrb")
 
-[node name="trigger_small_walk" type="Area3D" parent="." unique_id=1824151684]
+[node name="trigger_sfx_small_walk" type="Area3D" parent="." unique_id=1824151684]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.271307, 8.628757, 0.37732053)
 script = ExtResource("11_ns1bo")
-mode = 1
-sounds = Array[AudioStream]([ExtResource("13_n8t5v")])
+mode = 2
+sounds = Array[AudioStream]([ExtResource("16_spjc5"), ExtResource("13_n8t5v")])
 trigger_delay_ms = 10000
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_small_walk" unique_id=1080582823]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_small_walk" unique_id=1080582823]
+shape = SubResource("CylinderShape3D_ns1bo")
+
+[node name="trigger_sfx_found_boxes" type="Area3D" parent="." unique_id=959028025]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2742953, 0.08286917, 0.97806096)
+script = ExtResource("11_ns1bo")
+mode = 3
+sounds = Array[AudioStream]([ExtResource("14_kftwb"), ExtResource("16_spjc5"), ExtResource("16_spjc5"), ExtResource("17_1blqs"), ExtResource("16_spjc5")])
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_found_boxes" unique_id=991467708]
 shape = SubResource("CylinderShape3D_ns1bo")

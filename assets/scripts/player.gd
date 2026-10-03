@@ -33,10 +33,10 @@ class SpeedScale:
 @onready var _node_subtitles : PlayerSubtitles = $_UI/_Subtitles
 @onready var _audio_player: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D
 
-var active_voice_sequence: Array[AudioStream] = []:
-	set(value):
-		active_voice_sequence = value
-		_on_active_voice_sequence_changed()
+#var active_voice_sequence: Array[AudioStream] = []:
+#	set(value):
+#		active_voice_sequence = value
+#		_on_active_voice_sequence_changed()
 
 var _remaining_voice_sequence: Array[AudioStream] = []
 var wield_target: Node3D = null
@@ -112,14 +112,42 @@ func _ready() -> void:
 	_audio_player_voice.finished.connect(_on_voice_finished)
 
 
-func _on_active_voice_sequence_changed() -> void:
+func replace_voice(sequence: Array[AudioStream]) -> void:
 	if _audio_player_voice == null:
 		return
 		
 	_audio_player_voice.stop()
 	_node_subtitles.stop_subtitles()
-	_remaining_voice_sequence = active_voice_sequence.duplicate()
+	_remaining_voice_sequence = sequence.duplicate()
 	_play_next_voice()
+
+func push_back_voice(sequence: Array[AudioStream]) -> void:
+	if _audio_player_voice == null:
+		return
+		
+	var is_playing: bool = _audio_player_voice.playing or not _remaining_voice_sequence.is_empty()
+	
+	_remaining_voice_sequence.append_array(sequence)
+	
+	if not is_playing:
+		_play_next_voice()
+
+func push_front_voice(sequence: Array[AudioStream]) -> void:
+	if _audio_player_voice == null:
+		return
+		
+	if not _audio_player_voice.playing:
+		replace_voice(sequence)
+		return
+	
+	# If something is playing, we want to play this AFTER the current item finishes.
+	# So we insert it at the beginning of the remaining sequence.
+	var new_sequence: Array[AudioStream] = sequence.duplicate()
+	new_sequence.append_array(_remaining_voice_sequence)
+	_remaining_voice_sequence = new_sequence
+
+#func _on_active_voice_sequence_changed() -> void:
+#	interrupt_voice(active_voice_sequence)
 
 func get_subtitle_path(path_to_voice_ogg: String) -> String:
 	var base := path_to_voice_ogg.get_basename()

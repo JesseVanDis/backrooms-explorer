@@ -3,7 +3,9 @@ class_name Trigger
 
 enum Mode {
 	None,
-	PlayerVoice,
+	PlayerVoice_Replace,
+	PlayerVoice_PushBack,
+	PlayerVoice_PushFront,
 }
 
 @export var mode: Mode = Mode.None
@@ -52,6 +54,9 @@ func _on_body_entered(body: Node3D) -> void:
 	_trigger()
 
 func _trigger() -> void:
+	if _player == null:
+		_player = UtilsNode.find_player(get_tree())
+	
 	match mode:
 		Mode.None:
 			if sounds.size() == 0:
@@ -63,13 +68,13 @@ func _trigger() -> void:
 			else:
 				push_error("Non-voice sound sequence not implemented yet.")
 		
-		Mode.PlayerVoice:
-			if _player == null:
-				_player = UtilsNode.find_player(get_tree())
-			
-			if _player != null:
-				_player.active_voice_sequence = sounds.duplicate()
-			else:
-				push_error("Player not found for PlayerVoice mode in trigger.gd")
+		Mode.PlayerVoice_Replace:
+			_player.replace_voice(sounds)
+		
+		Mode.PlayerVoice_PushBack:
+			_player.push_back_voice(sounds)
+				
+		Mode.PlayerVoice_PushFront:
+			_player.push_front_voice(sounds)
 	
 	

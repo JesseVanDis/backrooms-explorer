@@ -236,7 +236,6 @@ max_fall_speed = 0.0
 initial_velocity = Vector3(0, 0, 0)
 initial_yaw = 0.0
 initial_pitch = 0.0
-active_voice_sequence = Array[AudioStream]([])
 
 [node name="MovingBox1" type="RigidBody3D" parent="." unique_id=841379533]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2216473, 0.6885196, -1.5114428)
@@ -375,7 +374,7 @@ parameters/looping = true
 [node name="trigger_sfx_first_box_encounter" type="Area3D" parent="." unique_id=1481960487]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.347052, 1.1094898, 0.786355)
 script = ExtResource("10_rppe7")
-mode = 1
+mode = 2
 sounds = Array[AudioStream]([ExtResource("11_m8kbl"), ExtResource("11_jgr8k")])
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_first_box_encounter" unique_id=803637745]
@@ -385,7 +384,7 @@ shape = SubResource("SphereShape3D_khlrb")
 [node name="trigger_sfx_second_box_encounter" type="Area3D" parent="." unique_id=379097528]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.8849316, 1.1094898, -1.696607)
 script = ExtResource("10_rppe7")
-mode = 1
+mode = 2
 sounds = Array[AudioStream]([ExtResource("13_eoeoy"), ExtResource("14_0oem1")])
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_second_box_encounter" unique_id=516168881]

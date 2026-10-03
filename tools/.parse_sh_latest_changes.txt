@@ -2,7 +2,6 @@
 ./scenes/lvl_0/voice/voice_bad_taste.flac:1791037628
 ./scenes/lvl_0/voice/voice_fell_from_above.flac:1791038267
 ./scenes/lvl_0/voice/voice_find_the_exit_then.flac:1791038468
-./scenes/lvl_0/voice/voice_moving_boxes_found.flac:1791038316
 ./scenes/lvl_0/voice/voice_scream_hello.flac:1791038448
 ./scenes/lvl_0/voice/voice_scream_jen.flac:1791038239
 ./scenes/lvl_0/voice/voice_yell_hello.flac:1791038364
@@ -16,3 +15,5 @@
 ./scenes/frontroom_0/voice/voice_slip_fall.flac:1790882102
 ./scenes/lvl_0/voice/voice_landing.flac:1791053642
 ./scenes/lvl_0/voice/voice_whats_it_doing_under_my_house.flac:1791053683
+./scenes/lvl_0/voice/voice_moving_boxes_found.flac:1791056076
+./scenes/lvl_0/voice/voice_why_stuck.flac:1791056088
