@@ -72,6 +72,8 @@ func initialized() -> bool:
 func _ready() -> void:
 	_player = $Player
 	
+	_player.add_wieldable("lvl_0_landing", false, true,  {"max_look_freedom_degrees_v": 10.0, "max_look_freedom_degrees_h": 0.0, "movement_multiplier": 0.0})
+
 	# Initial generation
 	_get_or_create_chunk(Vector2i(0, 0), false)
 	_get_or_create_chunk(Vector2i(-1, -1), false)
