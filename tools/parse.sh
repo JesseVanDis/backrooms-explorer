@@ -28,11 +28,17 @@ convert_flac_to_ogg() {
             echo "Processing lossless folder: $lossless_dir"
             local parent_dir
             parent_dir=$(dirname "$lossless_dir")
+            local gen_dir="$parent_dir/gen"
+            
+            mkdir -p "$gen_dir"
+            if [ ! -f "$gen_dir/README.txt" ]; then
+                echo "This folder contains files converted via tools/parse.sh. Do not edit the .ogg files. instead please change the .flac files, and run the parse.sh" > "$gen_dir/README.txt"
+            fi
             
             find "$lossless_dir" -maxdepth 1 -name "*.flac" | while read -r flac_file; do
                 local filename
                 filename=$(basename "$flac_file" .flac)
-                local output_file="$parent_dir/$filename.ogg"
+                local output_file="$gen_dir/$filename.ogg"
                 
                 echo "Converting $flac_file to $output_file"
                 ffmpeg -i "$flac_file" -y -acodec libvorbis "$output_file" </dev/null
@@ -46,6 +52,9 @@ convert_flac_to_ogg() {
         fi
         
         mkdir -p "$output_folder"
+        if [ ! -f "$output_folder/README.txt" ]; then
+            echo "This folder contains files converted via tools/parse.sh" > "$output_folder/README.txt"
+        fi
         
         find "$input_folder" -maxdepth 1 -name "*.flac" | while read -r flac_file; do
             local filename
