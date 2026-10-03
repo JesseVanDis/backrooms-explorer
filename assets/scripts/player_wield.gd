@@ -51,6 +51,9 @@ func update(dt: float) -> void:
 				if new_wieldable.clear_wield_when_finish:
 					active_wieldable = ""
 				_wield_state = WieldState.NONE
+			else:
+				var actions_to_file: Array[Action] = []
+	
 
 var active_wieldable_data: WieldableData:
 	get: return _wieldables.get(active_wieldable)
@@ -74,6 +77,11 @@ class Animations:
 	var equip: AnimationRange = AnimationRange.new(0,0)
 	var dequip: AnimationRange = AnimationRange.new(0,0)
 
+class Action:
+	var trigger_time_millis: int
+	var action_name: String
+	var action_value: Variant
+
 class WieldableData:
 	var animations: Animations = Animations.new()
 	var animation_player: AnimationPlayer = null
@@ -81,6 +89,7 @@ class WieldableData:
 	var _rewind_for_dequip: bool = true
 	var _clear_wield_when_finish: bool = false
 	var _additional_args: Dictionary = {}
+	var _actions: Array[Action] = []
 	
 	var rewind_for_dequip: bool:
 		get: return _rewind_for_dequip
@@ -102,6 +111,10 @@ class WieldableData:
 
 	var max_movement_speed_to_target: float:
 		get: return _additional_args.get("max_movement_speed_to_target", 99999.0)
+	
+	var actions_at_millisecond: Array[Action]:
+		get: return _actions
+	
 	
 	func _init(_self_node: Node3D, p_animation_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void:
 		if _self_node:
@@ -139,6 +152,17 @@ class WieldableData:
 
 			animations.equip = anim_equip
 			animations.dequip = anim_dequip
+
+			var actions_list: Array = p_additional_args.get("actions_at_millisecond", [])
+			for action_item: Dictionary in actions_list:
+				for time_ms: int in action_item:
+					var action_data: Dictionary = action_item[time_ms]
+					for action_name: String in action_data:
+						var action := Action.new()
+						action.trigger_time_millis = time_ms
+						action.action_name = action_name
+						action.action_value = action_data[action_name]
+						_actions.append(action)
 	
 	func play_animation(p_range: AnimationRange) -> bool:
 		if animation_player:
