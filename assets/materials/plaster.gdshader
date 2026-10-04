@@ -2,8 +2,6 @@ shader_type spatial;
 
 uniform vec3 plaster_color : source_color = vec3(0.78, 0.76, 0.70);
 
-uniform sampler2D random_texture : filter_linear, repeat_enable;
-
 uniform highp float noise_scale : hint_range(0.001, 20.0) = 0.02;
 uniform highp float fine_scale : hint_range(1.0, 1000.0) = 500;
 uniform float fine_ratio : hint_range(0.0, 1.0) = 0.3;
@@ -95,25 +93,6 @@ float fractal_noise_3d(vec3 p, int iterations)
 	return value / amplitude_sum;
 }
 
-float plaster_noise(highp vec3 p, highp float scale, highp vec3 t, highp vec3 b) 
-{
-	p *= scale;
-	// Use tangent and bitangent to project the position into surface-aligned UVs
-	vec2 uv = fract(vec2(dot(p, t), dot(p, b)));
-	return texture(random_texture, uv).r;
-}
-
-vec3 calculate_world_normal(highp vec3 p, float scale, vec3 t, vec3 b, vec3 n, float strength) {
-	float delta = 0.01;
-	float h = plaster_noise(p, scale, t, b);
-	float h_x = plaster_noise(p + t * delta, scale, t, b);
-	float h_y = plaster_noise(p + b * delta, scale, t, b);
-	
-	vec3 tangent_normal = normalize(vec3((h - h_x) * strength, (h - h_y) * strength, 1.0)); // Tangent space normal
-	return normalize(t * tangent_normal.x + b * tangent_normal.y + n * tangent_normal.z);   // Convert to world space using TBN
-}
-
-
 void fragment() {
 	highp vec3 p = global_position;
 	float large_noise = fractal_noise_3d(p * noise_scale, 2);
@@ -125,6 +104,6 @@ void fragment() {
 	ALBEDO = plaster_color + vec3(color_offset);
 	ROUGHNESS = roughness + (noise - 0.5) * 0.08;
 
-	vec3 world_n = calculate_world_normal(p, fine_scale, v_world_tangent, v_world_binormal, v_world_normal, bump_strength);
+	vec3 world_n = calculate_world_normal(p, fine_scale, bump_strength, ...);
 	NORMAL = mat3(VIEW_MATRIX) * world_n;
 }
