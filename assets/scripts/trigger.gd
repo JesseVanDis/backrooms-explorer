@@ -9,25 +9,27 @@ enum Mode {
 }
 
 enum Condition {
-	None,
-	PlayerLookAtNode,
+	OnEnter,
+	OnLeave,
+	WhileInside_PlayerLookAtNode,
 }
 
 
-@export var mode: Mode = Mode.None
 ## If empty, it will use the player as default.
 @export var trigger_object: Node3D = null
+@export var mode: Mode = Mode.None
 @export var sounds: Array[AudioStream] = []
 @export var trigger_delay_ms: int = 0
 
 @export_group("Condition")
-@export var condition: Condition = Condition.None
+@export var condition: Condition = Condition.OnEnter
 @export var condition_arg_node: Node3D = null
 
 var _has_triggered: bool = false
 var _audio_player: AudioStreamPlayer3D = null
 var _player: Player = null
 var _is_target_inside: bool = false
+var _was_target_ever_inside: bool = false
 
 func get_player() -> Player:
 	if _player == null:
@@ -39,7 +41,7 @@ func get_player() -> Player:
 func _ready() -> void:
 	_audio_player = AudioStreamPlayer3D.new()
 	add_child(_audio_player)
-	if condition == Condition.PlayerLookAtNode && condition_arg_node == null:
+	if condition == Condition.WhileInside_PlayerLookAtNode && condition_arg_node == null:
 		push_error("condition Condition.PlayerLookAtNode requires a valid condition_arg_node")
 	
 	body_entered.connect(_on_body_entered)
@@ -58,6 +60,7 @@ func _on_body_entered(body: Node3D) -> void:
 		target_trigger = get_player()
 	if body == target_trigger:
 		_is_target_inside = true
+		_was_target_ever_inside = true
 
 func _process(_delta: float) -> void:
 	if _has_triggered:
@@ -66,11 +69,15 @@ func _process(_delta: float) -> void:
 	var trigger: bool = false
 	
 	match condition:
-		Condition.None:
+		Condition.OnEnter:
 			if _is_target_inside:
 				trigger = true
 		
-		Condition.PlayerLookAtNode:
+		Condition.OnLeave:
+			if _was_target_ever_inside && !_is_target_inside:
+				trigger = true
+		
+		Condition.WhileInside_PlayerLookAtNode:
 			if _is_target_inside:
 				var camera: Camera3D = UtilsNode.find_camera_recursive(get_player())
 				var to_node: Vector3 = (condition_arg_node.global_position - camera.global_position).normalized()
@@ -81,6 +88,7 @@ func _process(_delta: float) -> void:
 	
 	if trigger:
 		_has_triggered = true
+		print("Triggered '" + str(get_path()) + "'")
 		await _trigger()
 
 

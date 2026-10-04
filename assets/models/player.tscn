@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://e0meeo45d2ya" path="res://assets/scripts/player.gd" id="1_l7vax"]
 [ext_resource type="PackedScene" uid="uid://cos6ltyy7wpm1" path="res://assets/models/hands.tscn" id="2_ormyk"]
-[ext_resource type="Script" uid="uid://dkb8ltjc6067n" path="res://addons/raytraced_audio/raytraced_audio_player_3d.gd" id="3_jffvu"]
 [ext_resource type="Script" uid="uid://d3k4hcch35ngc" path="res://assets/scripts/player_subtitles.gd" id="4_8d03m"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_khlrb"]
@@ -22,12 +21,6 @@ outline_color = Color(0, 0, 0, 0.5058824)
 collision_layer = 9
 collision_mask = 9
 script = ExtResource("1_l7vax")
-speed = null
-max_fall_speed = null
-initial_velocity = null
-initial_yaw = null
-initial_pitch = null
-active_voice_sequence = null
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=479480019]
 transform = Transform3D(0.5, 0, 0, 0, 1, 0, 0, 0, 0.5, 0, 0, 0)
@@ -42,18 +35,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12651366, 0)
 shape = SubResource("CapsuleShape3D_knwgh")
 
 [node name="_Hands" parent="." unique_id=1296432070 instance=ExtResource("2_ormyk")]
-
-[node name="_RaytracedAudioPlayer3D" type="AudioStreamPlayer3D" parent="." unique_id=964657692]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8235858, -0.033447042)
-max_polyphony = 4
-script = ExtResource("3_jffvu")
-metadata/_custom_type_script = "uid://dkb8ltjc6067n"
-
-[node name="_RaytracedAudioPlayer3D_Voice" type="AudioStreamPlayer3D" parent="." unique_id=96044341]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8235858, -0.033447042)
-max_polyphony = 4
-script = ExtResource("3_jffvu")
-metadata/_custom_type_script = "uid://dkb8ltjc6067n"
 
 [node name="_UI" type="CanvasLayer" parent="." unique_id=220246658]
 

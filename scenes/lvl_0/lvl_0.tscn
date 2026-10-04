@@ -17,6 +17,7 @@
 [ext_resource type="AudioStream" uid="uid://cdefy82asui3q" path="res://scenes/lvl_0/voice/gen/voice_still_intact.ogg" id="16_1blqs"]
 [ext_resource type="AudioStream" uid="uid://st7p5kdvv7ff" path="res://assets/sounds/silence_1s.ogg" id="16_spjc5"]
 [ext_resource type="AudioStream" uid="uid://dcoqo3uqck04t" path="res://scenes/lvl_0/voice/gen/voice_fell_from_above.ogg" id="17_spjc5"]
+[ext_resource type="AudioStream" uid="uid://bn7itch4k1xai" path="res://scenes/lvl_0/voice/gen/voice_yell_hello.ogg" id="18_1blqs"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -58,7 +59,11 @@ radius = 4.31
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_iq5gy"]
 height = 3.904
-radius = 25.579
+radius = 12.881
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_spjc5"]
+height = 4.222
+radius = 15.738
 
 [node name="lvl_0" type="Node3D" unique_id=1577277307]
 script = ExtResource("1_j6thp")
@@ -242,7 +247,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07821679, 0.08286917, -0.14
 script = ExtResource("11_ns1bo")
 mode = 3
 sounds = Array[AudioStream]([ExtResource("17_spjc5")])
-condition = 1
+condition = 2
 condition_arg_node = NodePath("Marker3D")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_lookup" unique_id=459897780]
@@ -251,3 +256,14 @@ debug_color = Color(0, 0.6193612, 0.5734779, 0.41960785)
 
 [node name="Marker3D" type="Marker3D" parent="trigger_sfx_lookup" unique_id=435516112]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20.017433, 0)
+
+[node name="trigger_sfx_leave_center" type="Area3D" parent="." unique_id=609289356]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.271, 0, 0.377)
+script = ExtResource("11_ns1bo")
+mode = 2
+sounds = Array[AudioStream]([ExtResource("18_1blqs")])
+condition = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_leave_center" unique_id=789829829]
+shape = SubResource("CylinderShape3D_spjc5")
+debug_color = Color(0.42465097, 0.46038312, 1, 0.41960785)

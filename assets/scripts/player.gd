@@ -27,11 +27,12 @@ class SpeedScale:
 @export var initial_yaw: float = 0.0
 @export var initial_pitch: float = 0.0
 
-@onready var _audio_player_voice: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D_Voice
+@onready var _audio_player_voice: AudioStreamPlayer3D = $_Hands/_cam/Camera/RaytracedAudioPlayer3D_Voice
+@onready var _audio_player_foot: AudioStreamPlayer3D = $_Hands/_cam/Camera/RaytracedAudioPlayer3D_Foot
+
 @onready var _node_camera : Camera3D = null
 @onready var _node_hands_yaw : Node3D = null
 @onready var _node_subtitles : PlayerSubtitles = $_UI/_Subtitles
-@onready var _audio_player: AudioStreamPlayer3D = $_RaytracedAudioPlayer3D
 
 #var active_voice_sequence: Array[AudioStream] = []:
 #	set(value):
@@ -273,35 +274,35 @@ func _physics_process(delta: float) -> void:
 func _play_footstep() -> void:
 	if _footstep_sounds.is_empty():
 		return
-	_audio_player.stream = _footstep_sounds.pick_random()
-	_audio_player.pitch_scale = randf_range(0.9, 1.3)
-	_audio_player.volume_db = -20.0;
-	_audio_player.play()
+	_audio_player_foot.stream = _footstep_sounds.pick_random()
+	_audio_player_foot.pitch_scale = randf_range(0.9, 1.3)
+	_audio_player_foot.volume_db = -20.0;
+	_audio_player_foot.play()
 
 func _play_footstep_start_sound() -> void:
 	if _footstep_start_sound == null:
 		_play_footstep()
 		return
-	_audio_player.stream = _footstep_start_sound
-	_audio_player.pitch_scale = randf_range(0.9, 1.3)
-	_audio_player.volume_db = -20.0;
-	_audio_player.play()
+	_audio_player_foot.stream = _footstep_start_sound
+	_audio_player_foot.pitch_scale = randf_range(0.9, 1.3)
+	_audio_player_foot.volume_db = -20.0;
+	_audio_player_foot.play()
 
 func _play_jump_sound() -> void:
 	if _jump_sounds.is_empty():
 		return
-	_audio_player.stream = _jump_sounds.pick_random()
-	_audio_player.pitch_scale = randf_range(0.9, 1.0)
-	_audio_player.play()
+	_audio_player_foot.stream = _jump_sounds.pick_random()
+	_audio_player_foot.pitch_scale = randf_range(0.9, 1.0)
+	_audio_player_foot.play()
 
 func _play_landing_sound() -> void:
 	if _landing_sounds.is_empty():
 		return
-	_audio_player.stream = _landing_sounds.pick_random()
+	_audio_player_foot.stream = _landing_sounds.pick_random()
 	# Pitch variation for landing sounds
-	_audio_player.pitch_scale = randf_range(0.8, 1.1)
+	_audio_player_foot.pitch_scale = randf_range(0.8, 1.1)
 	# _audio_player.volume_db = 10.0;
-	_audio_player.play()
+	_audio_player_foot.play()
 
 func _handle_camera_limits(dt: float) -> void:
 	var adjustement_speed := 10.0 + _wield.seconds_since_equiping_start * 40.0

@@ -4,6 +4,7 @@
 [ext_resource type="Material" uid="uid://cbs7xiqee32nl" path="res://assets/materials/hand_skin.tres" id="2_dpncg"]
 [ext_resource type="Script" uid="uid://b7b5djwyx6fg8" path="res://assets/scripts/player_hands.gd" id="2_es30p"]
 [ext_resource type="Script" uid="uid://bjpmu5sklv5h8" path="res://addons/raytraced_audio/raytraced_audio_listener.gd" id="3_7xd4w"]
+[ext_resource type="Script" uid="uid://dkb8ltjc6067n" path="res://addons/raytraced_audio/raytraced_audio_player_3d.gd" id="4_jtgrn"]
 
 [node name="hands" unique_id=1296432070 instance=ExtResource("1_c54j8")]
 script = ExtResource("2_es30p")
@@ -20,6 +21,17 @@ transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0
 [node name="RaytracedAudioListener" type="AudioListener3D" parent="_cam/Camera" index="0" unique_id=827835254]
 script = ExtResource("3_7xd4w")
 metadata/_custom_type_script = "uid://bjpmu5sklv5h8"
+
+[node name="RaytracedAudioPlayer3D_Voice" type="AudioStreamPlayer3D" parent="_cam/Camera" index="1" unique_id=84788196]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.013075929, 0)
+max_polyphony = 4
+script = ExtResource("4_jtgrn")
+metadata/_custom_type_script = "uid://dkb8ltjc6067n"
+
+[node name="RaytracedAudioPlayer3D_Foot" type="AudioStreamPlayer3D" parent="_cam/Camera" index="2" unique_id=1879799585]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.012948422, 0)
+script = ExtResource("4_jtgrn")
+metadata/_custom_type_script = "uid://dkb8ltjc6067n"
 
 [node name="Skeleton3D" parent="_hands/armature" parent_id_path=PackedInt32Array(2022071410) index="0" unique_id=1523514622]
 bones/0/position = Vector3(-0.123904556, 0.019387752, -0.016176606)
