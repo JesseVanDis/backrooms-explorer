@@ -18,6 +18,10 @@
 [ext_resource type="AudioStream" uid="uid://st7p5kdvv7ff" path="res://assets/sounds/silence_1s.ogg" id="16_spjc5"]
 [ext_resource type="AudioStream" uid="uid://dcoqo3uqck04t" path="res://scenes/lvl_0/voice/gen/voice_fell_from_above.ogg" id="17_spjc5"]
 [ext_resource type="AudioStream" uid="uid://bn7itch4k1xai" path="res://scenes/lvl_0/voice/gen/voice_yell_hello.ogg" id="18_1blqs"]
+[ext_resource type="AudioStream" uid="uid://c6c0xml2gxahn" path="res://assets/sounds/silence_3s.ogg" id="19_8uaq6"]
+[ext_resource type="AudioStream" uid="uid://c7rokqw77d73u" path="res://scenes/lvl_0/voice/gen/voice_yell_jen.ogg" id="20_k0yso"]
+[ext_resource type="AudioStream" uid="uid://bnlsw57h1vbjr" path="res://scenes/lvl_0/voice/gen/voice_scream_hello.ogg" id="21_k0yso"]
+[ext_resource type="AudioStream" uid="uid://bh4ssiab4dreb" path="res://scenes/lvl_0/voice/gen/voice_find_the_exit_then.ogg" id="22_vygta"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -81,7 +85,6 @@ environment = SubResource("Environment_j6thp")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, 0)
 max_fall_speed = 15.0
 initial_velocity = Vector3(0, -10, 0)
-initial_yaw = 0.0
 initial_pitch = -90.0
 
 [node name="Map" type="Node3D" parent="." unique_id=1437659456]
@@ -261,7 +264,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20.017433, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.271, 0, 0.377)
 script = ExtResource("11_ns1bo")
 mode = 2
-sounds = Array[AudioStream]([ExtResource("18_1blqs")])
+sounds = Array[AudioStream]([ExtResource("18_1blqs"), ExtResource("16_spjc5"), ExtResource("20_k0yso"), ExtResource("19_8uaq6"), ExtResource("21_k0yso"), ExtResource("19_8uaq6"), ExtResource("19_8uaq6"), ExtResource("22_vygta")])
 condition = 1
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_leave_center" unique_id=789829829]
