@@ -14,12 +14,7 @@ uniform float roughness : hint_range(0.0, 1.0) = 0.88;
 
 
 // Local-space position passed from vertex -> fragment.
-varying vec3 local_position;
 varying highp vec3 global_position;
-varying vec3 v_normal;
-varying vec3 v_tangent;
-varying vec3 v_binormal;
-varying vec3 v_node_position;
 varying vec3 v_world_normal;
 varying vec3 v_world_tangent;
 varying vec3 v_world_binormal;
@@ -27,11 +22,6 @@ varying vec3 v_world_binormal;
 
 void vertex() 
 {
-	local_position = VERTEX;
-	v_normal = NORMAL;
-	v_tangent = TANGENT;
-	v_binormal = BINORMAL;
-	v_node_position = MODEL_MATRIX[3].xyz;
 	v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	v_world_tangent = normalize((MODEL_MATRIX * vec4(TANGENT, 0.0)).xyz);
 	v_world_binormal = normalize((MODEL_MATRIX * vec4(BINORMAL, 0.0)).xyz);
