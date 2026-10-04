@@ -84,10 +84,16 @@ func _ready() -> void:
 						})
 
 	# Initial generation
-	_get_or_create_chunk(Vector2i(0, 0), false)
-	_get_or_create_chunk(Vector2i(-1, -1), false)
-	_get_or_create_chunk(Vector2i(-1, 0), false)
-	_get_or_create_chunk(Vector2i(0, -1), false)
+	print("Loading initial chunks...")
+	while true:
+		var chunk1: Chunk = _get_or_create_chunk(Vector2i(0, 0), true)
+		var chunk2: Chunk = _get_or_create_chunk(Vector2i(-1, -1), true)
+		var chunk3: Chunk = _get_or_create_chunk(Vector2i(-1, 0), true)
+		var chunk4: Chunk = _get_or_create_chunk(Vector2i(0, -1), true)
+		if chunk1 != null && chunk2 != null && chunk3 != null && chunk4 != null:
+			break
+		OS.delay_msec(50)
+	print("All initial chunks loaded")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
