@@ -18,6 +18,9 @@ varying vec3 v_normal;
 varying vec3 v_tangent;
 varying vec3 v_binormal;
 varying vec3 v_node_position;
+varying vec3 v_world_normal;
+varying vec3 v_world_tangent;
+varying vec3 v_world_binormal;
 
 
 void vertex() 
@@ -27,6 +30,9 @@ void vertex()
 	v_tangent = TANGENT;
 	v_binormal = BINORMAL;
 	v_node_position = MODEL_MATRIX[3].xyz;
+	v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+	v_world_tangent = normalize((MODEL_MATRIX * vec4(TANGENT, 0.0)).xyz);
+	v_world_binormal = normalize((MODEL_MATRIX * vec4(BINORMAL, 0.0)).xyz);
 }
 
 float plaster_noise(vec3 p, float scale, vec3 t, vec3 b) 
@@ -35,6 +41,16 @@ float plaster_noise(vec3 p, float scale, vec3 t, vec3 b)
 	// Use tangent and bitangent to project the position into surface-aligned UVs
 	vec2 uv = vec2(dot(p, t), dot(p, b));
 	return texture(random_texture, uv).r;
+}
+
+vec3 calculate_world_normal(vec3 p, float scale, vec3 t, vec3 b, vec3 n, float strength) {
+	float delta = 0.01;
+	float h = plaster_noise(p, scale, t, b);
+	float h_x = plaster_noise(p + t * delta, scale, t, b);
+	float h_y = plaster_noise(p + b * delta, scale, t, b);
+	
+	vec3 tangent_normal = normalize(vec3((h - h_x) * strength, (h - h_y) * strength, 1.0)); // Tangent space normal
+	return normalize(t * tangent_normal.x + b * tangent_normal.y + n * tangent_normal.z);   // Convert to world space using TBN
 }
 
 
@@ -49,12 +65,6 @@ void fragment() {
 	ALBEDO = plaster_color + vec3(color_offset);
 	ROUGHNESS = roughness + (noise - 0.5) * 0.08;
 
-	float bump =
-		(fine_noise - 0.5) * bump_strength;
-
-	//NORMAL_MAP = vec3(
-	//	bump,
-	//	bump,
-	//	1.0
-	//);
+	vec3 world_n = calculate_world_normal(p, fine_scale, v_world_tangent, v_world_binormal, v_world_normal, bump_strength);
+	NORMAL = (VIEW_MATRIX * vec4(world_n, 0.0)).xyz;
 }
