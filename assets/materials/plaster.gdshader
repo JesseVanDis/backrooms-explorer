@@ -2,12 +2,12 @@ shader_type spatial;
 
 uniform vec3 plaster_color : source_color = vec3(0.78, 0.76, 0.70);
 
-uniform highp float noise_scale : hint_range(0.001, 20.0) = 0.02;
+uniform highp float noise_scale : hint_range(0.001, 20.0) = 1.4;
 uniform highp float fine_scale : hint_range(1.0, 1000.0) = 500;
-uniform float fine_ratio : hint_range(0.0, 1.0) = 0.3;
+uniform float fine_ratio : hint_range(0.0, 1.0) = 0.2;
 
 uniform float color_variation : hint_range(0.0, 1.0) = 0.2;
-uniform float bump_strength : hint_range(0.0, 1.0) = 0.15;
+// uniform float bump_strength : hint_range(0.0, 0.01) = 0.001;
 uniform float roughness : hint_range(0.0, 1.0) = 0.88;
 
 
@@ -93,10 +93,15 @@ float fractal_noise_3d(vec3 p, int iterations)
 	return value / amplitude_sum;
 }
 
+float get_fine_height(highp vec3 p)
+{
+	return value_noise_3d(p * fine_scale);
+}
+
 void fragment() {
 	highp vec3 p = global_position;
 	float large_noise = fractal_noise_3d(p * noise_scale, 2);
-	float fine_noise  = fractal_noise_3d(p * fine_scale, 1);
+	float fine_noise  = get_fine_height(p);
 
 	float noise = (large_noise * (1.0 - fine_ratio)) + (fine_noise * fine_ratio); // Combine the two scales.
 	float color_offset = (noise - 0.5) * color_variation;
@@ -104,6 +109,15 @@ void fragment() {
 	ALBEDO = plaster_color + vec3(color_offset);
 	ROUGHNESS = roughness + (noise - 0.5) * 0.08;
 
-	vec3 world_n = calculate_world_normal(p, fine_scale, bump_strength, ...);
-	NORMAL = mat3(VIEW_MATRIX) * world_n;
+	// Normal calculation using fine_scale
+	// highp float e = 0.01;
+	// float h = get_fine_height(p);
+	// float hx = get_fine_height(p + vec3(e, 0.0, 0.0));
+	// float hy = get_fine_height(p + vec3(0.0, e, 0.0));
+	// float hz = get_fine_height(p + vec3(0.0, 0.0, e));
+
+	// vec3 normal_offset = vec3(h - hx, h - hy, h - hz) * (bump_strength / e);
+	// vec3 world_normal = normalize(v_world_normal + normal_offset);
+
+	// NORMAL = (VIEW_MATRIX * vec4(world_normal, 0.0)).xyz;
 }

@@ -1,5 +1,11 @@
 [gd_scene format=3 uid="uid://dahxrxo8sxby8"]
 
 [ext_resource type="PackedScene" uid="uid://c5k4ckbsic41x" path="res://scenes/lvl_0/saves/part_arch_i_mirror.blend" id="1_ubqc8"]
+[ext_resource type="Material" uid="uid://uj2bdsyb6132" path="res://assets/materials/plaster_brown.tres" id="2_gsuer"]
+[ext_resource type="Material" uid="uid://b743nsmqmx62t" path="res://assets/materials/plaster_yellow.tres" id="3_f3px5"]
 
 [node name="part_arch_i_mirror" unique_id=39825774 instance=ExtResource("1_ubqc8")]
+
+[node name="Cube" parent="." index="0" unique_id=1005215017]
+surface_material_override/0 = ExtResource("2_gsuer")
+surface_material_override/1 = ExtResource("3_f3px5")
