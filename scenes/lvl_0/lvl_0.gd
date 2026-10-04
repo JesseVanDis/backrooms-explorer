@@ -17,6 +17,8 @@ var model_wall_i:                 Model = _load_model(preload("res://scenes/lvl_
 var model_wall_l:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_l.tscn"))
 var model_wall_e:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_end.tscn"))
 var model_arch_i:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_i.tscn"))
+var model_arch_i_mirror:          Model = _load_model(preload("res://scenes/lvl_0/part_arch_i_mirror.tscn"))
+var model_arch_e:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_e.tscn"))
 
 @onready var _node_map: Node3D = $Map
 var _player: Player = null
@@ -118,22 +120,22 @@ func _place_wall(wall_model_x: Model, wall_model_t: Model, wall_model_i: Model, 
 	var wall_e: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x + 1, tile_index.y))
 	var wall_w: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x - 1, tile_index.y))
 	
-	if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(model_wall_x, tile_index, 0.0)
-	elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(model_wall_t, tile_index, 0.0)
-	elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall_specific(model_wall_t, tile_index, PI)
-	elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(model_wall_i, tile_index, 0.0)
-	elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(model_wall_t, tile_index, -PI/2)
-	elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(model_wall_l, tile_index, -PI/2)
-	elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(model_wall_l, tile_index, PI)
-	elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(model_wall_e, tile_index, PI)
-	elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(model_wall_t, tile_index, PI/2)
-	elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(model_wall_l, tile_index, 0.0)
-	elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall_specific(model_wall_l, tile_index, PI/2)
-	elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(model_wall_e, tile_index, 0.0)
-	elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(model_wall_i, tile_index, PI/2)
-	elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(model_wall_e, tile_index, -PI/2)
-	elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(model_wall_e, tile_index, PI/2)
-	elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(model_wall_x, tile_index, 0.0)
+	if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0)
+	elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_t, tile_index, 0.0)
+	elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_t, tile_index, PI)
+	elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_i, tile_index, 0.0)
+	elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_t, tile_index, -PI/2)
+	elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_l, tile_index, -PI/2)
+	elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_l, tile_index, PI)
+	elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, PI)
+	elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_t, tile_index, PI/2)
+	elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_l, tile_index, 0.0)
+	elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_l, tile_index, PI/2)
+	elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, 0.0)
+	elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_i, tile_index, PI/2)
+	elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, -PI/2)
+	elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_e, tile_index, PI/2)
+	elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0)
 	
 func _get_pixel_at(x: int, y: int) -> MapGenerator.Pixel:
 	var chunk_index: Vector2i = Vector2i(int(floorf(float(x) / CHUNK_SIZE)), int(floorf(float(y) / CHUNK_SIZE)))
@@ -264,31 +266,27 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 			var wall_w: bool = (_get_pixel_at(x - 1, y) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH
 			var wall_rotation: float = 0.0
 			var rotate_180: bool = ((tile_index.x + tile_index.y) & 1) == 1
+			var rotated_180: float = 0.0
 			if wall_e || wall_w:
 				wall_rotation = PI/2
 			if rotate_180:
+				rotated_180 = PI
 				wall_rotation += PI
 			
-			if wall_rotation == 0:
-				if wall_n:
-					_place_wall_specific(model_arch_i, tile_index, wall_rotation)
-				else:
-					_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
-			if wall_rotation == PI:
-				if wall_s:
-					_place_wall_specific(model_arch_i, tile_index, wall_rotation)
-				else:
-					_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
-			if wall_rotation == PI/2:
-				if wall_e:
-					_place_wall_specific(model_arch_i, tile_index, wall_rotation)
-				else:
-					_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
-			if wall_rotation == PI + (PI/2):
-				if wall_w:
-					_place_wall_specific(model_arch_i, tile_index, wall_rotation)
-				else:
-					_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
+			var is_half_arch: bool = false
+			is_half_arch = is_half_arch || (wall_rotation == 0  && !wall_n)
+			is_half_arch = is_half_arch || (wall_rotation == PI && !wall_s)
+			is_half_arch = is_half_arch || (wall_rotation == PI/2 && !wall_e)
+			is_half_arch = is_half_arch || (wall_rotation == PI + (PI/2) && !wall_w)
+			
+			var model_i: Model = model_arch_i
+			var model_e: Model = model_arch_e
+			if rotated_180:
+				model_i = model_arch_i_mirror
+			if is_half_arch:
+				model_i = model_wall_i
+				model_e = model_wall_i
+			_place_wall(model_wall_x, model_i, model_i, model_i, model_e, tile_index)
 			
 		MapGenerator.Pixel.TILE_WALL:
 			_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
