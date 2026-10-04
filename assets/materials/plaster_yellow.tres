@@ -1,0 +1,15 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://b743nsmqmx62t"]
+
+[ext_resource type="Shader" uid="uid://cmm576qi8aam4" path="res://assets/materials/plaster.gdshader" id="1_5dfb2"]
+[ext_resource type="Texture2D" uid="uid://csj66kw2o3p1l" path="res://assets/textures/generic_noise.png" id="2_0l4wn"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_5dfb2")
+shader_parameter/plaster_color = Color(0.81666, 0.7312289, 0.30924505, 1)
+shader_parameter/random_texture = ExtResource("2_0l4wn")
+shader_parameter/noise_scale = 0.02
+shader_parameter/fine_scale = 1.4
+shader_parameter/color_variation = 0.1490000070775
+shader_parameter/bump_strength = 0.01600000076
+shader_parameter/roughness = 0.88
