@@ -59,11 +59,24 @@ func _extend_walls(ctx: Context) -> bool:
 		if pp.wall_s && pp.wall_ss && !pp.wall_w && !pp.wall_e: return true
 	return false
 
+func _retract_walls(ctx: Context) -> bool:
+	var pp: PreviousPass = ctx.previous_pass
+	if pp.wall_c:
+		if pp.wall_n && !pp.wall_s: return true
+		if pp.wall_s && !pp.wall_n: return true
+		if pp.wall_w && !pp.wall_e: return true
+		if pp.wall_e && !pp.wall_w: return true
+	return false
+
 func _is_isolated_wall_dot(ctx: Context) -> bool:
 	var pp: PreviousPass = ctx.previous_pass
 	if pp.wall_c:
 		return !pp.wall_e && !pp.wall_w && !pp.wall_n && !pp.wall_s
 	return false
+
+static func is_wall(pixel: Pixel) -> bool:
+	var tile: Pixel = pixel & TILE_MASK as Pixel
+	return tile == Pixel.TILE_WALL || tile == Pixel.TILE_ARCH
 
 func _is_open_corner(ctx: Context) -> bool:
 	var pp: PreviousPass = ctx.previous_pass
@@ -74,9 +87,22 @@ func _is_open_corner(ctx: Context) -> bool:
 		if (pp.wall_s && pp.wall_ss) && (pp.wall_e || pp.wall_w): return true
 	return false
 
+func _is_corner(ctx: Context) -> bool:
+	var pp: PreviousPass = ctx.previous_pass
+	if pp.wall_c:
+		if pp.wall_n && pp.wall_e: return true
+		if pp.wall_n && pp.wall_w: return true
+		if pp.wall_s && pp.wall_e: return true
+		if pp.wall_s && pp.wall_w: return true
+		if pp.wall_w && pp.wall_n: return true
+		if pp.wall_w && pp.wall_s: return true
+		if pp.wall_e && pp.wall_n: return true
+		if pp.wall_e && pp.wall_s: return true
+	return false
+
 func _is_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
 	var data: Array[Pixel] = ctx.previous_pass.data
-	if (ctx.get_at_offset(data, offset_x, offset_y) & TILE_MASK) == Pixel.TILE_WALL:
+	if is_wall(ctx.get_at_offset(data, offset_x, offset_y)):
 		var wall_w: bool =  ctx.previous_pass.wall_w;
 		var wall_e: bool =  ctx.previous_pass.wall_e;
 		var wall_s: bool =  ctx.previous_pass.wall_s;
@@ -87,24 +113,35 @@ func _is_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
 		if(!wall_w && !wall_n && !wall_s && wall_e): return true
 	return false
 	
-func _get_wall_length(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, visited: Dictionary = {}) -> int:
+func _get_wall_length(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, check_diagonal: bool = true, visited: Dictionary = {}) -> int:
 	var key := Vector2i(offset_x, offset_y)
 	if visited.has(key):
 		return 0
 	visited[key] = true
-	if (ctx.get_at_offset(pp.data, offset_x, offset_y) & TILE_MASK) != Pixel.TILE_WALL:
+	if !is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y)):
 		return 0
 	var count := 1
 	if count >= limit: return limit
-	count += _get_wall_length(pp, ctx, limit - count, offset_x + 1, offset_y, visited);     if count >= limit:	return limit
-	count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y, visited);     if count >= limit:	return limit
-	count += _get_wall_length(pp, ctx, limit - count, offset_x, offset_y + 1, visited);     if count >= limit:	return limit
-	count += _get_wall_length(pp, ctx, limit - count, offset_x, offset_y - 1, visited);     if count >= limit:	return limit
-	count += _get_wall_length(pp, ctx, limit - count, offset_x + 1, offset_y - 1, visited); if count >= limit:	return limit
-	count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y - 1, visited); if count >= limit:	return limit
-	count += _get_wall_length(pp, ctx, limit - count, offset_x + 1, offset_y + 1, visited); if count >= limit:	return limit
-	count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y + 1, visited); if count >= limit:	return limit
+	count += _get_wall_length(pp, ctx, limit - count, offset_x + 1, offset_y, check_diagonal, visited);     if count >= limit:	return limit
+	count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y, check_diagonal, visited);     if count >= limit:	return limit
+	count += _get_wall_length(pp, ctx, limit - count, offset_x, offset_y + 1, check_diagonal, visited);     if count >= limit:	return limit
+	count += _get_wall_length(pp, ctx, limit - count, offset_x, offset_y - 1, check_diagonal, visited);     if count >= limit:	return limit
+	if check_diagonal:
+		count += _get_wall_length(pp, ctx, limit - count, offset_x + 1, offset_y - 1, check_diagonal, visited); if count >= limit:	return limit
+		count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y - 1, check_diagonal, visited); if count >= limit:	return limit
+		count += _get_wall_length(pp, ctx, limit - count, offset_x + 1, offset_y + 1, check_diagonal, visited); if count >= limit:	return limit
+		count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y + 1, check_diagonal, visited); if count >= limit:	return limit
 	return count
+
+func _is_wall_length_greater_then(pp: PreviousPass, ctx: Context, threshold: int, offset_x: int = 0, offset_y: int = 0, check_diagonal: bool = true) -> bool:
+	if pp.wall_c && _get_wall_length(pp, ctx, threshold+1, offset_x, offset_y, check_diagonal) > threshold:
+		return true
+	return false
+
+func _is_wall_length_lesser_then(pp: PreviousPass, ctx: Context, threshold: int, offset_x: int = 0, offset_y: int = 0, check_diagonal: bool = true) -> bool:
+	if !pp.wall_c:
+		return true
+	return _get_wall_length(pp, ctx, threshold+1, offset_x, offset_y, check_diagonal) < threshold
 
 const NUM_PASSES_IN_GEN_BIOMES = 1 # change this everytime you change the amount of cases in 'match pass_index' below
 func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
@@ -152,10 +189,10 @@ func _gen(pass_index: int, ctx: Context) -> Pixel:
 				retval = _gen_biome_pillars(biome_pass_index, ctx)
 	
 	# force empty area at spawn point
-	if (ctx.x * ctx.x) < 100 && (ctx.y * ctx.y) < 100 && retval != Pixel.INVALID && pp.tile_c == Pixel.TILE_WALL:
+	if (ctx.x * ctx.x) < 100 && (ctx.y * ctx.y) < 100 && retval != Pixel.INVALID && pp.wall_c:
 		retval = pp.with_tile(Pixel.TILE_EMPTY)
 	return retval
-	
+
 func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	var num_neighbour_walls: int = 0;
@@ -188,10 +225,18 @@ func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
 				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 		
-		4,5,6,7,8,9,10,11:
+		4,5,6,7,8,9,10:
 			if ctx.random() > 0.1:
 				if _extend_walls(ctx):
 					return pp.with_tile(Pixel.TILE_WALL)
+			return pp.no_change()
+		
+		11:
+			if ctx.random() > 0.1:
+				if _extend_walls(ctx):
+					return pp.with_tile(Pixel.TILE_WALL)
+			if _is_isolated_wall_dot(ctx):
+				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 		
 	return Pixel.INVALID
@@ -207,7 +252,7 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 
 	var noise_upscale: float = 0.4
 	
-	match pass_index:			
+	match pass_index:
 		0: # grid
 			if grid_local_x == 0:
 				return pp.with_tile(Pixel.TILE_WALL)
@@ -231,7 +276,7 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 			return pp.no_change()
 
 		4: # filter small walls
-			if pp.wall_c && _get_wall_length(pp, ctx, 5) < 4:
+			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 4):
 				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 
@@ -250,19 +295,65 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 
 func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
-	var result: Pixel = _gen_biome_mess(pass_index, ctx)
-	if result == Pixel.INVALID:
-		var old_result: Pixel = _gen_biome_mess(pass_index - 1, ctx)
-		if old_result == Pixel.INVALID:
-			return Pixel.INVALID
-		else:
-			# change some walls to arches
-			if pp.wall_c:
+	const grid_cell_size = 7
+	var grid_x := floori(ctx.x_flt / grid_cell_size)
+	var grid_y := floori(ctx.y_flt / grid_cell_size)
+	var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
+	var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
+
+	var noise_upscale: float = 0.4
+	
+	match pass_index:
+		0: # grid
+			if grid_local_x == 0:
 				return pp.with_tile(Pixel.TILE_ARCH)
+			if grid_local_y == 0:
+				return pp.with_tile(Pixel.TILE_ARCH)
+			return pp.with_tile(Pixel.TILE_EMPTY)
+
+		1: # openings
+			if pp.tile_c == Pixel.TILE_ARCH:
+				var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
+				if noise > 0.55:
+					return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 		
-	return result
+		2: # coridors
+			return pp.no_change()
 
+		3: # filter small walls
+			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 4):
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+
+		4: # lights
+			if !pp.wall_c:
+				if _ceiling_light(ctx, 0.1, 4, 2):
+					return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
+			return pp.no_change()
+		
+		5: # make some lights blinking
+			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
+			return pp.no_change()
+		
+		6:
+			if pp.wall_c && _is_corner(ctx):
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+		
+		7:
+			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 5, 0, 0, false): 
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+	
+		8: # close open corners
+			if _is_open_corner(ctx):
+				return pp.with_tile(Pixel.TILE_WALL)
+			return pp.no_change()
+	
+	
+	return Pixel.INVALID
 
 func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
@@ -292,11 +383,15 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 0) || 
 				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 1)):
 					return pp.with_tile(Pixel.TILE_WALL)
+
+		3,4,5,6,7,8:
+			return pp.no_change()
 		
-		3:
-			if pp.wall_c && _get_wall_length(pp, ctx, 5) < 4:
+		9:
+			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 4): 
 				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
+		
 			
 	return Pixel.INVALID
 
@@ -363,19 +458,19 @@ class PreviousPass:
 		pixel_c = ctx.get_at(data)
 		biome_c = TileUtils.get_biome(pixel_c)
 		tile_c = pixel_c - biome_c as Pixel
-		wall_c = (ctx.get_at(data) & TILE_MASK) == Pixel.TILE_WALL
-		wall_n = (ctx.get_at_offset(data, 0, 1) & TILE_MASK) == Pixel.TILE_WALL
-		wall_nn = (ctx.get_at_offset(data, 0, 2) & TILE_MASK) == Pixel.TILE_WALL
-		wall_s = (ctx.get_at_offset(data, 0, -1) & TILE_MASK) == Pixel.TILE_WALL
-		wall_ss = (ctx.get_at_offset(data, 0, -2) & TILE_MASK) == Pixel.TILE_WALL
-		wall_e = (ctx.get_at_offset(data, 1, 0) & TILE_MASK) == Pixel.TILE_WALL
-		wall_ee = (ctx.get_at_offset(data, 2, 0) & TILE_MASK) == Pixel.TILE_WALL
-		wall_w = (ctx.get_at_offset(data, -1, 0) & TILE_MASK) == Pixel.TILE_WALL
-		wall_ww = (ctx.get_at_offset(data, -2, 0) & TILE_MASK) == Pixel.TILE_WALL
-		wall_nw = (ctx.get_at_offset(data, -1, 1) & TILE_MASK) == Pixel.TILE_WALL
-		wall_ne = (ctx.get_at_offset(data, 1, 1) & TILE_MASK) == Pixel.TILE_WALL
-		wall_sw = (ctx.get_at_offset(data, -1, -1) & TILE_MASK) == Pixel.TILE_WALL
-		wall_se = (ctx.get_at_offset(data, 1, -1) & TILE_MASK) == Pixel.TILE_WALL
+		wall_c = MapGenerator.is_wall(ctx.get_at(data))
+		wall_n = MapGenerator.is_wall(ctx.get_at_offset(data, 0, 1))
+		wall_nn = MapGenerator.is_wall(ctx.get_at_offset(data, 0, 2))
+		wall_s = MapGenerator.is_wall(ctx.get_at_offset(data, 0, -1))
+		wall_ss = MapGenerator.is_wall(ctx.get_at_offset(data, 0, -2))
+		wall_e = MapGenerator.is_wall(ctx.get_at_offset(data, 1, 0))
+		wall_ee = MapGenerator.is_wall(ctx.get_at_offset(data, 2, 0))
+		wall_w = MapGenerator.is_wall(ctx.get_at_offset(data, -1, 0))
+		wall_ww = MapGenerator.is_wall(ctx.get_at_offset(data, -2, 0))
+		wall_nw = MapGenerator.is_wall(ctx.get_at_offset(data, -1, 1))
+		wall_ne = MapGenerator.is_wall(ctx.get_at_offset(data, 1, 1))
+		wall_sw = MapGenerator.is_wall(ctx.get_at_offset(data, -1, -1))
+		wall_se = MapGenerator.is_wall(ctx.get_at_offset(data, 1, -1))
 
 	func _init() -> void:
 		pass;

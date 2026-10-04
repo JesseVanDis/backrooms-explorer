@@ -109,9 +109,32 @@ func _handle_player_landing() -> void:
 			player.active_wieldable = "lvl_0_landing"
 			_did_hit_floor = true
 
-func _place_wall(model: Model, tile_index: Vector2i, angle: float) -> void:
+func _place_wall_specific(model: Model, tile_index: Vector2i, angle: float) -> void:
 	_instantiate_model(model, tile_index, angle)
 
+func _place_wall(wall_model_x: Model, wall_model_t: Model, wall_model_i: Model, wall_model_l: Model, wall_model_e: Model, tile_index: Vector2i) -> void:
+	var wall_n: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x, tile_index.y + 1))
+	var wall_s: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x, tile_index.y - 1))
+	var wall_e: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x + 1, tile_index.y))
+	var wall_w: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x - 1, tile_index.y))
+	
+	if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(model_wall_x, tile_index, 0.0)
+	elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(model_wall_t, tile_index, 0.0)
+	elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall_specific(model_wall_t, tile_index, PI)
+	elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(model_wall_i, tile_index, 0.0)
+	elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(model_wall_t, tile_index, -PI/2)
+	elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(model_wall_l, tile_index, -PI/2)
+	elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(model_wall_l, tile_index, PI)
+	elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(model_wall_e, tile_index, PI)
+	elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(model_wall_t, tile_index, PI/2)
+	elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(model_wall_l, tile_index, 0.0)
+	elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall_specific(model_wall_l, tile_index, PI/2)
+	elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(model_wall_e, tile_index, 0.0)
+	elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(model_wall_i, tile_index, PI/2)
+	elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(model_wall_e, tile_index, -PI/2)
+	elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(model_wall_e, tile_index, PI/2)
+	elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(model_wall_x, tile_index, 0.0)
+	
 func _get_pixel_at(x: int, y: int) -> MapGenerator.Pixel:
 	var chunk_index: Vector2i = Vector2i(int(floorf(float(x) / CHUNK_SIZE)), int(floorf(float(y) / CHUNK_SIZE)))
 	if ! chunks.has(chunk_index):
@@ -233,30 +256,42 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 			
 		MapGenerator.Pixel.TILE_CEILING_LIGHT_BLINKING:
 			_instantiate_model(model_ceiling_light_blinking, tile_index, 0)
+
+		MapGenerator.Pixel.TILE_ARCH:
+			var wall_n: bool = (_get_pixel_at(x, y + 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH
+			var wall_s: bool = (_get_pixel_at(x, y - 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH
+			var wall_e: bool = (_get_pixel_at(x + 1, y) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH
+			var wall_w: bool = (_get_pixel_at(x - 1, y) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH
+			var wall_rotation: float = 0.0
+			var rotate_180: bool = ((tile_index.x + tile_index.y) & 1) == 1
+			if wall_e || wall_w:
+				wall_rotation = PI/2
+			if rotate_180:
+				wall_rotation += PI
+			
+			if wall_rotation == 0:
+				if wall_n:
+					_place_wall_specific(model_arch_i, tile_index, wall_rotation)
+				else:
+					_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
+			if wall_rotation == PI:
+				if wall_s:
+					_place_wall_specific(model_arch_i, tile_index, wall_rotation)
+				else:
+					_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
+			if wall_rotation == PI/2:
+				if wall_e:
+					_place_wall_specific(model_arch_i, tile_index, wall_rotation)
+				else:
+					_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
+			if wall_rotation == PI + (PI/2):
+				if wall_w:
+					_place_wall_specific(model_arch_i, tile_index, wall_rotation)
+				else:
+					_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
 			
 		MapGenerator.Pixel.TILE_WALL:
-			# Use _get_pixel_at for seamless transitions between chunks
-			var wall_n: bool = (_get_pixel_at(x, y + 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
-			var wall_s: bool = (_get_pixel_at(x, y - 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
-			var wall_e: bool = (_get_pixel_at(x + 1, y) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
-			var wall_w: bool = (_get_pixel_at(x - 1, y) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL
-			
-			if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(model_wall_x, tile_index, 0.0)
-			elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(model_wall_t, tile_index, 0.0)
-			elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(model_wall_t, tile_index, PI)
-			elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(model_wall_i, tile_index, 0.0)
-			elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(model_wall_t, tile_index, -PI/2)
-			elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(model_wall_l, tile_index, -PI/2)
-			elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(model_wall_l, tile_index, PI)
-			elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall(model_wall_e, tile_index, PI)
-			elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall(model_wall_t, tile_index, PI/2)
-			elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall(model_wall_l, tile_index, 0.0)
-			elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall(model_wall_l, tile_index, PI/2)
-			elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall(model_wall_e, tile_index, 0.0)
-			elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall(model_wall_i, tile_index, PI/2)
-			elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall(model_wall_e, tile_index, -PI/2)
-			elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall(model_wall_e, tile_index, PI/2)
-			elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall(model_wall_x, tile_index, 0.0)
+			_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
 
 #
 func _find_spawn_point() -> Vector2i:
