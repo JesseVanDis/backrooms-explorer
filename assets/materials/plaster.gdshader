@@ -17,6 +17,7 @@ varying vec3 local_position;
 varying vec3 v_normal;
 varying vec3 v_tangent;
 varying vec3 v_binormal;
+varying vec3 v_node_position;
 
 
 void vertex() 
@@ -25,6 +26,7 @@ void vertex()
 	v_normal = NORMAL;
 	v_tangent = TANGENT;
 	v_binormal = BINORMAL;
+	v_node_position = MODEL_MATRIX[3].xyz;
 }
 
 float random_xy(vec3 p) { return texture(random_texture, p.xy).r; }
@@ -44,8 +46,9 @@ float plaster_noise(vec3 p, float scale)
 
 
 void fragment() {
-	float large_noise = plaster_noise(local_position, noise_scale);
-	float fine_noise  = plaster_noise(local_position, fine_scale);
+	vec3 p = local_position + v_node_position;
+	float large_noise = plaster_noise(p, noise_scale);
+	float fine_noise  = plaster_noise(p, fine_scale);
 
 	float noise = (large_noise * 0.7) + (fine_noise * 0.3); // Combine the two scales.
 	float color_offset = (noise - 0.5) * color_variation;
