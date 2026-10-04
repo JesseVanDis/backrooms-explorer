@@ -12,13 +12,19 @@ uniform float bump_strength : hint_range(0.0, 1.0) = 0.15;
 uniform float roughness : hint_range(0.0, 1.0) = 0.88;
 
 
-// World-space position passed from vertex -> fragment.
-varying vec3 world_position;
+// Local-space position passed from vertex -> fragment.
+varying vec3 local_position;
+varying vec3 v_normal;
+varying vec3 v_tangent;
+varying vec3 v_binormal;
 
 
 void vertex() 
 {
-	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	local_position = VERTEX;
+	v_normal = NORMAL;
+	v_tangent = TANGENT;
+	v_binormal = BINORMAL;
 }
 
 float random_xy(vec3 p) { return texture(random_texture, p.xy).r; }
@@ -38,8 +44,8 @@ float plaster_noise(vec3 p, float scale)
 
 
 void fragment() {
-	float large_noise = plaster_noise(world_position, noise_scale);
-	float fine_noise  = plaster_noise(world_position, fine_scale);
+	float large_noise = plaster_noise(local_position, noise_scale);
+	float fine_noise  = plaster_noise(local_position, fine_scale);
 
 	float noise = (large_noise * 0.7) + (fine_noise * 0.3); // Combine the two scales.
 	float color_offset = (noise - 0.5) * color_variation;
