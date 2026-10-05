@@ -394,20 +394,26 @@ func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
 				return pp.with_tile(Pixel.TILE_WALL)
 			if pp.wall_s && !is_wall_arch(s) && pp.tile_c == Pixel.TILE_ARCH:
 				return pp.with_tile(Pixel.TILE_WALL)
-			if pp.wall_e && !is_wall_arch(w) && pp.tile_c == Pixel.TILE_ARCH:
+			if pp.wall_w && !is_wall_arch(w) && pp.tile_c == Pixel.TILE_ARCH:
 				return pp.with_tile(Pixel.TILE_WALL)
 			if pp.wall_e && !is_wall_arch(e) && pp.tile_c == Pixel.TILE_ARCH_MIRRORED:
 				return pp.with_tile(Pixel.TILE_WALL)
 			return pp.no_change()
 			
 		11: # filter small walls
-			if pp.tile_c == Pixel.TILE_WALL:
+			if pp.wall_c:
 				var n: Pixel = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel)
 				var s: Pixel = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel)
 				var e: Pixel = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel)
 				var w: Pixel = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel)
-				if e != Pixel.TILE_WALL && s != Pixel.TILE_WALL && n != Pixel.TILE_WALL && w != Pixel.TILE_WALL:
-					return pp.with_tile(Pixel.TILE_EMPTY)
+				
+				if pp.tile_c == Pixel.TILE_WALL:
+					if e != Pixel.TILE_WALL && s != Pixel.TILE_WALL && n != Pixel.TILE_WALL && w != Pixel.TILE_WALL:
+						return pp.with_tile(Pixel.TILE_EMPTY)
+				
+				if is_wall_arch(pp.tile_c):
+					if !is_wall_arch(e) && !is_wall_arch(s) && !is_wall_arch(n) && !is_wall_arch(w):
+						return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 	
 	return Pixel.INVALID
