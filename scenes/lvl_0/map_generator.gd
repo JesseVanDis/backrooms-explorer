@@ -16,8 +16,9 @@ enum Pixel {
 	BIOME_ARCHES                 = 0x00000003,
 	BIOME_PILLARS                = 0x00000004,
 	TILE_WALL                    = 0x00000100,
-	TILE_ARCH                    = 0x00000200,
-	TILE_ARCH_MIRRORED           = 0x00000300,
+	TILE_WALL_TOP_GAP            = 0x00000200,
+	TILE_ARCH                    = 0x00000300,
+	TILE_ARCH_MIRRORED           = 0x00000400,
 	TILE_EMPTY                   = 0x00010000,
 	TILE_CEILING_LIGHT           = 0x00020000,
 	TILE_CEILING_LIGHT_BLINKING  = 0x00030000,
@@ -113,7 +114,7 @@ func _is_corner(ctx: Context) -> bool:
 		if pp.wall_e && pp.wall_s: return true
 	return false
 
-func _is_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
+func _is_wall_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
 	var data: Array[Pixel] = ctx.previous_pass.data
 	if is_wall(ctx.get_at_offset(data, offset_x, offset_y)):
 		var wall_w: bool =  ctx.previous_pass.wall_w;
@@ -146,6 +147,9 @@ func _get_wall_length(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x:
 		count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y + 1, check_diagonal, visited); if count >= limit:	return limit
 	return count
 
+#func _find_distance_to_deadend(ctx: Context, limit: int = 10) -> int:
+	
+
 func _is_wall_length_greater_then(pp: PreviousPass, ctx: Context, threshold: int, offset_x: int = 0, offset_y: int = 0, check_diagonal: bool = true) -> bool:
 	if pp.wall_c && _get_wall_length(pp, ctx, threshold+1, offset_x, offset_y, check_diagonal) > threshold:
 		return true
@@ -155,6 +159,24 @@ func _is_wall_length_lesser_then(pp: PreviousPass, ctx: Context, threshold: int,
 	if !pp.wall_c:
 		return true
 	return _get_wall_length(pp, ctx, threshold+1, offset_x, offset_y, check_diagonal) < threshold
+
+func _replace_deadend_wall_with_upper_gap(ctx: Context) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	if pp.wall_c:
+		if(pp.wall_w && !pp.wall_n && !pp.wall_s && !pp.wall_e): return Pixel.TILE_WALL_TOP_GAP
+		if(!pp.wall_w && pp.wall_n && !pp.wall_s && !pp.wall_e): return Pixel.TILE_WALL_TOP_GAP
+		if(!pp.wall_w && !pp.wall_n && pp.wall_s && !pp.wall_e): return Pixel.TILE_WALL_TOP_GAP
+		if(!pp.wall_w && !pp.wall_n && !pp.wall_s && pp.wall_e): return Pixel.TILE_WALL_TOP_GAP
+	return pp.no_change()
+
+func _spread_upper_gap(ctx: Context) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	if pp.tile_c == Pixel.TILE_WALL:
+		if pp.tile_n == Pixel.TILE_WALL_TOP_GAP && !pp.wall_e && !pp.wall_w: return Pixel.TILE_WALL_TOP_GAP
+		if pp.tile_s == Pixel.TILE_WALL_TOP_GAP && !pp.wall_e && !pp.wall_w: return Pixel.TILE_WALL_TOP_GAP
+		if pp.tile_e == Pixel.TILE_WALL_TOP_GAP && !pp.wall_n && !pp.wall_s: return Pixel.TILE_WALL_TOP_GAP
+		if pp.tile_w == Pixel.TILE_WALL_TOP_GAP && !pp.wall_n && !pp.wall_s: return Pixel.TILE_WALL_TOP_GAP
+	return pp.no_change()
 
 const NUM_PASSES_IN_GEN_BIOMES = 1 # change this everytime you change the amount of cases in 'match pass_index' below
 func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
@@ -252,6 +274,14 @@ func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
 				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 		
+		12:
+			if ctx.random() > 0.9: 
+				return _replace_deadend_wall_with_upper_gap(ctx)
+			return pp.no_change()
+		
+		13,14,15:
+			return _spread_upper_gap(ctx)
+		
 	return Pixel.INVALID
 
 func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
@@ -303,7 +333,15 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
 				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
 			return pp.no_change()
+		
+		7:
+			if ctx.random() > 0.9:
+				return _replace_deadend_wall_with_upper_gap(ctx)
+			return pp.no_change()
 	
+		8,9,10:
+			return _spread_upper_gap(ctx)
+
 	return Pixel.INVALID
 
 func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:

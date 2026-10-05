@@ -14,8 +14,10 @@ var model_ceiling_light_blinking: Model = _load_model(preload("res://scenes/lvl_
 var model_wall_x:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_x.tscn"))
 var model_wall_t:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_t.tscn"))
 var model_wall_i:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_i.tscn"))
+var model_wall_i_top_gap:         Model = _load_model(preload("res://scenes/lvl_0/part_wall_i_top_gap.tscn"))
 var model_wall_l:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_l.tscn"))
-var model_wall_e:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_end.tscn"))
+var model_wall_e:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_e.tscn"))
+var model_wall_e_top_gap:         Model = _load_model(preload("res://scenes/lvl_0/part_wall_e_top_gap.tscn"))
 var model_arch_i:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_i.tscn"))
 var model_arch_i_mirror:          Model = _load_model(preload("res://scenes/lvl_0/part_arch_i_mirror.tscn"))
 var model_arch_e:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_e.tscn"))
@@ -269,6 +271,9 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 		
 		MapGenerator.Pixel.TILE_WALL:
 			_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
+
+		MapGenerator.Pixel.TILE_WALL_TOP_GAP:
+			_place_wall(model_wall_x, model_wall_t, model_wall_i_top_gap, model_wall_l, model_wall_e_top_gap, tile_index)
 
 #
 func _find_spawn_point() -> Vector2i:

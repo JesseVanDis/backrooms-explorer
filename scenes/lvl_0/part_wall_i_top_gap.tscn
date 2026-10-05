@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://r5fvuo6fwcf1"]
+
+[ext_resource type="PackedScene" uid="uid://dqftofgtvcnne" path="res://scenes/lvl_0/saves/part_wall_i.blend" id="1_fs6yi"]
+[ext_resource type="Material" uid="uid://6tbkpapliiuf" path="res://scenes/lvl_0/wallpaper.tres" id="2_01m0o"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_8nkiq"]
+size = Vector3(0.2000001, 2.3069577, 1)
+
+[node name="part_wall_i" unique_id=1818878546 instance=ExtResource("1_fs6yi")]
+
+[node name="Cube_001" parent="." index="0" unique_id=1519749142]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+surface_material_override/0 = ExtResource("2_01m0o")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="1" unique_id=1955125950]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.9802322e-08, 1.1534789, 0)
+shape = SubResource("BoxShape3D_8nkiq")
