@@ -488,6 +488,18 @@ class PreviousPass:
 	var pixel_c: Pixel = Pixel.NONE
 	var tile_c: Pixel = Pixel.NONE
 	var biome_c: Pixel = Pixel.NONE
+	var tile_n: Pixel
+	var tile_nn: Pixel
+	var tile_s: Pixel
+	var tile_ss: Pixel
+	var tile_e: Pixel
+	var tile_ee: Pixel
+	var tile_w: Pixel
+	var tile_ww: Pixel
+	var tile_nw: Pixel
+	var tile_ne: Pixel
+	var tile_sw: Pixel
+	var tile_se: Pixel
 	var wall_c: bool
 	var wall_n: bool
 	var wall_nn: bool
@@ -521,19 +533,45 @@ class PreviousPass:
 		pixel_c = ctx.get_at(data)
 		biome_c = TileUtils.get_biome(pixel_c)
 		tile_c = pixel_c - biome_c as Pixel
-		wall_c = MapGenerator.is_wall(ctx.get_at(data))
-		wall_n = MapGenerator.is_wall(ctx.get_at_offset(data, 0, 1))
-		wall_nn = MapGenerator.is_wall(ctx.get_at_offset(data, 0, 2))
-		wall_s = MapGenerator.is_wall(ctx.get_at_offset(data, 0, -1))
-		wall_ss = MapGenerator.is_wall(ctx.get_at_offset(data, 0, -2))
-		wall_e = MapGenerator.is_wall(ctx.get_at_offset(data, 1, 0))
-		wall_ee = MapGenerator.is_wall(ctx.get_at_offset(data, 2, 0))
-		wall_w = MapGenerator.is_wall(ctx.get_at_offset(data, -1, 0))
-		wall_ww = MapGenerator.is_wall(ctx.get_at_offset(data, -2, 0))
-		wall_nw = MapGenerator.is_wall(ctx.get_at_offset(data, -1, 1))
-		wall_ne = MapGenerator.is_wall(ctx.get_at_offset(data, 1, 1))
-		wall_sw = MapGenerator.is_wall(ctx.get_at_offset(data, -1, -1))
-		wall_se = MapGenerator.is_wall(ctx.get_at_offset(data, 1, -1))
+
+		var test_x_n2: int = clamp(ctx.lx - 2, 0, ctx.w - 1)
+		var test_x_n1: int = clamp(ctx.lx - 1, 0, ctx.w - 1)
+		var test_x_p0: int = clamp(ctx.lx + 0, 0, ctx.w - 1)
+		var test_x_p1: int = clamp(ctx.lx + 1, 0, ctx.w - 1)
+		var test_x_p2: int = clamp(ctx.lx + 2, 0, ctx.w - 1)
+		
+		var test_y_n2_w: int = clamp(ctx.ly - 2, 0, ctx.h - 1) * ctx.w
+		var test_y_n1_w: int = clamp(ctx.ly - 1, 0, ctx.h - 1) * ctx.w
+		var test_y_p0_w: int = clamp(ctx.ly + 0, 0, ctx.h - 1) * ctx.w
+		var test_y_p1_w: int = clamp(ctx.ly + 1, 0, ctx.h - 1) * ctx.w
+		var test_y_p2_w: int = clamp(ctx.ly + 2, 0, ctx.h - 1) * ctx.w
+
+		tile_n  = data[test_x_p0 + test_y_n1_w]
+		tile_nn = data[test_x_p0 + test_y_n2_w]
+		tile_s  = data[test_x_p0 + test_y_p1_w]
+		tile_ss = data[test_x_p0 + test_y_p2_w]
+		tile_e  = data[test_x_p1 + test_y_p0_w]
+		tile_ee = data[test_x_p2 + test_y_p0_w]
+		tile_w  = data[test_x_n1 + test_y_p0_w]
+		tile_ww = data[test_x_n2 + test_y_p0_w]
+		tile_nw = data[test_x_n1 + test_y_n1_w]
+		tile_ne = data[test_x_p1 + test_y_n1_w]
+		tile_sw = data[test_x_n1 + test_y_p1_w]
+		tile_se = data[test_x_p1 + test_y_p1_w]
+		
+		wall_c = pixel_c & WALL_MASK != 0
+		wall_n = tile_n & WALL_MASK != 0
+		wall_nn = tile_nn & WALL_MASK != 0
+		wall_s = tile_s & WALL_MASK != 0
+		wall_ss = tile_ss & WALL_MASK != 0
+		wall_e = tile_e & WALL_MASK != 0
+		wall_ee = tile_ee & WALL_MASK != 0
+		wall_w = tile_w & WALL_MASK != 0
+		wall_ww = tile_ww & WALL_MASK != 0
+		wall_nw = tile_nw & WALL_MASK != 0
+		wall_ne = tile_ne & WALL_MASK != 0
+		wall_sw = tile_sw & WALL_MASK != 0
+		wall_se = tile_se & WALL_MASK != 0
 
 	func _init() -> void:
 		pass;
@@ -681,6 +719,7 @@ class TileUtils:
 			Pixel.TILE_CEILING_LIGHT:               return Color(0,1,1)
 			Pixel.TILE_CEILING_LIGHT_BLINKING:      return Color(0.0, 0.58, 0.614, 1.0)
 			Pixel.TILE_WALL:                        return Color(0,0,0)
+			Pixel.TILE_WALL_TOP_GAP:                return Color(0.393, 0.393, 0.393, 1.0)
 			Pixel.TILE_ARCH:                        return Color(0.622, 0.428, 0.0, 1.0)
 			Pixel.TILE_ARCH_MIRRORED:               return Color(0.769, 0.303, 0.0, 1.0)
 		
