@@ -259,35 +259,14 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 		MapGenerator.Pixel.TILE_CEILING_LIGHT_BLINKING:
 			_instantiate_model(model_ceiling_light_blinking, tile_index, 0)
 
-		MapGenerator.Pixel.TILE_ARCH:
-			var wall_n: bool = (_get_pixel_at(x, y + 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH
-			var wall_s: bool = (_get_pixel_at(x, y - 1) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH
-			var wall_e: bool = (_get_pixel_at(x + 1, y) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH
-			var wall_w: bool = (_get_pixel_at(x - 1, y) & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH
-			var wall_rotation: float = 0.0
-			var rotate_180: bool = ((tile_index.x + tile_index.y) & 1) == 1
-			var rotated_180: float = 0.0
-			if wall_e || wall_w:
-				wall_rotation = PI/2
-			if rotate_180:
-				rotated_180 = PI
-				wall_rotation += PI
-			
-			var is_half_arch: bool = false
-			is_half_arch = is_half_arch || (wall_rotation == 0  && !wall_n)
-			is_half_arch = is_half_arch || (wall_rotation == PI && !wall_s)
-			is_half_arch = is_half_arch || (wall_rotation == PI/2 && !wall_e)
-			is_half_arch = is_half_arch || (wall_rotation == PI + (PI/2) && !wall_w)
-			
+		MapGenerator.Pixel.TILE_ARCH, MapGenerator.Pixel.TILE_ARCH_MIRRORED:
 			var model_i: Model = model_arch_i
 			var model_e: Model = model_arch_e
-			if rotated_180:
+			if (pixel & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH_MIRRORED:
 				model_i = model_arch_i_mirror
-			if is_half_arch:
-				model_i = model_wall_i
-				model_e = model_wall_i
+				model_e = model_arch_i_mirror # Ending wall bits will always orient correctly
 			_place_wall(model_wall_x, model_i, model_i, model_i, model_e, tile_index)
-			
+		
 		MapGenerator.Pixel.TILE_WALL:
 			_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
 

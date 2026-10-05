@@ -4,22 +4,28 @@ class_name MapGenerator
 
 const CHANCE_BLINKING_LIGHT = 0.004
 
+const BIOME_MASK                 = 0x000000FF
+const TILE_MASK                  = 0xFFFFFF00
+
+const WALL_MASK                  = 0x0000FF00
+
 enum Pixel {
-	NONE                         = 0,
-	BIOME_MESS                   = 1 << 1,
-	BIOME_ROOMS                  = 1 << 2,
-	BIOME_ARCHES                 = 1 << 3,
-	BIOME_PILLARS                = 1 << 4,
-	TILE_EMPTY                   = 1 << 16,
-	TILE_CEILING_LIGHT           = 2 << 16,
-	TILE_CEILING_LIGHT_BLINKING  = 3 << 16,
-	TILE_WALL                    = 4 << 16,
-	TILE_ARCH                    = 5 << 16,
-	INVALID                      = 1 << 31
+	NONE                         = 0x00000000,
+	BIOME_MESS                   = 0x00000001,
+	BIOME_ROOMS                  = 0x00000002,
+	BIOME_ARCHES                 = 0x00000003,
+	BIOME_PILLARS                = 0x00000004,
+	TILE_WALL                    = 0x00000100,
+	TILE_ARCH                    = 0x00000200,
+	TILE_ARCH_MIRRORED           = 0x00000300,
+	TILE_EMPTY                   = 0x00010000,
+	TILE_CEILING_LIGHT           = 0x00020000,
+	TILE_CEILING_LIGHT_BLINKING  = 0x00030000,
+	INVALID                      = 0xFFFFFF00
 }
 
-const BIOME_MASK = (1 << 16) - 1
-const TILE_MASK  = ((1 << 16) - 1) << 16
+#const BIOME_MASK = (1 << 16) - 1
+#const TILE_MASK  = ((1 << 16) - 1) << 16
 
 func _ceiling_light(ctx: Context, misplacement_chance: float, interval_range: int, offset: int) -> bool:
 	#if(posmod(ctx.x, 5) == 1 && posmod(ctx.y, 5) == 1):
@@ -75,8 +81,15 @@ func _is_isolated_wall_dot(ctx: Context) -> bool:
 	return false
 
 static func is_wall(pixel: Pixel) -> bool:
+	return pixel & WALL_MASK != 0
+
+static func is_wall_arch(pixel: Pixel) -> bool:
 	var tile: Pixel = pixel & TILE_MASK as Pixel
-	return tile == Pixel.TILE_WALL || tile == Pixel.TILE_ARCH
+	match tile:
+		Pixel.TILE_ARCH, Pixel.TILE_ARCH_MIRRORED:
+			return true
+		_:
+			return false
 
 func _is_open_corner(ctx: Context) -> bool:
 	var pp: PreviousPass = ctx.previous_pass
@@ -350,8 +363,52 @@ func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
 		8: # close open corners
 			if _is_open_corner(ctx):
 				return pp.with_tile(Pixel.TILE_WALL)
+			var n: bool = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+			var s: bool = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+			var e: bool = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+			var w: bool = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+			if (n && s) || (w && e):
+				return pp.with_tile(Pixel.TILE_ARCH)
 			return pp.no_change()
 	
+		9: # alighn
+			if pp.tile_c == Pixel.TILE_ARCH:# && ((ctx.x & 1) == 1 || (ctx.y & 1) == 1): 
+				var n: bool = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+				var s: bool = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+				var e: bool = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+				var w: bool = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+				if ((n || s) && (ctx.y & 1) == 1):
+					return pp.with_tile(Pixel.TILE_ARCH_MIRRORED)
+				if ((e || w) && (ctx.x & 1) == 1):
+					return pp.with_tile(Pixel.TILE_ARCH_MIRRORED)
+			return pp.no_change()
+		
+		10: # fix mis-alighned
+			if pp.wall_c && !is_wall_arch(pp.tile_c):
+				return pp.no_change() 
+			var n: Pixel = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel)
+			var s: Pixel = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel)
+			var e: Pixel = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel)
+			var w: Pixel = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel)
+			if pp.wall_n && !is_wall_arch(n) && pp.tile_c == Pixel.TILE_ARCH_MIRRORED:
+				return pp.with_tile(Pixel.TILE_WALL)
+			if pp.wall_s && !is_wall_arch(s) && pp.tile_c == Pixel.TILE_ARCH:
+				return pp.with_tile(Pixel.TILE_WALL)
+			if pp.wall_e && !is_wall_arch(w) && pp.tile_c == Pixel.TILE_ARCH:
+				return pp.with_tile(Pixel.TILE_WALL)
+			if pp.wall_e && !is_wall_arch(e) && pp.tile_c == Pixel.TILE_ARCH_MIRRORED:
+				return pp.with_tile(Pixel.TILE_WALL)
+			return pp.no_change()
+			
+		11: # filter small walls
+			if pp.tile_c == Pixel.TILE_WALL:
+				var n: Pixel = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel)
+				var s: Pixel = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel)
+				var e: Pixel = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel)
+				var w: Pixel = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel)
+				if e != Pixel.TILE_WALL && s != Pixel.TILE_WALL && n != Pixel.TILE_WALL && w != Pixel.TILE_WALL:
+					return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
 	
 	return Pixel.INVALID
 
@@ -440,13 +497,13 @@ class PreviousPass:
 	var wall_se: bool
 	
 	func with_tile(tile: Pixel) -> Pixel:
-		if tile < Pixel.TILE_EMPTY:
+		if tile & BIOME_MASK != 0:
 			push_error("argument given to 'with_tile' MUST be a tile")
 			return no_change()
 		return biome_c | tile as Pixel
 
 	func with_biome(biome: Pixel) -> Pixel:
-		if biome < Pixel.TILE_EMPTY:
+		if biome & TILE_MASK != 0:
 			push_error("argument given to 'with_biome' MUST be a biome")
 			return no_change()
 		return tile_c | biome as Pixel
@@ -573,7 +630,7 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[Pixel], pass_in
 	context.previous_pass = PreviousPass.new()
 	context.previous_pass.data = previous_pass_array
 	var all_pixels_set_to_count := true
-	
+		
 	target.resize(context.w * context.h);
 	for y in range(y0, y1):
 		var ly: int = y - y0
@@ -619,6 +676,7 @@ class TileUtils:
 			Pixel.TILE_CEILING_LIGHT_BLINKING:      return Color(0.0, 0.58, 0.614, 1.0)
 			Pixel.TILE_WALL:                        return Color(0,0,0)
 			Pixel.TILE_ARCH:                        return Color(0.622, 0.428, 0.0, 1.0)
+			Pixel.TILE_ARCH_MIRRORED:               return Color(0.769, 0.303, 0.0, 1.0)
 		
 		var h := fmod(absf(sin(float(pixel) * 12.9898) * 43758.5453), 1.0)
 		return Color.from_hsv(h, 0.7, 1.0)
