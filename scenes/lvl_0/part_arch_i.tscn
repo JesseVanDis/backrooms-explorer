@@ -4,8 +4,15 @@
 [ext_resource type="Material" uid="uid://uj2bdsyb6132" path="res://assets/materials/plaster_brown.tres" id="2_xsvao"]
 [ext_resource type="Material" uid="uid://b743nsmqmx62t" path="res://assets/materials/plaster_yellow.tres" id="3_g0ta7"]
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_khlrb"]
+size = Vector3(0.35058594, 3.1810303, 0.9897461)
+
 [node name="part_arch_i" unique_id=1800049546 instance=ExtResource("1_2xqyq")]
 
 [node name="Cube" parent="." index="0" unique_id=1628231766]
 surface_material_override/0 = ExtResource("2_xsvao")
 surface_material_override/1 = ExtResource("3_g0ta7")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="1" unique_id=366022731]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0043945313, 1.4972534, 0.0031738281)
+shape = SubResource("BoxShape3D_khlrb")
