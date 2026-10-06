@@ -147,8 +147,61 @@ func _get_wall_length(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x:
 		count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y + 1, check_diagonal, visited); if count >= limit:	return limit
 	return count
 
-#func _find_distance_to_deadend(ctx: Context, limit: int = 10) -> int:
-	
+func _find_distance_to_deadend(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, visited: Dictionary = {}) -> int:
+	if limit <= 0:
+		return -1
+	var key := Vector2i(offset_x, offset_y)
+	if visited.has(key):
+		return -1
+	visited[key] = true
+	var c: bool = is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y))
+	if !c:
+		return -1
+	var n: bool = is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y - 1))
+	var s: bool = is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y + 1))
+	var e: bool = is_wall(ctx.get_at_offset(pp.data, offset_x + 1, offset_y))
+	var w: bool = is_wall(ctx.get_at_offset(pp.data, offset_x - 1, offset_y))
+	var is_junction: bool = (n || s) && (e || w)
+	if is_junction:
+		return -1
+	var is_dead_end: bool = (int(n) + int(s) + int(e) + int(w)) == 1
+	if is_dead_end:
+		return 0
+	else:
+		var result: int = -1
+		if n:	result = max(result, _find_distance_to_deadend(pp, ctx, limit-1, offset_x, offset_y - 1, visited))
+		if s:	result = max(result, _find_distance_to_deadend(pp, ctx, limit-1, offset_x, offset_y + 1, visited))
+		if e:	result = max(result, _find_distance_to_deadend(pp, ctx, limit-1, offset_x + 1, offset_y, visited))
+		if w:	result = max(result, _find_distance_to_deadend(pp, ctx, limit-1, offset_x - 1, offset_y, visited))
+		if result >= 0:
+			return result + 1
+	return -1
+
+func _find_distance_to_junction(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, visited: Dictionary = {}) -> int:
+	if limit <= 0:
+		return -1
+	var key := Vector2i(offset_x, offset_y)
+	if visited.has(key):
+		return -1
+	visited[key] = true
+	var c: bool = is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y))
+	if !c:
+		return -1
+	var n: bool = is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y - 1))
+	var s: bool = is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y + 1))
+	var e: bool = is_wall(ctx.get_at_offset(pp.data, offset_x + 1, offset_y))
+	var w: bool = is_wall(ctx.get_at_offset(pp.data, offset_x - 1, offset_y))
+	var is_junction: bool = (n || s) && (e || w)
+	if is_junction:
+		return 0
+	var result: int = -1
+	if n:	result = max(result, _find_distance_to_junction(pp, ctx, limit-1, offset_x, offset_y - 1, visited))
+	if s:	result = max(result, _find_distance_to_junction(pp, ctx, limit-1, offset_x, offset_y + 1, visited))
+	if e:	result = max(result, _find_distance_to_junction(pp, ctx, limit-1, offset_x + 1, offset_y, visited))
+	if w:	result = max(result, _find_distance_to_junction(pp, ctx, limit-1, offset_x - 1, offset_y, visited))
+	if result >= 0:
+		return result + 1
+	return -1
 
 func _is_wall_length_greater_then(pp: PreviousPass, ctx: Context, threshold: int, offset_x: int = 0, offset_y: int = 0, check_diagonal: bool = true) -> bool:
 	if pp.wall_c && _get_wall_length(pp, ctx, threshold+1, offset_x, offset_y, check_diagonal) > threshold:
@@ -206,7 +259,26 @@ func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 			# 	return Pixel.BIOME_ROOMS
 	return Pixel.INVALID
 
+func _test(pass_index: int, ctx: Context) -> Pixel:
+	if pass_index >= 1:
+		return Pixel.INVALID
+	if ctx.x == 2 && ctx.y == 2: return Pixel.TILE_CEILING_LIGHT
+	if ctx.x == 10 && ctx.y == 10: return Pixel.TILE_CEILING_LIGHT
+	if ctx.x == 2 && ctx.y == 10: return Pixel.TILE_CEILING_LIGHT
+	if ctx.x == 10 && ctx.y == 2: return Pixel.TILE_CEILING_LIGHT
+	
+	for x in range(4, 9):
+		if ctx.x == x && ctx.y == 4: return Pixel.TILE_WALL
+		if ctx.x == x && ctx.y == 8: return Pixel.TILE_WALL
+	for y in range(4, 9):
+		if ctx.x == 4 && ctx.y == y: return Pixel.TILE_WALL
+		if ctx.x == 8 && ctx.y == y: return Pixel.TILE_WALL
+		
+	return Pixel.TILE_EMPTY
+
 func _gen(pass_index: int, ctx: Context) -> Pixel:
+	return _test(pass_index, ctx)
+	
 	var pp: PreviousPass = ctx.previous_pass
 	var retval: Pixel = Pixel.INVALID
 	if pass_index < NUM_PASSES_IN_GEN_BIOMES:
@@ -274,13 +346,10 @@ func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
 				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 		
-		12:
-			if ctx.random() > 0.9: 
-				return _replace_deadend_wall_with_upper_gap(ctx)
-			return pp.no_change()
-		
-		13,14,15:
-			return _spread_upper_gap(ctx)
+		#12:
+			#if pp.wall_c && _find_distance_to_deadend(pp, ctx, 5) < 3:
+				#return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
+			#return pp.no_change()
 		
 	return Pixel.INVALID
 
@@ -335,12 +404,22 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 			return pp.no_change()
 		
 		7:
-			if ctx.random() > 0.9:
-				return _replace_deadend_wall_with_upper_gap(ctx)
+			if pp.wall_c:
+				var distance_to_deadend: int = _find_distance_to_deadend(pp, ctx, 5)
+				var distance_to_junction: int = _find_distance_to_junction(pp, ctx, 5)
+				if distance_to_deadend >= 0 && distance_to_junction >= 0:
+					var total: int = distance_to_deadend + distance_to_junction
+					if total <= 3:
+						return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
 			return pp.no_change()
-	
-		8,9,10:
-			return _spread_upper_gap(ctx)
+#
+		#7:
+			#if ctx.random() > 0.9:
+				#return _replace_deadend_wall_with_upper_gap(ctx)
+			#return pp.no_change()
+	#
+		#8,9,10:
+			#return _spread_upper_gap(ctx)
 
 	return Pixel.INVALID
 

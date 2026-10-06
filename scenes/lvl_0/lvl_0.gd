@@ -13,6 +13,7 @@ var model_ceiling_light:          Model = _load_model(preload("res://scenes/lvl_
 var model_ceiling_light_blinking: Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling_light_blinking.tscn"))
 var model_wall_x:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_x.tscn"))
 var model_wall_t:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_t.tscn"))
+var model_wall_t_topgap_px:       Model = _load_model(preload("res://scenes/lvl_0/part_wall_t_topgap_px.tscn"))
 var model_wall_i:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_i.tscn"))
 var model_wall_i_top_gap:         Model = _load_model(preload("res://scenes/lvl_0/part_wall_i_top_gap.tscn"))
 var model_wall_l:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_l.tscn"))
@@ -26,6 +27,16 @@ var model_arch_e:                 Model = _load_model(preload("res://scenes/lvl_
 var _player: Player = null
 
 var _did_hit_floor: bool = false
+
+class ModelModefier:
+	var hide_n: bool = false
+	var hide_s: bool = false
+	var hide_w: bool = false
+	var hide_e: bool = false
+	var yoffset_n: float = 0
+	var yoffset_s: float = 0
+	var yoffset_w: float = 0
+	var yoffset_e: float = 0
 
 class Model:
 	var id: int
@@ -50,7 +61,8 @@ class PlacedTile:
 	var tile_index: Vector2i
 	var angle: float
 	var models: Dictionary # int(model_id), Model
-	
+	var model_modefier: ModelModefier
+
 	# mutable
 	var graphics: Dictionary # int(model_id), CollisionShape3D
 	var collision_shapes: Dictionary # int(model_id), CollisionShape3D
@@ -113,31 +125,46 @@ func _handle_player_landing() -> void:
 			player.active_wieldable = "lvl_0_landing"
 			_did_hit_floor = true
 
-func _place_wall_specific(model: Model, tile_index: Vector2i, angle: float) -> void:
-	_instantiate_model(model, tile_index, angle)
+func _place_wall_specific(model: Model, tile_index: Vector2i, angle: float, model_modefier: ModelModefier = null) -> void:
+	_instantiate_model(model, tile_index, angle, model_modefier)
 
-func _place_wall(wall_model_x: Model, wall_model_t: Model, wall_model_i: Model, wall_model_l: Model, wall_model_e: Model, tile_index: Vector2i) -> void:
+func _place_wall(wall_model_x: Model, wall_model_i: Model, wall_model_e: Model, tile_index: Vector2i) -> void:
 	var wall_n: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x, tile_index.y + 1))
 	var wall_s: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x, tile_index.y - 1))
 	var wall_e: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x + 1, tile_index.y))
 	var wall_w: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x - 1, tile_index.y))
 	
 	if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0)
-	elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_t, tile_index, 0.0)
-	elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_t, tile_index, PI)
 	elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_i, tile_index, 0.0)
-	elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_t, tile_index, -PI/2)
-	elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_l, tile_index, -PI/2)
-	elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_l, tile_index, PI)
-	elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, PI)
-	elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_t, tile_index, PI/2)
-	elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_l, tile_index, 0.0)
-	elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_l, tile_index, PI/2)
-	elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, 0.0)
 	elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_i, tile_index, PI/2)
+	elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, PI)
+	elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, 0.0)
 	elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, -PI/2)
 	elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_e, tile_index, PI/2)
-	elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0)
+	else:
+		var model_modefier: ModelModefier = ModelModefier.new()
+		model_modefier.hide_w = !wall_w
+		model_modefier.hide_e = !wall_e
+		model_modefier.hide_n = !wall_n
+		model_modefier.hide_s = !wall_s
+		_place_wall_specific(wall_model_x, tile_index, 0.0, model_modefier)
+	
+	#if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0, null)
+	#elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_t, tile_index, 0.0, ModelModefier.new())
+	#elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_t, tile_index, PI)
+	#elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_i, tile_index, 0.0)
+	#elif( wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_t, tile_index, -PI/2)
+	#elif( wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_l, tile_index, -PI/2)
+	#elif( wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_l, tile_index, PI)
+	#elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, PI)
+	#elif(!wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_t, tile_index, PI/2)
+	#elif(!wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_l, tile_index, 0.0)
+	#elif(!wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_l, tile_index, PI/2)
+	#elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, 0.0)
+	#elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_i, tile_index, PI/2)
+	#elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, -PI/2)
+	#elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_e, tile_index, PI/2)
+	#elif(!wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0)
 	
 func _get_pixel_at(x: int, y: int) -> MapGenerator.Pixel:
 	var chunk_index: Vector2i = Vector2i(int(floorf(float(x) / CHUNK_SIZE)), int(floorf(float(y) / CHUNK_SIZE)))
@@ -229,7 +256,7 @@ func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
 	print("converting pixels to models for chunk[" + str(chunk_index) + "]... done")
 	return chunk
 
-func _instantiate_model(model: Model, tile_index: Vector2i, angle: float) -> void:
+func _instantiate_model(model: Model, tile_index: Vector2i, angle: float, model_modefier: ModelModefier = null) -> void:
 	var placed_tile: PlacedTile
 	if placed_tiles.has(tile_index):
 		placed_tile = placed_tiles[tile_index]
@@ -238,8 +265,25 @@ func _instantiate_model(model: Model, tile_index: Vector2i, angle: float) -> voi
 		placed_tiles[tile_index] = placed_tile
 	
 	placed_tile.models[model.id] = model
+	placed_tile.model_modefier = model_modefier
 	placed_tile.angle = angle
 	placed_tile.tile_index = tile_index
+
+func _get_wall_t_px(x: int, y: int) -> Vector2i:
+	var wall_c: bool = MapGenerator.is_wall(_get_pixel_at(x, y))
+	if !wall_c:
+		return Vector2i(0, 0)
+	var wall_n: bool = MapGenerator.is_wall(_get_pixel_at(x, y - 1))
+	var wall_s: bool = MapGenerator.is_wall(_get_pixel_at(x, y + 1))
+	var wall_e: bool = MapGenerator.is_wall(_get_pixel_at(x + 1, y))
+	var wall_w: bool = MapGenerator.is_wall(_get_pixel_at(x - 1, y))
+	if int(wall_n) + int(wall_s) + int(wall_e) + int(wall_w) != 3:
+		return Vector2i(0, 0)
+	if !wall_n: return Vector2i(x, y + 1)
+	if !wall_s: return Vector2i(x, y - 1)
+	if !wall_e: return Vector2i(x - 1, y)
+	if !wall_w: return Vector2i(x + 1, y)
+	return Vector2i(0, 0)
 
 func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 	var pixel: MapGenerator.Pixel = section.get_pixel(x, y)
@@ -267,13 +311,13 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 			if (pixel & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH_MIRRORED:
 				model_i = model_arch_i_mirror
 				model_e = model_arch_i_mirror # Ending wall bits will always orient correctly
-			_place_wall(model_wall_x, model_i, model_i, model_i, model_e, tile_index)
+			_place_wall(model_wall_x, model_i, model_e, tile_index)
 		
 		MapGenerator.Pixel.TILE_WALL:
-			_place_wall(model_wall_x, model_wall_t, model_wall_i, model_wall_l, model_wall_e, tile_index)
+			_place_wall(model_wall_x, model_wall_i, model_wall_e, tile_index)
 
 		MapGenerator.Pixel.TILE_WALL_TOP_GAP:
-			_place_wall(model_wall_x, model_wall_t, model_wall_i_top_gap, model_wall_l, model_wall_e_top_gap, tile_index)
+			_place_wall(model_wall_x, model_wall_i_top_gap, model_wall_e_top_gap, tile_index)
 
 #
 func _find_spawn_point() -> Vector2i:
@@ -323,6 +367,9 @@ func _handle_static_collision_shapes() -> void:
 		
 	_handle_tiles_in_radius(2, _collision_tiles_cache, create, remove)
 
+func _handle_model_modefier(graphic: Node3D, model_modefier: ModelModefier) -> void:
+	pass
+
 var _graphic_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 func _handle_tile_graphics() -> void:
 	var create: Callable = func(placed_tile: PlacedTile, chunk: Chunk) -> void:
@@ -331,6 +378,8 @@ func _handle_tile_graphics() -> void:
 				var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
 				# push_warning("adding: " + str(model.id))
 				var graphic: Node3D = model.graphic.duplicate()
+				if placed_tile.model_modefier:
+					_handle_model_modefier(graphic, placed_tile.model_modefier)
 				graphic.transform.origin = tile_pos
 				graphic.rotate_y(placed_tile.angle)
 				chunk.tiles.add_child(graphic)
