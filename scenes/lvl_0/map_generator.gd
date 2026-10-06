@@ -273,11 +273,13 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 	for y in range(4, 9):
 		if ctx.x == 4 && ctx.y == y: return Pixel.TILE_WALL
 		if ctx.x == 8 && ctx.y == y: return Pixel.TILE_WALL
+	if ctx.x == 9 && ctx.y == 5: return Pixel.TILE_WALL_TOP_GAP
+	if ctx.x == 10 && ctx.y == 5: return Pixel.TILE_WALL_TOP_GAP
 		
 	return Pixel.TILE_EMPTY
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
-	return _test(pass_index, ctx)
+	# return _test(pass_index, ctx)
 	
 	var pp: PreviousPass = ctx.previous_pass
 	var retval: Pixel = Pixel.INVALID

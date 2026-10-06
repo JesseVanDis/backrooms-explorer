@@ -33,17 +33,17 @@ shape = SubResource("BoxShape3D_y4qc6")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.22427982, 1.5, 7.4505806e-08)
 shape = SubResource("BoxShape3D_ml6op")
 
-[node name="CubeCenter" parent="." index="4" unique_id=997408558]
+[node name="_c" parent="." index="4" unique_id=1845955449]
 surface_material_override/0 = ExtResource("2_sma42")
 
-[node name="_n" parent="." index="5" unique_id=568987630]
+[node name="_n" parent="." index="5" unique_id=220429689]
 surface_material_override/0 = ExtResource("2_sma42")
 
-[node name="_s" parent="." index="6" unique_id=1360303420]
+[node name="_s" parent="." index="6" unique_id=1547187834]
 surface_material_override/0 = ExtResource("2_sma42")
 
-[node name="_e" parent="." index="7" unique_id=621276137]
+[node name="_e" parent="." index="7" unique_id=540594949]
 surface_material_override/0 = ExtResource("2_sma42")
 
-[node name="_w" parent="." index="8" unique_id=840855524]
+[node name="_w" parent="." index="8" unique_id=818530488]
 surface_material_override/0 = ExtResource("2_sma42")
