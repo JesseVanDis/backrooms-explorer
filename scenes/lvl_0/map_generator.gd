@@ -426,7 +426,7 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 			return pp.no_change()
 		
 		7:
-			if pp.wall_c && _is_wall_deadend(ctx, 0, 0) && ctx.random() > 0.85:
+			if pp.wall_c && _is_wall_deadend(ctx, 0, 0) && ctx.random() > 0.70:
 				var distance_to_deadend: int = _find_distance_to_deadend(pp, ctx, 5)
 				var distance_to_junction: int = _find_distance_to_junction(pp, ctx, 5)
 				if distance_to_deadend >= 0 && distance_to_junction >= 0:
@@ -537,6 +537,13 @@ func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
 				return pp.with_tile(Pixel.TILE_WALL)
 			if pp.wall_e && !is_wall_arch(e) && pp.tile_c == Pixel.TILE_ARCH_MIRRORED:
 				return pp.with_tile(Pixel.TILE_WALL)
+			
+			# safety
+			if pp.tile_c == Pixel.TILE_ARCH && is_wall_arch(n) && !is_wall_arch(s):
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			if pp.tile_c == Pixel.TILE_ARCH_MIRRORED && is_wall_arch(s) && !is_wall_arch(n):
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			
 			return pp.no_change()
 			
 		11: # filter small walls

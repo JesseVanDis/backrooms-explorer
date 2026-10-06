@@ -166,3 +166,5 @@ condition = 1
 [node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_leave_center" unique_id=789829829]
 shape = SubResource("CylinderShape3D_spjc5")
 debug_color = Color(0.42465097, 0.46038312, 1, 0.41960785)
+
+[node name="Map" type="Node3D" parent="." unique_id=565862601]
