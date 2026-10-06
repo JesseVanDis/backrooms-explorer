@@ -11,17 +11,17 @@ data = PackedVector3Array(0.099999994, 0, -0.5, 0.099999994, 2.307, 0.5, 0.09999
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." index="0" unique_id=1286761944]
 shape = SubResource("ConcavePolygonShape3D_y4qc6")
 
-[node name="CubeCenter" parent="." index="1" unique_id=319970544]
+[node name="CubeCenter" parent="." index="1" unique_id=997408558]
 surface_material_override/0 = ExtResource("2_sma42")
 
-[node name="_n" parent="." index="2" unique_id=15407960]
+[node name="_n" parent="." index="2" unique_id=568987630]
 surface_material_override/0 = ExtResource("2_sma42")
 
-[node name="_s" parent="." index="3" unique_id=262445374]
+[node name="_s" parent="." index="3" unique_id=1360303420]
 surface_material_override/0 = ExtResource("2_sma42")
 
-[node name="_w" parent="." index="4" unique_id=1879606239]
+[node name="_e" parent="." index="4" unique_id=621276137]
 surface_material_override/0 = ExtResource("2_sma42")
 
-[node name="_e" parent="." index="5" unique_id=747052363]
+[node name="_w" parent="." index="5" unique_id=840855524]
 surface_material_override/0 = ExtResource("2_sma42")
