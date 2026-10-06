@@ -41,7 +41,7 @@ class ModelModefier:
 class Model:
 	var id: int
 	var graphic: Node3D
-	var collision: CollisionShape3D
+	var collisions: Array[CollisionShape3D]
 	
 	func _init() -> void:
 		pass;
@@ -65,7 +65,7 @@ class PlacedTile:
 
 	# mutable
 	var graphics: Dictionary # int(model_id), CollisionShape3D
-	var collision_shapes: Dictionary # int(model_id), CollisionShape3D
+	var collision_shapes: Dictionary # int(model_id), Array[CollisionShape3D]
 	
 	func _init() -> void:
 		pass;
@@ -347,43 +347,59 @@ class HandleTilesCache:
 	var last_tiles_where_needed: Dictionary # Vector2i, bool   ( bool not used. treat as std::set )
 	var placed_tiles: Dictionary # Vector2i, bool   ( bool not used. treat as std::set )
 
+
+func _handle_model_modefier_should_remove_node(node: Node3D, model_modefier: ModelModefier) -> bool:
+	if (node.name.ends_with("_n") && model_modefier.remove_n): return true
+	if (node.name.ends_with("_s") && model_modefier.remove_s): return true
+	if (node.name.ends_with("_w") && model_modefier.remove_w): return true
+	if (node.name.ends_with("_e") && model_modefier.remove_e): return true
+	return false
+
+func _handle_model_modefier_of_node(node: Node3D, model_modefier: ModelModefier) -> void:
+	if _handle_model_modefier_should_remove_node(node, model_modefier):
+		node.queue_free()
+		return
+
+	if (node.name.ends_with("_n") && model_modefier.remove_n): 
+		node.position.y += model_modefier.yoffset_n
+	if (node.name.ends_with("_s") && model_modefier.remove_s): 
+		node.position.y += model_modefier.yoffset_s
+	if (node.name.ends_with("_w") && model_modefier.remove_w): 
+		node.position.y += model_modefier.yoffset_w
+	if (node.name.ends_with("_e") && model_modefier.remove_e): 
+		node.position.y += model_modefier.yoffset_e
+		
+	
+func _handle_model_modefier(graphic: Node3D, model_modefier: ModelModefier) -> void:
+	for child: Node in graphic.get_children():
+		if child is Node3D:
+			_handle_model_modefier_of_node(child as Node3D, model_modefier)
+
 var _collision_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 func _handle_static_collision_shapes() -> void:
 	var create: Callable = func(placed_tile: PlacedTile, chunk: Chunk) -> void:
 		for model: Model in placed_tile.models.values():
-			if (model.collision != null) && (! placed_tile.collision_shapes.has(model.id)):
+			if (model.collisions.size() > 0) && (!placed_tile.collision_shapes.has(model.id)):
 				#print("Collision '" + str(model.id) + "' place!")
-				var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
-				var collision_shape: CollisionShape3D = model.collision.duplicate()
-				collision_shape.transform.origin = tile_pos
-				collision_shape.rotate_y(placed_tile.angle)
-				chunk.static_body_3d.add_child(collision_shape)
-				placed_tile.collision_shapes[model.id] = collision_shape
+				var added_shapes: Array[CollisionShape3D] = []
+				for collision: CollisionShape3D in model.collisions:
+					var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
+					if !_handle_model_modefier_should_remove_node(collision, placed_tile.model_modefier):
+						var collision_shape: CollisionShape3D = collision.duplicate()
+						collision_shape.transform.origin += tile_pos
+						collision_shape.rotate_y(placed_tile.angle)
+						chunk.static_body_3d.add_child(collision_shape)
+						added_shapes.append(collision_shape)
+						_handle_model_modefier_of_node(collision_shape, placed_tile.model_modefier)
+				placed_tile.collision_shapes[model.id] = added_shapes
 				
 	var remove: Callable = func(placed_tile: PlacedTile) -> void:
-		for collision_shape: CollisionShape3D in placed_tile.collision_shapes.values():
-			collision_shape.queue_free() # automatically removes it from the scene as well.
+		for collision_shapes: Array[CollisionShape3D] in placed_tile.collision_shapes.values():
+			for collision_shape in collision_shapes:
+				collision_shape.queue_free() # automatically removes it from the scene as well.
 		placed_tile.collision_shapes = {}
 		
 	_handle_tiles_in_radius(2, _collision_tiles_cache, create, remove)
-
-func _handle_model_modefier(graphic: Node3D, model_modefier: ModelModefier) -> void:
-	for child: Node in graphic.get_children():
-		if child is Node3D:
-			var node3d: Node3D = child as Node3D
-			match node3d.name:
-				"_n":
-					node3d.position.y += model_modefier.yoffset_n
-					if model_modefier.remove_n: node3d.queue_free()
-				"_s":
-					node3d.position.y += model_modefier.yoffset_s
-					if model_modefier.remove_s: node3d.queue_free()
-				"_w":
-					node3d.position.y += model_modefier.yoffset_w
-					if model_modefier.remove_w: node3d.queue_free()
-				"_e":
-					node3d.position.y += model_modefier.yoffset_e
-					if model_modefier.remove_e: node3d.queue_free()
 
 var _graphic_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 func _handle_tile_graphics() -> void:
@@ -489,15 +505,15 @@ func _handle_world_generation() -> void:
 func _get_chunk_index(tile_index: Vector2i) -> Vector2i:
 	return Vector2i(int(roundf(float(tile_index.x) / float(CHUNK_SIZE))), int(roundf(float(tile_index.y) / float(CHUNK_SIZE))))
 
-func _get_collision_shape(resource: PackedScene) -> CollisionShape3D:
+func _get_collision_shapes(resource: PackedScene) -> Array[CollisionShape3D]:
+	var shapes: Array[CollisionShape3D] = []
 	var inst: Node3D = resource.instantiate()
 	for child: Node in inst.get_children():
 		if child is CollisionShape3D:
 			var shape: CollisionShape3D = child.duplicate() as CollisionShape3D
-			inst.queue_free()
-			return shape
+			shapes.append(shape)
 	inst.queue_free()
-	return null
+	return shapes
 
 func _instantiate_and_remove_collision(graphic: PackedScene) -> Node3D:
 	var inst: Node3D = graphic.instantiate()
@@ -520,7 +536,7 @@ func _load_model(tile: PackedScene) -> Model:
 	last_model_id = last_model_id + 1
 	var retval: Model = Model.new()
 	retval.graphic = _instantiate_and_remove_collision(tile)
-	retval.collision = _get_collision_shape(tile)
+	retval.collisions = _get_collision_shapes(tile)
 	retval.id = last_model_id
 	return retval
 
