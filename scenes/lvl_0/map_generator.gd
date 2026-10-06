@@ -147,6 +147,9 @@ func _get_wall_length(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x:
 		count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y + 1, check_diagonal, visited); if count >= limit:	return limit
 	return count
 
+func _is_junction(pp: PreviousPass) -> bool:
+	return (pp.wall_n || pp.wall_s) && (pp.wall_w || pp.wall_e)
+
 func _find_distance_to_deadend(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, visited: Dictionary = {}) -> int:
 	if limit <= 0:
 		return -1
@@ -176,6 +179,23 @@ func _find_distance_to_deadend(pp: PreviousPass, ctx: Context, limit: int = 10, 
 		if result >= 0:
 			return result + 1
 	return -1
+
+#func _most_northern_ending_of_wall(pp: PreviousPass, ctx: Context, limit: int = 50, offset_x: int = 0, offset_y: int = 0, visited: Dictionary = {}) -> int:
+	#if limit <= 0:
+		#return 0xffffffff
+	#var key := Vector2i(offset_x, offset_y)
+	#if visited.has(key):
+		#return 0xffffffff
+	#visited[key] = true
+	#var c: bool = is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y))
+	#if !c:
+		#return 0xffffffff
+	#var result: int = ctx.y + offset_y
+	#result = min(result, _most_northern_ending_of_wall(pp, ctx, limit-1, offset_x, offset_y - 1, visited))
+	#result = min(result, _most_northern_ending_of_wall(pp, ctx, limit-1, offset_x, offset_y + 1, visited))
+	#result = min(result, _most_northern_ending_of_wall(pp, ctx, limit-1, offset_x + 1, offset_y, visited))
+	#result = min(result, _most_northern_ending_of_wall(pp, ctx, limit-1, offset_x - 1, offset_y, visited))
+	#return result
 
 func _find_distance_to_junction(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, visited: Dictionary = {}) -> int:
 	if limit <= 0:
@@ -406,7 +426,7 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 			return pp.no_change()
 		
 		7:
-			if pp.wall_c:
+			if pp.wall_c && _is_wall_deadend(ctx, 0, 0) && ctx.random() > 0.85:
 				var distance_to_deadend: int = _find_distance_to_deadend(pp, ctx, 5)
 				var distance_to_junction: int = _find_distance_to_junction(pp, ctx, 5)
 				if distance_to_deadend >= 0 && distance_to_junction >= 0:
@@ -414,14 +434,14 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 					if total <= 3:
 						return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
 			return pp.no_change()
-#
-		#7:
-			#if ctx.random() > 0.9:
-				#return _replace_deadend_wall_with_upper_gap(ctx)
-			#return pp.no_change()
-	#
-		#8,9,10:
-			#return _spread_upper_gap(ctx)
+			
+		8, 9, 10:
+			if pp.wall_c && !_is_junction(pp):
+				if pp.pixel_n & TILE_MASK == Pixel.TILE_WALL_TOP_GAP: return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
+				if pp.pixel_s & TILE_MASK == Pixel.TILE_WALL_TOP_GAP: return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
+				if pp.pixel_w & TILE_MASK == Pixel.TILE_WALL_TOP_GAP: return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
+				if pp.pixel_e & TILE_MASK == Pixel.TILE_WALL_TOP_GAP: return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
+			return pp.no_change()
 
 	return Pixel.INVALID
 
@@ -607,18 +627,18 @@ class PreviousPass:
 	var pixel_c: Pixel = Pixel.NONE
 	var tile_c: Pixel = Pixel.NONE
 	var biome_c: Pixel = Pixel.NONE
-	var tile_n: Pixel
-	var tile_nn: Pixel
-	var tile_s: Pixel
-	var tile_ss: Pixel
-	var tile_e: Pixel
-	var tile_ee: Pixel
-	var tile_w: Pixel
-	var tile_ww: Pixel
-	var tile_nw: Pixel
-	var tile_ne: Pixel
-	var tile_sw: Pixel
-	var tile_se: Pixel
+	var pixel_n: Pixel
+	var pixel_nn: Pixel
+	var pixel_s: Pixel
+	var pixel_ss: Pixel
+	var pixel_e: Pixel
+	var pixel_ee: Pixel
+	var pixel_w: Pixel
+	var pixel_ww: Pixel
+	var pixel_nw: Pixel
+	var pixel_ne: Pixel
+	var pixel_sw: Pixel
+	var pixel_se: Pixel
 	var wall_c: bool
 	var wall_n: bool
 	var wall_nn: bool
@@ -665,32 +685,32 @@ class PreviousPass:
 		var test_y_p1_w: int = clamp(ctx.ly + 1, 0, ctx.h - 1) * ctx.w
 		var test_y_p2_w: int = clamp(ctx.ly + 2, 0, ctx.h - 1) * ctx.w
 
-		tile_n  = data[test_x_p0 + test_y_n1_w]
-		tile_nn = data[test_x_p0 + test_y_n2_w]
-		tile_s  = data[test_x_p0 + test_y_p1_w]
-		tile_ss = data[test_x_p0 + test_y_p2_w]
-		tile_e  = data[test_x_p1 + test_y_p0_w]
-		tile_ee = data[test_x_p2 + test_y_p0_w]
-		tile_w  = data[test_x_n1 + test_y_p0_w]
-		tile_ww = data[test_x_n2 + test_y_p0_w]
-		tile_nw = data[test_x_n1 + test_y_n1_w]
-		tile_ne = data[test_x_p1 + test_y_n1_w]
-		tile_sw = data[test_x_n1 + test_y_p1_w]
-		tile_se = data[test_x_p1 + test_y_p1_w]
+		pixel_n  = data[test_x_p0 + test_y_n1_w]
+		pixel_nn = data[test_x_p0 + test_y_n2_w]
+		pixel_s  = data[test_x_p0 + test_y_p1_w]
+		pixel_ss = data[test_x_p0 + test_y_p2_w]
+		pixel_e  = data[test_x_p1 + test_y_p0_w]
+		pixel_ee = data[test_x_p2 + test_y_p0_w]
+		pixel_w  = data[test_x_n1 + test_y_p0_w]
+		pixel_ww = data[test_x_n2 + test_y_p0_w]
+		pixel_nw = data[test_x_n1 + test_y_n1_w]
+		pixel_ne = data[test_x_p1 + test_y_n1_w]
+		pixel_sw = data[test_x_n1 + test_y_p1_w]
+		pixel_se = data[test_x_p1 + test_y_p1_w]
 		
 		wall_c = pixel_c & WALL_MASK != 0
-		wall_n = tile_n & WALL_MASK != 0
-		wall_nn = tile_nn & WALL_MASK != 0
-		wall_s = tile_s & WALL_MASK != 0
-		wall_ss = tile_ss & WALL_MASK != 0
-		wall_e = tile_e & WALL_MASK != 0
-		wall_ee = tile_ee & WALL_MASK != 0
-		wall_w = tile_w & WALL_MASK != 0
-		wall_ww = tile_ww & WALL_MASK != 0
-		wall_nw = tile_nw & WALL_MASK != 0
-		wall_ne = tile_ne & WALL_MASK != 0
-		wall_sw = tile_sw & WALL_MASK != 0
-		wall_se = tile_se & WALL_MASK != 0
+		wall_n = pixel_n & WALL_MASK != 0
+		wall_nn = pixel_nn & WALL_MASK != 0
+		wall_s = pixel_s & WALL_MASK != 0
+		wall_ss = pixel_ss & WALL_MASK != 0
+		wall_e = pixel_e & WALL_MASK != 0
+		wall_ee = pixel_ee & WALL_MASK != 0
+		wall_w = pixel_w & WALL_MASK != 0
+		wall_ww = pixel_ww & WALL_MASK != 0
+		wall_nw = pixel_nw & WALL_MASK != 0
+		wall_ne = pixel_ne & WALL_MASK != 0
+		wall_sw = pixel_sw & WALL_MASK != 0
+		wall_se = pixel_se & WALL_MASK != 0
 
 	func _init() -> void:
 		pass;
