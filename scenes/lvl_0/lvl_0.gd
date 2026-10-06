@@ -129,26 +129,26 @@ func _place_wall_specific(model: Model, tile_index: Vector2i, angle: float, mode
 	_instantiate_model(model, tile_index, angle, model_modefier)
 
 func _place_wall(wall_model_x: Model, wall_model_i: Model, wall_model_e: Model, tile_index: Vector2i) -> void:
-	var wall_n: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x, tile_index.y + 1))
-	var wall_s: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x, tile_index.y - 1))
+	var wall_n: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x, tile_index.y - 1))
+	var wall_s: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x, tile_index.y + 1))
 	var wall_e: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x + 1, tile_index.y))
 	var wall_w: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x - 1, tile_index.y))
 	
-	if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0)
-	elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_i, tile_index, 0.0)
-	elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_i, tile_index, PI/2)
-	elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, PI)
-	elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, 0.0)
-	elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, -PI/2)
-	elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_e, tile_index, PI/2)
-	else:
-		var model_modefier: ModelModefier = ModelModefier.new()
-		model_modefier.hide_w = !wall_w
-		model_modefier.hide_e = !wall_e
-		model_modefier.hide_n = !wall_n
-		model_modefier.hide_s = !wall_s
-		_place_wall_specific(wall_model_x, tile_index, 0.0, model_modefier)
-	
+	#if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0)
+	#elif( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_i, tile_index, 0.0)
+	#elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_i, tile_index, PI/2)
+	#elif( wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, PI)
+	#elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, 0.0)
+	#elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, -PI/2)
+	#elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_e, tile_index, PI/2)
+	#else:
+	var model_modefier: ModelModefier = ModelModefier.new()
+	model_modefier.hide_w = !wall_w
+	model_modefier.hide_e = !wall_e
+	model_modefier.hide_n = !wall_n
+	model_modefier.hide_s = !wall_s
+	_place_wall_specific(wall_model_x, tile_index, 0.0, model_modefier)
+
 	#if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0, null)
 	#elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_t, tile_index, 0.0, ModelModefier.new())
 	#elif( wall_n &&  wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_t, tile_index, PI)
@@ -368,7 +368,22 @@ func _handle_static_collision_shapes() -> void:
 	_handle_tiles_in_radius(2, _collision_tiles_cache, create, remove)
 
 func _handle_model_modefier(graphic: Node3D, model_modefier: ModelModefier) -> void:
-	pass
+	for child: Node in graphic.get_children():
+		if child is Node3D:
+			var node3d: Node3D = child as Node3D
+			match node3d.name:
+				"_n":
+					if model_modefier.hide_n: node3d.visible = false
+					node3d.position.y += model_modefier.yoffset_n
+				"_s":
+					if model_modefier.hide_s: node3d.visible = false
+					node3d.position.y += model_modefier.yoffset_s
+				"_w":
+					if model_modefier.hide_w: node3d.visible = false
+					node3d.position.y += model_modefier.yoffset_w
+				"_e":
+					if model_modefier.hide_e: node3d.visible = false
+					node3d.position.y += model_modefier.yoffset_e
 
 var _graphic_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 func _handle_tile_graphics() -> void:
