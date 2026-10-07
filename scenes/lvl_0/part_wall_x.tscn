@@ -17,33 +17,33 @@ size = Vector3(0.5514405, 3.2, 0.20000014)
 
 [node name="part_wall_x" unique_id=1026156291 instance=ExtResource("1_y4qc6")]
 
-[node name="_col_n" type="CollisionShape3D" parent="." index="0" unique_id=1117597786]
+[node name="_col_offs_n" type="CollisionShape3D" parent="." index="0" unique_id=1117597786]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9802322e-08, 1.5, -0.21396479)
 shape = SubResource("BoxShape3D_sma42")
 
-[node name="_col_s" type="CollisionShape3D" parent="." index="1" unique_id=1205854652]
+[node name="_col_offs_s" type="CollisionShape3D" parent="." index="1" unique_id=1205854652]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.4505806e-08, 1.5, 0.21933597)
 shape = SubResource("BoxShape3D_vxdkm")
 
-[node name="_col_e" type="CollisionShape3D" parent="." index="2" unique_id=1467524175]
+[node name="_col_offs_e" type="CollisionShape3D" parent="." index="2" unique_id=1467524175]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.20468754, 1.5, 8.940697e-08)
 shape = SubResource("BoxShape3D_y4qc6")
 
-[node name="_col_w" type="CollisionShape3D" parent="." index="3" unique_id=656245846]
+[node name="_col_offs_w" type="CollisionShape3D" parent="." index="3" unique_id=656245846]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.22427982, 1.5, 7.4505806e-08)
 shape = SubResource("BoxShape3D_ml6op")
 
-[node name="_c" parent="." index="4" unique_id=1845955449]
+[node name="_offs_c" parent="." index="4" unique_id=307926012]
 surface_material_override/0 = ExtResource("2_sma42")
 
-[node name="_n" parent="." index="5" unique_id=220429689]
+[node name="_offs_n" parent="." index="5" unique_id=181993659]
 surface_material_override/0 = ExtResource("2_sma42")
 
-[node name="_s" parent="." index="6" unique_id=1547187834]
+[node name="_offs_s" parent="." index="6" unique_id=466693471]
 surface_material_override/0 = ExtResource("2_sma42")
 
-[node name="_e" parent="." index="7" unique_id=540594949]
+[node name="_offs_e" parent="." index="7" unique_id=57063465]
 surface_material_override/0 = ExtResource("2_sma42")
 
-[node name="_w" parent="." index="8" unique_id=818530488]
+[node name="_offs_w" parent="." index="8" unique_id=1897335963]
 surface_material_override/0 = ExtResource("2_sma42")

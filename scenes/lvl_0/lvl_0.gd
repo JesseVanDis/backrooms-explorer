@@ -372,15 +372,15 @@ func _handle_model_modefier_of_node(node: Node3D, model_modefier: ModelModefier)
 		node.queue_free()
 		return
 
-	if node.name.ends_with("_n"): 
+	if node.name.ends_with("offs_n"): 
 		node.position.y += model_modefier.yoffset_n
-	if node.name.ends_with("_s"): 
+	if node.name.ends_with("offs_s"): 
 		node.position.y += model_modefier.yoffset_s
-	if node.name.ends_with("_w"): 
+	if node.name.ends_with("offs_w"): 
 		node.position.y += model_modefier.yoffset_w
-	if node.name.ends_with("_e"): 
+	if node.name.ends_with("offs_e"): 
 		node.position.y += model_modefier.yoffset_e
-	if node.name.ends_with("_c"): 
+	if node.name.ends_with("offs_c"): 
 		node.position.y += model_modefier.yoffset_c
 		
 	
