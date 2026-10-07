@@ -4,25 +4,41 @@ class_name MapGenerator
 
 const CHANCE_BLINKING_LIGHT = 0.004
 
-const BIOME_MASK                 = 0x000000FF
-const WALL_MASK                  = 0x0000FF00
-const TILE_MASK                  = 0x00FFFF00
-const FLAG_MASK                  = 0xFF000000
+const BIOME_MASK                 = 0x0000000000FF
+const WALL_MASK                  = 0x00000000FF00
+const TILE_MASK                  = 0x000000FFFF00
+const FLAG_MASK                  = 0xFFFFFF000000
 
 enum Pixel {
-	NONE                         = 0x00000000,
-	BIOME_MESS                   = 0x00000001,
-	BIOME_ROOMS                  = 0x00000002,
-	BIOME_ARCHES                 = 0x00000003,
-	BIOME_PILLARS                = 0x00000004,
-	TILE_WALL                    = 0x00000100,
-	TILE_ARCH                    = 0x00000200,
-	TILE_ARCH_MIRRORED           = 0x00000300,
-	TILE_EMPTY                   = 0x00010000,
-	TILE_CEILING_LIGHT           = 0x00020000,
-	TILE_CEILING_LIGHT_BLINKING  = 0x00030000,
-	FLAG_WALL_TOP_GAP            = 0x01000000,
-	INVALID                      = 0xFFFFFFFF
+	NONE                         = 0x000000000000,
+	BIOME_MESS                   = 0x000000000001,
+	BIOME_ROOMS                  = 0x000000000002,
+	BIOME_ARCHES                 = 0x000000000003,
+	BIOME_PILLARS                = 0x000000000004,
+	TILE_WALL                    = 0x000000000100,
+	TILE_ARCH                    = 0x000000000200,
+	TILE_ARCH_MIRRORED           = 0x000000000300,
+	TILE_EMPTY                   = 0x000000010000,
+	TILE_CEILING_LIGHT           = 0x000000020000,
+	TILE_CEILING_LIGHT_BLINKING  = 0x000000030000,
+	FLAG_WALL_SKIRT_FN_E         = 0x000001000000,
+	FLAG_WALL_SKIRT_FS_E         = 0x000002000000,
+	FLAG_WALL_SKIRT_FN_W         = 0x000004000000,
+	FLAG_WALL_SKIRT_FS_W         = 0x000008000000,
+	FLAG_WALL_SKIRT_FE_N         = 0x000010000000,
+	FLAG_WALL_SKIRT_FW_N         = 0x000020000000,
+	FLAG_WALL_SKIRT_FE_S         = 0x000040000000,
+	FLAG_WALL_SKIRT_FW_S         = 0x000080000000,
+	FLAG_WALL_LINE_FN_E          = 0x000100000000,
+	FLAG_WALL_LINE_FS_E          = 0x000200000000,
+	FLAG_WALL_LINE_FN_W          = 0x000400000000,
+	FLAG_WALL_LINE_FS_W          = 0x000800000000,
+	FLAG_WALL_LINE_FE_N          = 0x001000000000,
+	FLAG_WALL_LINE_FW_N          = 0x002000000000,
+	FLAG_WALL_LINE_FE_S          = 0x004000000000,
+	FLAG_WALL_LINE_FW_S          = 0x008000000000,
+	FLAG_WALL_TOP_GAP            = 0x010000000000,
+	INVALID                      = 0x7FFFFFFFFFFFFFFF
 }
 
 #const BIOME_MASK = (1 << 16) - 1
