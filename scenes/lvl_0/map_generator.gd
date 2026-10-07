@@ -5,9 +5,9 @@ class_name MapGenerator
 const CHANCE_BLINKING_LIGHT = 0.004
 
 const BIOME_MASK                 = 0x000000FF
-const TILE_MASK                  = 0xFFFFFF00
-
 const WALL_MASK                  = 0x0000FF00
+const TILE_MASK                  = 0x00FFFF00
+const FLAG_MASK                  = 0xFF000000
 
 enum Pixel {
 	NONE                         = 0x00000000,
@@ -16,13 +16,13 @@ enum Pixel {
 	BIOME_ARCHES                 = 0x00000003,
 	BIOME_PILLARS                = 0x00000004,
 	TILE_WALL                    = 0x00000100,
-	TILE_WALL_TOP_GAP            = 0x00000200,
-	TILE_ARCH                    = 0x00000300,
-	TILE_ARCH_MIRRORED           = 0x00000400,
+	TILE_ARCH                    = 0x00000200,
+	TILE_ARCH_MIRRORED           = 0x00000300,
 	TILE_EMPTY                   = 0x00010000,
 	TILE_CEILING_LIGHT           = 0x00020000,
 	TILE_CEILING_LIGHT_BLINKING  = 0x00030000,
-	INVALID                      = 0xFFFFFF00
+	FLAG_WALL_TOP_GAP            = 0x01000000,
+	INVALID                      = 0xFFFFFFFF
 }
 
 #const BIOME_MASK = (1 << 16) - 1
@@ -83,6 +83,12 @@ func _is_isolated_wall_dot(ctx: Context) -> bool:
 
 static func is_wall(pixel: Pixel) -> bool:
 	return pixel & WALL_MASK != 0
+
+static func with_flag(pixel: Pixel, flag: Pixel) -> Pixel:
+	return (pixel as int | flag as int) as Pixel
+
+static func has_flag(pixel: Pixel, flag: Pixel) -> bool:
+	return pixel & flag != 0
 
 static func is_wall_arch(pixel: Pixel) -> bool:
 	var tile: Pixel = pixel & TILE_MASK as Pixel
@@ -233,24 +239,6 @@ func _is_wall_length_lesser_then(pp: PreviousPass, ctx: Context, threshold: int,
 		return true
 	return _get_wall_length(pp, ctx, threshold+1, offset_x, offset_y, check_diagonal) < threshold
 
-func _replace_deadend_wall_with_upper_gap(ctx: Context) -> Pixel:
-	var pp: PreviousPass = ctx.previous_pass
-	if pp.wall_c:
-		if(pp.wall_w && !pp.wall_n && !pp.wall_s && !pp.wall_e): return Pixel.TILE_WALL_TOP_GAP
-		if(!pp.wall_w && pp.wall_n && !pp.wall_s && !pp.wall_e): return Pixel.TILE_WALL_TOP_GAP
-		if(!pp.wall_w && !pp.wall_n && pp.wall_s && !pp.wall_e): return Pixel.TILE_WALL_TOP_GAP
-		if(!pp.wall_w && !pp.wall_n && !pp.wall_s && pp.wall_e): return Pixel.TILE_WALL_TOP_GAP
-	return pp.no_change()
-
-func _spread_upper_gap(ctx: Context) -> Pixel:
-	var pp: PreviousPass = ctx.previous_pass
-	if pp.tile_c == Pixel.TILE_WALL:
-		if pp.tile_n == Pixel.TILE_WALL_TOP_GAP && !pp.wall_e && !pp.wall_w: return Pixel.TILE_WALL_TOP_GAP
-		if pp.tile_s == Pixel.TILE_WALL_TOP_GAP && !pp.wall_e && !pp.wall_w: return Pixel.TILE_WALL_TOP_GAP
-		if pp.tile_e == Pixel.TILE_WALL_TOP_GAP && !pp.wall_n && !pp.wall_s: return Pixel.TILE_WALL_TOP_GAP
-		if pp.tile_w == Pixel.TILE_WALL_TOP_GAP && !pp.wall_n && !pp.wall_s: return Pixel.TILE_WALL_TOP_GAP
-	return pp.no_change()
-
 const NUM_PASSES_IN_GEN_BIOMES = 1 # change this everytime you change the amount of cases in 'match pass_index' below
 func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 	var noise_upscale: float = 0.01
@@ -293,9 +281,9 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 	for y in range(4, 9):
 		if ctx.x == 4 && ctx.y == y: return Pixel.TILE_WALL
 		if ctx.x == 8 && ctx.y == y: return Pixel.TILE_WALL
-	if ctx.x == 9 && ctx.y == 5: return Pixel.TILE_WALL_TOP_GAP
-	if ctx.x == 10 && ctx.y == 5: return Pixel.TILE_WALL_TOP_GAP
-		
+	if ctx.x == 9 && ctx.y == 5: return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_TOP_GAP)
+	if ctx.x == 10 && ctx.y == 5: return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_TOP_GAP)
+			
 	return Pixel.TILE_EMPTY
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
@@ -432,15 +420,15 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 				if distance_to_deadend >= 0 && distance_to_junction >= 0:
 					var total: int = distance_to_deadend + distance_to_junction
 					if total <= 3:
-						return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
+						return with_flag(pp.with_tile(Pixel.TILE_WALL), Pixel.FLAG_WALL_TOP_GAP)
 			return pp.no_change()
 			
 		8, 9, 10:
 			if pp.wall_c && !_is_junction(pp):
-				if pp.pixel_n & TILE_MASK == Pixel.TILE_WALL_TOP_GAP: return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
-				if pp.pixel_s & TILE_MASK == Pixel.TILE_WALL_TOP_GAP: return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
-				if pp.pixel_w & TILE_MASK == Pixel.TILE_WALL_TOP_GAP: return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
-				if pp.pixel_e & TILE_MASK == Pixel.TILE_WALL_TOP_GAP: return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
+				if has_flag(pp.pixel_n, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
+				if has_flag(pp.pixel_s, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
+				if has_flag(pp.pixel_w, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
+				if has_flag(pp.pixel_e, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
 			return pp.no_change()
 
 	return Pixel.INVALID
@@ -664,13 +652,13 @@ class PreviousPass:
 		if tile & BIOME_MASK != 0:
 			push_error("argument given to 'with_tile' MUST be a tile")
 			return no_change()
-		return biome_c | tile as Pixel
+		return (biome_c as int | tile as int) as Pixel
 
 	func with_biome(biome: Pixel) -> Pixel:
 		if biome & TILE_MASK != 0:
 			push_error("argument given to 'with_biome' MUST be a biome")
 			return no_change()
-		return tile_c | biome as Pixel
+		return (tile_c as int | biome as int) as Pixel
 		
 	func no_change() -> Pixel:
 		return pixel_c
@@ -678,7 +666,7 @@ class PreviousPass:
 	func update(ctx: Context) -> void:
 		pixel_c = ctx.get_at(data)
 		biome_c = TileUtils.get_biome(pixel_c)
-		tile_c = pixel_c - biome_c as Pixel
+		tile_c = (pixel_c & TILE_MASK) as Pixel
 
 		var test_x_n2: int = clamp(ctx.lx - 2, 0, ctx.w - 1)
 		var test_x_n1: int = clamp(ctx.lx - 1, 0, ctx.w - 1)
@@ -861,13 +849,13 @@ class TileUtils:
 			Pixel.BIOME_ARCHES  | Pixel.TILE_EMPTY:   return Color(1.0, 0.559, 0.567, 1.0)
 			Pixel.BIOME_PILLARS | Pixel.TILE_EMPTY:   return Color(0.962, 0.576, 1.0, 1.0)
 		
-		match pixel & TILE_MASK:
-			Pixel.TILE_CEILING_LIGHT:               return Color(0,1,1)
-			Pixel.TILE_CEILING_LIGHT_BLINKING:      return Color(0.0, 0.58, 0.614, 1.0)
-			Pixel.TILE_WALL:                        return Color(0,0,0)
-			Pixel.TILE_WALL_TOP_GAP:                return Color(0.393, 0.393, 0.393, 1.0)
-			Pixel.TILE_ARCH:                        return Color(0.622, 0.428, 0.0, 1.0)
-			Pixel.TILE_ARCH_MIRRORED:               return Color(0.769, 0.303, 0.0, 1.0)
+		var tile : Pixel = pixel & TILE_MASK as Pixel
+		if tile == Pixel.TILE_CEILING_LIGHT:						return Color(0,1,1)
+		if tile == Pixel.TILE_CEILING_LIGHT_BLINKING:				return Color(0.0, 0.58, 0.614, 1.0)
+		if tile == Pixel.TILE_WALL:									return Color(0,0,0)
+		if MapGenerator.has_flag(tile, Pixel.FLAG_WALL_TOP_GAP):	return Color(0.393, 0.393, 0.393, 1.0)
+		if tile == Pixel.TILE_ARCH:									return Color(0.622, 0.428, 0.0, 1.0)
+		if tile == Pixel.TILE_ARCH_MIRRORED:						return Color(0.769, 0.303, 0.0, 1.0)
 		
 		var h := fmod(absf(sin(float(pixel) * 12.9898) * 43758.5453), 1.0)
 		return Color.from_hsv(h, 0.7, 1.0)
