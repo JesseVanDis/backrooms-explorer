@@ -328,11 +328,18 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 		if ctx.x == 8 && ctx.y == y: return Pixel.TILE_WALL
 	if ctx.x == 9 && ctx.y == 5: return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_TOP_GAP)
 	if ctx.x == 10 && ctx.y == 5: return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_TOP_GAP)
+
+	if ctx.x == 8 && ctx.y == 12: return Pixel.TILE_ARCH
+	if ctx.x == 8 && ctx.y == 11: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_MIRROR)
+
+	if ctx.x == 11 && ctx.y == 8: return with_flag(with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E), Pixel.FLAG_ARCH_MIRROR)
+	if ctx.x == 12 && ctx.y == 8: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E)
+	
 			
 	return Pixel.TILE_EMPTY
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
-	# return _test(pass_index, ctx)
+	return _test(pass_index, ctx)
 	
 	var pp: PreviousPass = ctx.previous_pass
 	var retval: Pixel = Pixel.INVALID
@@ -977,11 +984,12 @@ class TileUtils:
 			Pixel.BIOME_PILLARS | Pixel.TILE_EMPTY:   return Color(0.962, 0.576, 1.0, 1.0)
 		
 		var tile : Pixel = pixel & TILE_MASK as Pixel
-		if tile == Pixel.TILE_CEILING_LIGHT:						return Color(0,1,1)
-		if tile == Pixel.TILE_CEILING_LIGHT_BLINKING:				return Color(0.0, 0.58, 0.614, 1.0)
-		if tile == Pixel.TILE_WALL:									return Color(0,0,0)
-		if MapGenerator.has_flag(tile, Pixel.FLAG_WALL_TOP_GAP):	return Color(0.393, 0.393, 0.393, 1.0)
-		if tile == Pixel.TILE_ARCH:									return Color(0.622, 0.428, 0.0, 1.0)
+		if tile == Pixel.TILE_CEILING_LIGHT:							return Color(0,1,1)
+		if tile == Pixel.TILE_CEILING_LIGHT_BLINKING:					return Color(0.0, 0.58, 0.614, 1.0)
+		if tile == Pixel.TILE_WALL:
+			if MapGenerator.has_flag(pixel, Pixel.FLAG_WALL_TOP_GAP):	return Color(0.393, 0.393, 0.393, 1.0)
+			return Color(0,0,0)
+		if tile == Pixel.TILE_ARCH:										return Color(0.622, 0.428, 0.0, 1.0)
 		
 		var h := fmod(absf(sin(float(pixel) * 12.9898) * 43758.5453), 1.0)
 		return Color.from_hsv(h, 0.7, 1.0)

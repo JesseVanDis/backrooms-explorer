@@ -13,7 +13,6 @@ var model_ceiling_light:          Model = _load_model(preload("res://scenes/lvl_
 var model_ceiling_light_blinking: Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling_light_blinking.tscn"))
 var model_wall_x:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_x.tscn"))
 var model_arch_i:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_i.tscn"))
-var model_arch_i_mirror:          Model = _load_model(preload("res://scenes/lvl_0/part_arch_i_mirror.tscn"))
 var model_arch_e:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_e.tscn"))
 
 @onready var _node_map: Node3D = $Map
@@ -139,19 +138,21 @@ func _place_wall(wall_model_x: Model, wall_model_i: Model, wall_model_e: Model, 
 	var wall_e: bool = MapGenerator.is_wall(pe)
 	var wall_w: bool = MapGenerator.is_wall(pw)
 	
-	var special: bool = MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_TOP_GAP)
+	#var special: bool = MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_TOP_GAP)
 	
-	#if  ( !special && wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0)
-	if !special && wall_model_i: # just straight
-		if( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_i, tile_index, 0.0)
-		elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_i, tile_index, PI/2)
-	if !special && wall_model_e: # wall endings
-		if( wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, 0.0)
-		elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, PI)
-		elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, -PI/2)
-		elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_e, tile_index, PI/2)
-	else:
-		var model_modefier: ModelModefier = ModelModefier.new()
+	##if  ( !special && wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0)
+	#if !special && wall_model_i: # just straight
+		#if( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_i, tile_index, 0.0)
+		#elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_i, tile_index, PI/2)
+	#if !special && wall_model_e: # wall endings
+		#if( wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, 0.0)
+		#elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, PI)
+		#elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, -PI/2)
+		#elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_e, tile_index, PI/2)
+	#else:
+	var model_modefier: ModelModefier = null
+	if (pc & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL:
+		model_modefier = ModelModefier.new()
 		model_modefier.remove_w = !wall_w
 		model_modefier.remove_e = !wall_e
 		model_modefier.remove_n = !wall_n
@@ -167,8 +168,8 @@ func _place_wall(wall_model_x: Model, wall_model_i: Model, wall_model_e: Model, 
 		if MapGenerator.has_flag(ps, MapGenerator.Pixel.FLAG_WALL_TOP_GAP): model_modefier.yoffset_s = top_gap_offset
 		if MapGenerator.has_flag(pe, MapGenerator.Pixel.FLAG_WALL_TOP_GAP): model_modefier.yoffset_e = top_gap_offset
 		if MapGenerator.has_flag(pw, MapGenerator.Pixel.FLAG_WALL_TOP_GAP): model_modefier.yoffset_w = top_gap_offset
-		
-		_place_wall_specific(wall_model_x, tile_index, 0.0, model_modefier)
+	
+	_place_wall_specific(wall_model_x, tile_index, 0.0, model_modefier)
 
 	#if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0, null)
 	#elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_t, tile_index, 0.0, ModelModefier.new())
@@ -326,12 +327,9 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 		MapGenerator.Pixel.TILE_CEILING_LIGHT_BLINKING:
 			_instantiate_model(model_ceiling_light_blinking, tile_index, 0)
 
-		MapGenerator.Pixel.TILE_ARCH, MapGenerator.Pixel.TILE_ARCH_MIRRORED:
+		MapGenerator.Pixel.TILE_ARCH:
 			var model_i: Model = model_arch_i
 			var model_e: Model = model_arch_e
-			if (pixel & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH_MIRRORED:
-				model_i = model_arch_i_mirror
-				model_e = model_arch_i_mirror # Ending wall bits will always orient correctly
 			_place_wall(model_wall_x, model_i, model_e, tile_index)
 		
 		MapGenerator.Pixel.TILE_WALL: # gap handled in '_place_wall'
@@ -367,13 +365,17 @@ class HandleTilesCache:
 
 
 func _handle_model_modefier_should_remove_node(node: Node3D, model_modefier: ModelModefier) -> bool:
-	if (node.name.ends_with("_n") && model_modefier.remove_n): return true
-	if (node.name.ends_with("_s") && model_modefier.remove_s): return true
-	if (node.name.ends_with("_w") && model_modefier.remove_w): return true
-	if (node.name.ends_with("_e") && model_modefier.remove_e): return true
+	if model_modefier:
+		if (node.name.ends_with("_n") && model_modefier.remove_n): return true
+		if (node.name.ends_with("_s") && model_modefier.remove_s): return true
+		if (node.name.ends_with("_w") && model_modefier.remove_w): return true
+		if (node.name.ends_with("_e") && model_modefier.remove_e): return true
 	return false
 
 func _handle_model_modefier_of_node(node: Node3D, model_modefier: ModelModefier) -> void:
+	if model_modefier == null:
+		return
+	
 	if _handle_model_modefier_should_remove_node(node, model_modefier):
 		node.queue_free()
 		return
@@ -391,6 +393,8 @@ func _handle_model_modefier_of_node(node: Node3D, model_modefier: ModelModefier)
 		
 	
 func _handle_model_modefier(graphic: Node3D, model_modefier: ModelModefier) -> void:
+	if model_modefier == null:
+		return
 	for child: Node in graphic.get_children():
 		if child is Node3D:
 			_handle_model_modefier_of_node(child as Node3D, model_modefier)
