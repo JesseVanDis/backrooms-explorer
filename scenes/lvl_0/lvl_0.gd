@@ -150,7 +150,9 @@ func _place_wall(wall_model_x: Model, wall_model_i: Model, wall_model_e: Model, 
 		#elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, -PI/2)
 		#elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_e, tile_index, PI/2)
 	#else:
+	var angle: float = 0
 	var model_modefier: ModelModefier = null
+	
 	if (pc & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL:
 		model_modefier = ModelModefier.new()
 		model_modefier.remove_w = !wall_w
@@ -168,8 +170,15 @@ func _place_wall(wall_model_x: Model, wall_model_i: Model, wall_model_e: Model, 
 		if MapGenerator.has_flag(ps, MapGenerator.Pixel.FLAG_WALL_TOP_GAP): model_modefier.yoffset_s = top_gap_offset
 		if MapGenerator.has_flag(pe, MapGenerator.Pixel.FLAG_WALL_TOP_GAP): model_modefier.yoffset_e = top_gap_offset
 		if MapGenerator.has_flag(pw, MapGenerator.Pixel.FLAG_WALL_TOP_GAP): model_modefier.yoffset_w = top_gap_offset
+		
+	if (pc & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH:
+		model_modefier = ModelModefier.new()
+		if MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_ARCH_ROT_TO_E):
+			angle += PI/2.0
+		if MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_ARCH_MIRROR):
+			angle += PI
 	
-	_place_wall_specific(wall_model_x, tile_index, 0.0, model_modefier)
+	_place_wall_specific(wall_model_x, tile_index, angle, model_modefier)
 
 	#if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0, null)
 	#elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_t, tile_index, 0.0, ModelModefier.new())
@@ -328,9 +337,7 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 			_instantiate_model(model_ceiling_light_blinking, tile_index, 0)
 
 		MapGenerator.Pixel.TILE_ARCH:
-			var model_i: Model = model_arch_i
-			var model_e: Model = model_arch_e
-			_place_wall(model_wall_x, model_i, model_e, tile_index)
+			_place_wall(model_arch_i, null, model_arch_e, tile_index)
 		
 		MapGenerator.Pixel.TILE_WALL: # gap handled in '_place_wall'
 			_place_wall(model_wall_x, null, null, tile_index)
