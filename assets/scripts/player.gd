@@ -259,7 +259,8 @@ func _physics_process(delta: float) -> void:
 		var collision := get_slide_collision(i)
 		var collider := collision.get_collider()
 		if collider is RigidBody3D:
-			collider.apply_central_impulse(-collision.get_normal() * PUSH_FORCE)
+			var collider_rigid_body := collider as RigidBody3D
+			collider_rigid_body.apply_central_impulse(-collision.get_normal() * PUSH_FORCE)
 	
 	if was_in_air and is_on_floor():
 		_play_landing_sound()
