@@ -17,11 +17,10 @@ enum Pixel {
 	BIOME_PILLARS                = 0x000000000004,
 	TILE_WALL                    = 0x000000000100,
 	TILE_ARCH                    = 0x000000000200,
-	TILE_ARCH_MIRRORED           = 0x000000000300,
 	TILE_EMPTY                   = 0x000000010000,
 	TILE_CEILING_LIGHT           = 0x000000020000,
 	TILE_CEILING_LIGHT_BLINKING  = 0x000000030000,
-	FLAG_WALL_SKIRT_FN_E         = 0x000001000000,
+	FLAG_WALL_SKIRT_FN_E         = 0x000001000000, # skirt FacingNorth, on eastern 'lobe' 
 	FLAG_WALL_SKIRT_FS_E         = 0x000002000000,
 	FLAG_WALL_SKIRT_FN_W         = 0x000004000000,
 	FLAG_WALL_SKIRT_FS_W         = 0x000008000000,
@@ -37,7 +36,13 @@ enum Pixel {
 	FLAG_WALL_LINE_FW_N          = 0x002000000000,
 	FLAG_WALL_LINE_FE_S          = 0x004000000000,
 	FLAG_WALL_LINE_FW_S          = 0x008000000000,
-	FLAG_WALL_TOP_GAP            = 0x010000000000,
+	FLAG_WALL_LOBE_N             = 0x010000000000,
+	FLAG_WALL_LOBE_S             = 0x020000000000,
+	FLAG_WALL_LOBE_E             = 0x040000000000,
+	FLAG_WALL_LOBE_W             = 0x080000000000,
+	FLAG_WALL_TOP_GAP            = 0x100000000000,
+	FLAG_ARCH_ROT_TO_E           = 0x000001000000,
+	FLAG_ARCH_MIRROR             = 0x000002000000,
 	INVALID                      = 0x7FFFFFFFFFFFFFFF
 }
 
@@ -108,11 +113,7 @@ static func has_flag(pixel: Pixel, flag: Pixel) -> bool:
 
 static func is_wall_arch(pixel: Pixel) -> bool:
 	var tile: Pixel = pixel & TILE_MASK as Pixel
-	match tile:
-		Pixel.TILE_ARCH, Pixel.TILE_ARCH_MIRRORED:
-			return true
-		_:
-			return false
+	return tile == Pixel.TILE_ARCH
 
 func _is_open_corner(ctx: Context) -> bool:
 	var pp: PreviousPass = ctx.previous_pass
@@ -171,6 +172,34 @@ func _get_wall_length(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x:
 
 func _is_junction(pp: PreviousPass) -> bool:
 	return (pp.wall_n || pp.wall_s) && (pp.wall_w || pp.wall_e)
+
+func _connect_lobes(ctx: Context, current_pixel: Pixel) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	var pixel: Pixel = current_pixel
+	if (pixel & TILE_MASK) == Pixel.TILE_WALL:
+		if pp.wall_n:
+			pixel = with_flag(pixel, Pixel.FLAG_WALL_LOBE_N)
+		if pp.wall_s:
+			pixel = with_flag(pixel, Pixel.FLAG_WALL_LOBE_S)
+		if pp.wall_e:
+			pixel = with_flag(pixel, Pixel.FLAG_WALL_LOBE_E)
+		if pp.wall_w:
+			pixel = with_flag(pixel, Pixel.FLAG_WALL_LOBE_W)
+	return pixel
+
+func _handle_walltypes(_ctx: Context, current_pixel: Pixel) -> Pixel:
+	var pixel: Pixel = current_pixel
+	if (pixel & TILE_MASK) == Pixel.TILE_WALL:
+		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_N):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FE_N)
+		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_N):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FW_N)
+		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_S):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FE_S)
+		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_S):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FW_S)
+		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_E):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FN_E)
+		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_E):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FS_E)
+		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_W):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FN_W)
+		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_W):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FS_W)
+	return pixel
+
 
 func _find_distance_to_deadend(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, visited: Dictionary = {}) -> int:
 	if limit <= 0:
@@ -372,6 +401,9 @@ func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
 				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 		
+		12:
+			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
+		
 		#12:
 			#if pp.wall_c && _find_distance_to_deadend(pp, ctx, 5) < 3:
 				#return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
@@ -446,6 +478,10 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 				if has_flag(pp.pixel_w, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
 				if has_flag(pp.pixel_e, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
 			return pp.no_change()
+		
+		11:
+			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
+			
 
 	return Pixel.INVALID
 
@@ -520,52 +556,51 @@ func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
 				var s: bool = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
 				var e: bool = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
 				var w: bool = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+				var pixel: Pixel = pp.pixel_c
+				if (e || w):
+					pixel = with_flag(pixel, Pixel.FLAG_ARCH_ROT_TO_E)
 				if ((n || s) && (ctx.y & 1) == 1):
-					return pp.with_tile(Pixel.TILE_ARCH_MIRRORED)
+					pixel = with_flag(pixel, Pixel.FLAG_ARCH_MIRROR)
 				if ((e || w) && (ctx.x & 1) == 1):
-					return pp.with_tile(Pixel.TILE_ARCH_MIRRORED)
+					pixel = with_flag(pixel, Pixel.FLAG_ARCH_MIRROR)
+				return pixel
 			return pp.no_change()
 		
 		10: # fix mis-alighned
-			if pp.wall_c && !is_wall_arch(pp.tile_c):
+			if !is_wall_arch(pp.tile_c):
 				return pp.no_change() 
 			var n: Pixel = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel)
 			var s: Pixel = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel)
 			var e: Pixel = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel)
 			var w: Pixel = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel)
-			if pp.wall_n && !is_wall_arch(n) && pp.tile_c == Pixel.TILE_ARCH_MIRRORED:
-				return pp.with_tile(Pixel.TILE_WALL)
-			if pp.wall_s && !is_wall_arch(s) && pp.tile_c == Pixel.TILE_ARCH:
-				return pp.with_tile(Pixel.TILE_WALL)
-			if pp.wall_w && !is_wall_arch(w) && pp.tile_c == Pixel.TILE_ARCH:
-				return pp.with_tile(Pixel.TILE_WALL)
-			if pp.wall_e && !is_wall_arch(e) && pp.tile_c == Pixel.TILE_ARCH_MIRRORED:
-				return pp.with_tile(Pixel.TILE_WALL)
 			
 			# safety
-			if pp.tile_c == Pixel.TILE_ARCH && is_wall_arch(n) && !is_wall_arch(s):
-				return pp.with_tile(Pixel.TILE_EMPTY)
-			if pp.tile_c == Pixel.TILE_ARCH_MIRRORED && is_wall_arch(s) && !is_wall_arch(n):
-				return pp.with_tile(Pixel.TILE_EMPTY)
+			if !is_wall_arch(n) && !has_flag(pp.pixel_c, Pixel.FLAG_ARCH_ROT_TO_E) && !has_flag(pp.pixel_c, Pixel.FLAG_ARCH_MIRROR):
+				if pp.wall_n: 
+					return pp.with_tile(Pixel.TILE_WALL) 
+				else: 
+					return pp.with_tile(Pixel.TILE_EMPTY)
+			if !is_wall_arch(s) && !has_flag(pp.pixel_c, Pixel.FLAG_ARCH_ROT_TO_E) && has_flag(pp.pixel_c, Pixel.FLAG_ARCH_MIRROR):
+				if pp.wall_s: 
+					return pp.with_tile(Pixel.TILE_WALL) 
+				else: 
+					return pp.with_tile(Pixel.TILE_EMPTY)
+			if !is_wall_arch(e) && has_flag(pp.pixel_c, Pixel.FLAG_ARCH_ROT_TO_E) && !has_flag(pp.pixel_c, Pixel.FLAG_ARCH_MIRROR):
+				if pp.wall_e: 
+					return pp.with_tile(Pixel.TILE_WALL) 
+				else: 
+					return pp.with_tile(Pixel.TILE_EMPTY)
+			if !is_wall_arch(w) && has_flag(pp.pixel_c, Pixel.FLAG_ARCH_ROT_TO_E) && has_flag(pp.pixel_c, Pixel.FLAG_ARCH_MIRROR):
+				if pp.wall_w: 
+					return pp.with_tile(Pixel.TILE_WALL) 
+				else: 
+					return pp.with_tile(Pixel.TILE_EMPTY)
 			
-			return pp.no_change()
-			
-		11: # filter small walls
-			if pp.wall_c:
-				var n: Pixel = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel)
-				var s: Pixel = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel)
-				var e: Pixel = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel)
-				var w: Pixel = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel)
-				
-				if pp.tile_c == Pixel.TILE_WALL:
-					if e != Pixel.TILE_WALL && s != Pixel.TILE_WALL && n != Pixel.TILE_WALL && w != Pixel.TILE_WALL:
-						return pp.with_tile(Pixel.TILE_EMPTY)
-				
-				if is_wall_arch(pp.tile_c):
-					if !is_wall_arch(e) && !is_wall_arch(s) && !is_wall_arch(n) && !is_wall_arch(w):
-						return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 	
+		11:
+			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
+		
 	return Pixel.INVALID
 
 func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
@@ -605,6 +640,9 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 		
+		10:
+			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
+
 			
 	return Pixel.INVALID
 
@@ -765,12 +803,85 @@ class Context:
 #		return tile | TileUtils.get_biome(previous_pass.pixel_c) as Pixel
 
 func generate_map_image(width: int, height: int) -> Image:
-	var image: Image = Image.create(width, height, false, Image.FORMAT_RGB8)
+	var image: Image = Image.create(width * 6, height * 6, false, Image.FORMAT_RGB8)
 		
 	var map: Section = generate_map(0, 0, width, height);
 	for y in range(0, height):
 		for x in range(0, width):
-			image.set_pixel(x, y, TileUtils.to_color(map.get_pixel(x, y)))
+			var pixel: Pixel = map.get_pixel(x, y)
+			var color_biome: Color = TileUtils.to_color((pixel & BIOME_MASK) | Pixel.TILE_EMPTY)
+			var color: Color = TileUtils.to_color(pixel)
+			
+			for dy in range(6):
+				for dx in range(6):
+					image.set_pixel(x * 6 + dx, y * 6 + dy, color_biome)
+
+			if (pixel & WALL_MASK) == Pixel.TILE_ARCH:
+				for dy in range(1,5):
+					for dx in range(1,5):
+						image.set_pixel(x * 6 + dx, y * 6 + dy, color)
+				if !has_flag(pixel, Pixel.FLAG_ARCH_MIRROR) && !has_flag(pixel, Pixel.FLAG_ARCH_ROT_TO_E):
+					for dx in range(1,5): image.set_pixel(x * 6 + dx, y * 6 + 5, color)
+					for dx in range(1,5): for dy in range(0,5): image.set_pixel(x * 6 + dx, y * 6 + dy, color.darkened((float(dy)/5.0) * 0.5))
+				if has_flag(pixel, Pixel.FLAG_ARCH_MIRROR) && !has_flag(pixel, Pixel.FLAG_ARCH_ROT_TO_E):
+					for dx in range(1,5): image.set_pixel(x * 6 + dx, y * 6 + 0, color)
+					for dx in range(1,5): for dy in range(1,6): image.set_pixel(x * 6 + dx, y * 6 + dy, color.darkened((float(6.0-dy)/5.0) * 0.5))
+				if !has_flag(pixel, Pixel.FLAG_ARCH_MIRROR) && has_flag(pixel, Pixel.FLAG_ARCH_ROT_TO_E):
+					for dy in range(1,5): image.set_pixel(x * 6 + 5, y * 6 + dy, color)
+					for dy in range(1,5): for dx in range(0,5): image.set_pixel(x * 6 + dx, y * 6 + dy, color.darkened((float(dx)/5.0) * 0.5))
+				if has_flag(pixel, Pixel.FLAG_ARCH_MIRROR) && has_flag(pixel, Pixel.FLAG_ARCH_ROT_TO_E):
+					for dy in range(1,5): image.set_pixel(x * 6 + 0, y * 6 + dy, color)
+					for dy in range(1,5): for dx in range(1,6): image.set_pixel(x * 6 + dx, y * 6 + dy, color.darkened((float(6.0-dx)/5.0) * 0.5))
+				
+			elif (pixel & WALL_MASK) == Pixel.TILE_WALL:
+				var pink: Color = Color(1, 0, 1) # pink
+				
+				# Directions based on last 3 chars: N_E, S_E, N_W, S_W, E_N, W_N, E_S, W_S
+				# Also check for N, S, E, W if they were to be added
+				
+				var flags_to_check: Array[Pixel] = [
+					Pixel.FLAG_WALL_SKIRT_FN_E, Pixel.FLAG_WALL_SKIRT_FS_E,
+					Pixel.FLAG_WALL_SKIRT_FN_W, Pixel.FLAG_WALL_SKIRT_FS_W,
+					Pixel.FLAG_WALL_SKIRT_FE_N, Pixel.FLAG_WALL_SKIRT_FW_N,
+					Pixel.FLAG_WALL_SKIRT_FE_S, Pixel.FLAG_WALL_SKIRT_FW_S,
+					Pixel.FLAG_WALL_LINE_FN_E, Pixel.FLAG_WALL_LINE_FS_E,
+					Pixel.FLAG_WALL_LINE_FN_W, Pixel.FLAG_WALL_LINE_FS_W,
+					Pixel.FLAG_WALL_LINE_FE_N, Pixel.FLAG_WALL_LINE_FW_N,
+					Pixel.FLAG_WALL_LINE_FE_S, Pixel.FLAG_WALL_LINE_FW_S
+				]
+				
+				for flag: Pixel in flags_to_check:
+					if has_flag(pixel, flag):
+						var flag_name: String = Pixel.keys()[Pixel.values().find(flag)]
+						var suffix: String = flag_name.right(3)
+						
+						match suffix:
+							"N_E": for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 1, pink)
+							"S_E": for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 4, pink)
+							"N_W": for dx in range(0,3): image.set_pixel(x * 6 + dx, y * 6 + 1, pink)
+							"S_W": for dx in range(0,3): image.set_pixel(x * 6 + dx, y * 6 + 4, pink)
+							"E_N": for dy in range(0,3): image.set_pixel(x * 6 + 4, y * 6 + dy, pink)
+							"W_N": for dy in range(0,3): image.set_pixel(x * 6 + 1, y * 6 + dy, pink)
+							"E_S": for dy in range(3,6): image.set_pixel(x * 6 + 4, y * 6 + dy, pink)
+							"W_S": for dy in range(3,6): image.set_pixel(x * 6 + 1, y * 6 + dy, pink)
+			
+				for dy in range(2,4):
+					for dx in range(2,4):
+						image.set_pixel(x * 6 + dx, y * 6 + dy, color)
+				if has_flag(pixel, Pixel.FLAG_WALL_LOBE_N):
+					for dy in range(0,2): for dx in range(2,4): image.set_pixel(x * 6 + dx, y * 6 + dy, color)
+				if has_flag(pixel, Pixel.FLAG_WALL_LOBE_S):
+					for dy in range(4,6): for dx in range(2,4): image.set_pixel(x * 6 + dx, y * 6 + dy, color)
+				if has_flag(pixel, Pixel.FLAG_WALL_LOBE_E):
+					for dy in range(2,4): for dx in range(4,6): image.set_pixel(x * 6 + dx, y * 6 + dy, color)
+				if has_flag(pixel, Pixel.FLAG_WALL_LOBE_W):
+					for dy in range(2,4): for dx in range(0,2): image.set_pixel(x * 6 + dx, y * 6 + dy, color)
+			
+			else:
+				for dy in range(6):
+					for dx in range(6):
+						image.set_pixel(x * 6 + dx, y * 6 + dy, color)
+
 	
 	return image;
 
@@ -871,7 +982,6 @@ class TileUtils:
 		if tile == Pixel.TILE_WALL:									return Color(0,0,0)
 		if MapGenerator.has_flag(tile, Pixel.FLAG_WALL_TOP_GAP):	return Color(0.393, 0.393, 0.393, 1.0)
 		if tile == Pixel.TILE_ARCH:									return Color(0.622, 0.428, 0.0, 1.0)
-		if tile == Pixel.TILE_ARCH_MIRRORED:						return Color(0.769, 0.303, 0.0, 1.0)
 		
 		var h := fmod(absf(sin(float(pixel) * 12.9898) * 43758.5453), 1.0)
 		return Color.from_hsv(h, 0.7, 1.0)
