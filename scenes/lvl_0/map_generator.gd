@@ -105,6 +105,9 @@ func _is_isolated_wall_dot(ctx: Context) -> bool:
 static func is_wall(pixel: Pixel) -> bool:
 	return pixel & WALL_MASK != 0
 
+static func _is_wall_at_offset(ctx: Context, offset_x: int, offset_y: int) -> bool:
+	return is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y))
+
 static func with_flag(pixel: Pixel, flag: Pixel) -> Pixel:
 	return (pixel as int | flag as int) as Pixel
 
@@ -137,9 +140,8 @@ func _is_corner(ctx: Context) -> bool:
 		if pp.wall_e && pp.wall_s: return true
 	return false
 
-func _is_wall_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
-	var data: Array[Pixel] = ctx.previous_pass.data
-	if is_wall(ctx.get_at_offset(data, offset_x, offset_y)):
+func _is_wall_deadend(ctx: Context) -> bool:
+	if ctx.previous_pass.wall_c:
 		var wall_w: bool =  ctx.previous_pass.wall_w;
 		var wall_e: bool =  ctx.previous_pass.wall_e;
 		var wall_s: bool =  ctx.previous_pass.wall_s;
@@ -149,13 +151,63 @@ func _is_wall_deadend(ctx: Context, offset_x: int, offset_y: int) -> bool:
 		if(!wall_w && !wall_n && wall_s && !wall_e): return true
 		if(!wall_w && !wall_n && !wall_s && wall_e): return true
 	return false
+
+# returns (0,0) if at a corner or intersection. direction is otherwise normalized.
+func _get_wall_direction(ctx: Context) -> Vector2i:
+	var pp: PreviousPass = ctx.previous_pass
+	if pp.wall_c:
+		if _is_junction(ctx):
+			return Vector2i(0, 0)
+		if _is_isolated_wall_dot(ctx):
+			return Vector2i(0, 0)
+		if pp.wall_n || pp.wall_s:
+			return Vector2i(0, 1)
+		if pp.wall_e || pp.wall_w:
+			return Vector2i(1, 0)
+	return Vector2i(0, 0)
+
+# returns the all relative positions of a wall section. 
+# Wall section meaning a piece of wall from one end to the other, until it meets corner or intersection.
+# intersection or corner itself will be included if 'include_intersection_or_corner' is set. but never beyond it.
+func _get_all_pixel_offsets_of_wall_section(ctx: Context, limit: int, offset_x: int, offset_y: int, direction: Vector2i, include_intersection_or_corner: bool = false) -> Array[Vector2i]:
+	var retval: Array[Vector2i] = []
+	if limit <= 0:
+		return retval
+	if !_is_wall_at_offset(ctx, offset_x, offset_y):
+		return retval
+	if _is_junction_at_offset(ctx, offset_x, offset_y):
+		if include_intersection_or_corner:
+			retval.append(Vector2i(offset_x, offset_y))
+		return retval
+	retval.append(Vector2i(offset_x, offset_y))
+	retval.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit - 1, offset_x + direction.x, offset_y + direction.y, direction, include_intersection_or_corner))
+	return retval
+
+func _get_wall_section_hash(ctx: Context, limit: int = 50) -> int:
+	var direction: Vector2i = _get_wall_direction(ctx)
+	if direction == Vector2i(0, 0):
+		return 0
 	
+	var offsets: Array[Vector2i] = []
+	offsets.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit, 0, 0, direction, true))
+	offsets.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit, 0, 0, -direction, true))
+	
+	# Sort offsets to ensure stable hash
+	offsets.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+		if a.x != b.x:
+			return a.x < b.x
+		return a.y < b.y
+	)
+	
+	return hash(offsets)
+	
+
 func _get_wall_length(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, check_diagonal: bool = true, visited: Dictionary = {}) -> int:
 	var key := Vector2i(offset_x, offset_y)
 	if visited.has(key):
 		return 0
 	visited[key] = true
-	if !is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y)):
+	if !_is_wall_at_offset(ctx, offset_x, offset_y):
 		return 0
 	var count := 1
 	if count >= limit: return limit
@@ -170,8 +222,17 @@ func _get_wall_length(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x:
 		count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y + 1, check_diagonal, visited); if count >= limit:	return limit
 	return count
 
-func _is_junction(pp: PreviousPass) -> bool:
-	return (pp.wall_n || pp.wall_s) && (pp.wall_w || pp.wall_e)
+func _is_junction(ctx: Context) -> bool:
+	var pp: PreviousPass = ctx.previous_pass
+	return pp.wall_c && ((pp.wall_n || pp.wall_s) && (pp.wall_w || pp.wall_e))
+
+func _is_junction_at_offset(ctx: Context, offset_x: int, offset_y: int) -> bool:
+	var c: bool = _is_wall_at_offset(ctx, offset_x, offset_y)
+	var n: bool = _is_wall_at_offset(ctx, offset_x, offset_y - 1)
+	var s: bool = _is_wall_at_offset(ctx, offset_x, offset_y + 1)
+	var e: bool = _is_wall_at_offset(ctx, offset_x + 1, offset_y)
+	var w: bool = _is_wall_at_offset(ctx, offset_x - 1, offset_y)
+	return c && ((n || s) && (w || e))
 
 func _connect_lobes(ctx: Context, current_pixel: Pixel) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
@@ -187,17 +248,42 @@ func _connect_lobes(ctx: Context, current_pixel: Pixel) -> Pixel:
 			pixel = with_flag(pixel, Pixel.FLAG_WALL_LOBE_W)
 	return pixel
 
-func _handle_walltypes(_ctx: Context, current_pixel: Pixel) -> Pixel:
+func _handle_walltypes(ctx: Context, current_pixel: Pixel) -> Pixel:
 	var pixel: Pixel = current_pixel
+
 	if (pixel & TILE_MASK) == Pixel.TILE_WALL:
-		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_N):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FE_N)
-		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_N):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FW_N)
-		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_S):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FE_S)
-		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_S):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FW_S)
-		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_E):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FN_E)
-		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_E):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FS_E)
-		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_W):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FN_W)
-		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_W):	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FS_W)
+		
+		var randomness_scale: float = 0.5
+		var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * randomness_scale, ctx.y_flt * randomness_scale, 16.7217, 31731.31, 1)
+		
+		var should_have_line_e: bool = noise > 0.5
+		
+		
+		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_N):
+			if should_have_line_e:
+				pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FE_N)
+			
+		#if has_flag(pixel, Pixel.FLAG_WALL_LOBE_N):
+		#	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FW_N)
+		
+		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_S):
+			if should_have_line_e:
+				pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FE_S)
+			
+		#if has_flag(pixel, Pixel.FLAG_WALL_LOBE_S):
+		#	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FW_S)
+			
+		#if has_flag(pixel, Pixel.FLAG_WALL_LOBE_E):
+		#	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FN_E)
+			
+		#if has_flag(pixel, Pixel.FLAG_WALL_LOBE_E):
+		#	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FS_E)
+			
+		#if has_flag(pixel, Pixel.FLAG_WALL_LOBE_W):
+		#	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FN_W)
+			
+		#if has_flag(pixel, Pixel.FLAG_WALL_LOBE_W):
+		#	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FS_W)
 	return pixel
 
 
@@ -287,6 +373,7 @@ func _is_wall_length_lesser_then(pp: PreviousPass, ctx: Context, threshold: int,
 const NUM_PASSES_IN_GEN_BIOMES = 1 # change this everytime you change the amount of cases in 'match pass_index' below
 func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 	var noise_upscale: float = 0.01
+	
 	match pass_index:
 		0:
 			var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
@@ -361,7 +448,7 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
-	return _test(pass_index, ctx)
+	# return _test(pass_index, ctx)
 	
 	var pp: PreviousPass = ctx.previous_pass
 	var retval: Pixel = Pixel.INVALID
@@ -491,7 +578,7 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 			return pp.no_change()
 		
 		7:
-			if pp.wall_c && _is_wall_deadend(ctx, 0, 0) && ctx.random() > 0.70:
+			if pp.wall_c && _is_wall_deadend(ctx) && ctx.random() > 0.70:
 				var distance_to_deadend: int = _find_distance_to_deadend(pp, ctx, 5)
 				var distance_to_junction: int = _find_distance_to_junction(pp, ctx, 5)
 				if distance_to_deadend >= 0 && distance_to_junction >= 0:
@@ -501,7 +588,7 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 			return pp.no_change()
 			
 		8, 9, 10:
-			if pp.wall_c && !_is_junction(pp):
+			if pp.wall_c && !_is_junction(ctx):
 				if has_flag(pp.pixel_n, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
 				if has_flag(pp.pixel_s, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
 				if has_flag(pp.pixel_w, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
@@ -832,8 +919,8 @@ class Context:
 #		return tile | TileUtils.get_biome(previous_pass.pixel_c) as Pixel
 
 func _flag_strings_contains(flags: Array[String], text: String) -> bool:
-	for str in flags:
-		if str.contains(text):
+	for flag_str: String in flags:
+		if flag_str.contains(text):
 			return true
 	return false
 
@@ -841,8 +928,8 @@ func _set_wall_edge_pixel(image: Image, flags: Array[String], x: int, y: int) ->
 	var color_with_line: Color = Color(0.0, 0.0, 1.0, 1.0) # pink
 	var color_with_skirt: Color = Color(1.0, 0.0, 0.0, 1.0) # pink
 	var color_with_line_and_skirt: Color = Color(1.0, 0.0, 1.0, 1.0) # pink
-	var has_line = _flag_strings_contains(flags, "_LINE_")
-	var has_skirt = _flag_strings_contains(flags, "_SKIRT_")
+	var has_line: bool = _flag_strings_contains(flags, "_LINE_")
+	var has_skirt: bool = _flag_strings_contains(flags, "_SKIRT_")
 	if !has_line && !has_skirt:
 		return
 	if has_line && has_skirt:
@@ -884,9 +971,9 @@ func generate_map_image(width: int, height: int) -> Image:
 					for dy in range(1,5): for dx in range(1,6): image.set_pixel(x * 6 + dx, y * 6 + dy, color.darkened((float(6.0-dx)/5.0) * 0.5))
 				
 			elif (pixel & WALL_MASK) == Pixel.TILE_WALL:
-				var color_with_line: Color = Color(0.0, 0.0, 1.0, 1.0) # pink
-				var color_with_skirt: Color = Color(1.0, 0.0, 0.0, 1.0) # pink
-				var color_with_line_and_skirt: Color = Color(1.0, 0.0, 1.0, 1.0) # pink
+				#var _color_with_line: Color = Color(0.0, 0.0, 1.0, 1.0) # pink
+				#var _color_with_skirt: Color = Color(1.0, 0.0, 0.0, 1.0) # pink
+				#var _color_with_line_and_skirt: Color = Color(1.0, 0.0, 1.0, 1.0) # pink
 				
 				# Directions based on last 3 chars: N_E, S_E, N_W, S_W, E_N, W_N, E_S, W_S
 				# Also check for N, S, E, W if they were to be added
