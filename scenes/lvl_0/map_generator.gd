@@ -46,6 +46,17 @@ enum Pixel {
 	INVALID                      = 0x7FFFFFFFFFFFFFFF
 }
 
+enum WallFace {
+	FN_E         = 0x01, # FacingNorth, on eastern 'lobe' 
+	FS_E         = 0x02,
+	FN_W         = 0x04,
+	FS_W         = 0x08,
+	FE_N         = 0x10,
+	FW_N         = 0x20,
+	FE_S         = 0x40,
+	FW_S         = 0x80,	
+}
+
 #const BIOME_MASK = (1 << 16) - 1
 #const TILE_MASK  = ((1 << 16) - 1) << 16
 
@@ -100,6 +111,16 @@ func _is_isolated_wall_dot(ctx: Context) -> bool:
 	var pp: PreviousPass = ctx.previous_pass
 	if pp.wall_c:
 		return !pp.wall_e && !pp.wall_w && !pp.wall_n && !pp.wall_s
+	return false
+
+func _is_isolated_wall_dot_at_offset(ctx: Context, offset_x: int, offset_y: int) -> bool:
+	var c: bool = _is_wall_at_offset(ctx, offset_x, offset_y)
+	if c:
+		var n: bool = _is_wall_at_offset(ctx, offset_x, offset_y - 1)
+		var s: bool = _is_wall_at_offset(ctx, offset_x, offset_y + 1)
+		var e: bool = _is_wall_at_offset(ctx, offset_x + 1, offset_y)
+		var w: bool = _is_wall_at_offset(ctx, offset_x - 1, offset_y)
+		return !e && !w && !n && !s
 	return false
 
 static func is_wall(pixel: Pixel) -> bool:
@@ -166,7 +187,23 @@ func _get_wall_direction(ctx: Context) -> Vector2i:
 			return Vector2i(1, 0)
 	return Vector2i(0, 0)
 
-func _get_wall_direction_at_offset(ctx: Context) -> Vector2i:
+func _get_wall_direction_at_offset(ctx: Context, offset_x: int, offset_y: int) -> Vector2i:
+	if _is_wall_at_offset(ctx, offset_x, offset_y):
+		if _is_junction_at_offset(ctx, offset_x, offset_y):
+			return Vector2i(0, 0)
+		if _is_isolated_wall_dot_at_offset(ctx, offset_x, offset_y):
+			return Vector2i(0, 0)
+		
+		var n: bool = _is_wall_at_offset(ctx, offset_x, offset_y - 1)
+		var s: bool = _is_wall_at_offset(ctx, offset_x, offset_y + 1)
+		var e: bool = _is_wall_at_offset(ctx, offset_x + 1, offset_y)
+		var w: bool = _is_wall_at_offset(ctx, offset_x - 1, offset_y)
+		
+		if n || s:
+			return Vector2i(0, 1)
+		if e || w:
+			return Vector2i(1, 0)
+	return Vector2i(0, 0)
 
 
 func _has_wall_face_at_offset(ctx: Context, facing_dir: Vector2i, offset_x: int, offset_y: int) -> bool:
@@ -201,68 +238,61 @@ func _has_wall_face_at_offset(ctx: Context, facing_dir: Vector2i, offset_x: int,
 	
 	return false
 
-# returns the all relative positions of a wall section. 
-# Wall section meaning a piece of wall from one end to the other, until it meets corner or intersection.
-# intersection or corner itself will be included if 'include_intersection_or_corner' is set. but never beyond it.
-func _get_all_pixel_offsets_of_wall_section(ctx: Context, limit: int, offset_x: int, offset_y: int, direction: Vector2i, include_intersection_or_corner: bool = false) -> Array[Vector2i]:
-	var retval: Array[Vector2i] = []
-	if limit <= 0:
-		return retval
-	if !_is_wall_at_offset(ctx, offset_x, offset_y):
-		return retval
-	if _is_junction_at_offset(ctx, offset_x, offset_y):
-		if include_intersection_or_corner:
-			retval.append(Vector2i(offset_x, offset_y))
-		return retval
-	retval.append(Vector2i(offset_x, offset_y))
-	retval.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit - 1, offset_x + direction.x, offset_y + direction.y, direction, include_intersection_or_corner))
-	return retval
+## returns the all relative positions of a wall section. 
+## Wall section meaning a piece of wall from one end to the other, until it meets corner or intersection.
+## intersection or corner itself will be included if 'include_intersection_or_corner' is set. but never beyond it.
+#func _get_all_pixel_offsets_of_wall_section(ctx: Context, limit: int, offset_x: int, offset_y: int, direction: Vector2i, include_intersection_or_corner: bool = false) -> Array[Vector2i]:
+	#var retval: Array[Vector2i] = []
+	#if limit <= 0:
+		#return retval
+	#if !_is_wall_at_offset(ctx, offset_x, offset_y):
+		#return retval
+	#if _is_junction_at_offset(ctx, offset_x, offset_y):
+		#if include_intersection_or_corner:
+			#retval.append(Vector2i(offset_x, offset_y))
+		#return retval
+	#retval.append(Vector2i(offset_x, offset_y))
+	#retval.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit - 1, offset_x + direction.x, offset_y + direction.y, direction, include_intersection_or_corner))
+	#return retval
 
-func _get_wall_section_hash(ctx: Context, limit: int = 50, facing_direction: Vector2i = Vector2i(0, 0)) -> int:
+func _get_wall_face_hash(ctx: Context, face: WallFace, limit: int = 50) -> int:
+	return 0
+
+func _get_wall_section_hash(ctx: Context, limit: int = 50) -> int:
 	var direction: Vector2i = _get_wall_direction(ctx)
 	if direction == Vector2i(0, 0):
 		return 0
 	
-	if facing_direction.length() == 0:
-		var it: Vector2i = Vector2i(ctx.x, ctx.y)
-		for i in range(0, 50):
-			#_has_wall_face_at_offset
-			if _is_wall_at_offset(ctx, direction.x * i, direction.y * i):
-			
-		
-	
-	var offsets: Array[Vector2i] = []
-	offsets.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit, 0, 0, direction, false))
-	offsets.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit, 0, 0, -direction, false))
-	if offsets.size() == 0:
-		return 0
-	
-	var value_min: int = 0
-	var value_max: int = 0
-	var value_c: int = 0
 	var hash_vec: Vector4i = Vector4i(0, 0, 0, 0)
 	if direction.y == 0:
-		value_c = ctx.y
-		value_min = offsets[0].x
-		for v in offsets:
-			value_min = min(value_min, v.x)
-			value_max = min(value_max, v.x)
-		value_min += ctx.x
-		value_max += ctx.x
-		value_c += ctx.y
-		hash_vec = Vector4i(value_min, value_max, value_c, value_c)
-			
-	if direction.x == 0:
-		value_c = ctx.x
-		value_min = offsets[0].y
-		for v in offsets:
-			value_min = min(value_min, v.y)
-			value_max = min(value_max, v.y)
-		value_min += ctx.y
-		value_max += ctx.y
-		value_c += ctx.x
-		hash_vec = Vector4i(value_c, value_c, value_min, value_max)
+		var max_x: int = 0
+		var min_x: int = 0
+		for x in range(0, limit):
+			var next_direction: Vector2i = _get_wall_direction_at_offset(ctx, x, 0)
+			max_x = x
+			if next_direction != direction:
+				break
+		for x in range(0, limit):
+			var next_direction: Vector2i = _get_wall_direction_at_offset(ctx, -x, 0)
+			min_x = -x
+			if next_direction != direction:
+				break
+		hash_vec = Vector4i(min_x + ctx.x, ctx.y, max_x + ctx.x, ctx.y)
 		
+	if direction.x == 0:
+		var max_y: int = 0
+		var min_y: int = 0
+		for y in range(0, limit):
+			var next_direction: Vector2i = _get_wall_direction_at_offset(ctx, 0, y)
+			max_y = y
+			if next_direction != direction:
+				break
+		for y in range(0, limit):
+			var next_direction: Vector2i = _get_wall_direction_at_offset(ctx, 0, -y)
+			min_y = -y
+			if next_direction != direction:
+				break
+		hash_vec = Vector4i(ctx.x, min_y + ctx.y, ctx.x, max_y + ctx.y)
 	return hash(hash_vec)
 	
 
