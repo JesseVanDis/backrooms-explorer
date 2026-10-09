@@ -313,30 +313,52 @@ func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 	return Pixel.INVALID
 
 func _test(pass_index: int, ctx: Context) -> Pixel:
-	if pass_index >= 1:
-		return Pixel.INVALID
-	if ctx.x == 2 && ctx.y == 2: return Pixel.TILE_CEILING_LIGHT
-	if ctx.x == 10 && ctx.y == 10: return Pixel.TILE_CEILING_LIGHT
-	if ctx.x == 2 && ctx.y == 10: return Pixel.TILE_CEILING_LIGHT
-	if ctx.x == 10 && ctx.y == 2: return Pixel.TILE_CEILING_LIGHT
+	var pp: PreviousPass = ctx.previous_pass
 	
-	for x in range(4, 9):
-		if ctx.x == x && ctx.y == 4: return Pixel.TILE_WALL
-		if ctx.x == x && ctx.y == 8: return Pixel.TILE_WALL
-	for y in range(4, 9):
-		if ctx.x == 4 && ctx.y == y: return Pixel.TILE_WALL
-		if ctx.x == 8 && ctx.y == y: return Pixel.TILE_WALL
-	if ctx.x == 9 && ctx.y == 5: return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_TOP_GAP)
-	if ctx.x == 10 && ctx.y == 5: return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_TOP_GAP)
-
-	if ctx.x == 8 && ctx.y == 12: return Pixel.TILE_ARCH
-	if ctx.x == 8 && ctx.y == 11: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_MIRROR)
-
-	if ctx.x == 11 && ctx.y == 8: return with_flag(with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E), Pixel.FLAG_ARCH_MIRROR)
-	if ctx.x == 12 && ctx.y == 8: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E)
-	
+	match pass_index:
+		0:
+			if ctx.x == 2 && ctx.y == 2: return Pixel.TILE_CEILING_LIGHT
+			if ctx.x == 10 && ctx.y == 10: return Pixel.TILE_CEILING_LIGHT
+			if ctx.x == 2 && ctx.y == 10: return Pixel.TILE_CEILING_LIGHT
+			if ctx.x == 10 && ctx.y == 2: return Pixel.TILE_CEILING_LIGHT
 			
-	return Pixel.TILE_EMPTY
+			for x in range(4, 9):
+				if ctx.x == x && ctx.y == 4: 
+					if x <= 4:
+						return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_SKIRT_FN_E | Pixel.FLAG_WALL_SKIRT_FW_S | Pixel.FLAG_WALL_LINE_FW_S)
+					elif x >= 8:
+						return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_SKIRT_FN_W)
+					return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_SKIRT_FN_E | Pixel.FLAG_WALL_SKIRT_FN_W)
+
+				if ctx.x == x && ctx.y == 8: 
+					if x <= 4:
+						return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_LINE_FS_E | Pixel.FLAG_WALL_SKIRT_FW_N | Pixel.FLAG_WALL_LINE_FW_N)
+					elif x >= 8:
+						return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_LINE_FS_W)
+					return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_LINE_FS_E | Pixel.FLAG_WALL_LINE_FS_W)
+					
+			for y in range(5, 8):
+				if ctx.x == 4 && ctx.y == y:
+					return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_LINE_FW_N | Pixel.FLAG_WALL_LINE_FW_S | Pixel.FLAG_WALL_SKIRT_FW_N | Pixel.FLAG_WALL_SKIRT_FW_S)
+					
+				if ctx.x == 8 && ctx.y == y: return Pixel.TILE_WALL
+			
+			if ctx.x == 9 && ctx.y == 5: return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_TOP_GAP)
+			if ctx.x == 10 && ctx.y == 5: return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_TOP_GAP)
+
+			if ctx.x == 8 && ctx.y == 12: return Pixel.TILE_ARCH
+			if ctx.x == 8 && ctx.y == 11: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_MIRROR)
+
+			if ctx.x == 11 && ctx.y == 8: return with_flag(with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E), Pixel.FLAG_ARCH_MIRROR)
+			if ctx.x == 12 && ctx.y == 8: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E)
+			
+			return Pixel.TILE_EMPTY
+		
+		1:
+			return _connect_lobes(ctx, pp.pixel_c)
+			
+	return Pixel.INVALID
+
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
 	return _test(pass_index, ctx)
@@ -809,6 +831,27 @@ class Context:
 #		tile = TileUtils.remove_biome(pixel)
 #		return tile | TileUtils.get_biome(previous_pass.pixel_c) as Pixel
 
+func _flag_strings_contains(flags: Array[String], text: String) -> bool:
+	for str in flags:
+		if str.contains(text):
+			return true
+	return false
+
+func _set_wall_edge_pixel(image: Image, flags: Array[String], x: int, y: int) -> void:
+	var color_with_line: Color = Color(0.0, 0.0, 1.0, 1.0) # pink
+	var color_with_skirt: Color = Color(1.0, 0.0, 0.0, 1.0) # pink
+	var color_with_line_and_skirt: Color = Color(1.0, 0.0, 1.0, 1.0) # pink
+	var has_line = _flag_strings_contains(flags, "_LINE_")
+	var has_skirt = _flag_strings_contains(flags, "_SKIRT_")
+	if !has_line && !has_skirt:
+		return
+	if has_line && has_skirt:
+		image.set_pixel(x, y, color_with_line_and_skirt)
+	if has_line && !has_skirt:
+		image.set_pixel(x, y, color_with_line)
+	if !has_line && has_skirt:
+		image.set_pixel(x, y, color_with_skirt)
+
 func generate_map_image(width: int, height: int) -> Image:
 	var image: Image = Image.create(width * 6, height * 6, false, Image.FORMAT_RGB8)
 		
@@ -841,7 +884,9 @@ func generate_map_image(width: int, height: int) -> Image:
 					for dy in range(1,5): for dx in range(1,6): image.set_pixel(x * 6 + dx, y * 6 + dy, color.darkened((float(6.0-dx)/5.0) * 0.5))
 				
 			elif (pixel & WALL_MASK) == Pixel.TILE_WALL:
-				var pink: Color = Color(1, 0, 1) # pink
+				var color_with_line: Color = Color(0.0, 0.0, 1.0, 1.0) # pink
+				var color_with_skirt: Color = Color(1.0, 0.0, 0.0, 1.0) # pink
+				var color_with_line_and_skirt: Color = Color(1.0, 0.0, 1.0, 1.0) # pink
 				
 				# Directions based on last 3 chars: N_E, S_E, N_W, S_W, E_N, W_N, E_S, W_S
 				# Also check for N, S, E, W if they were to be added
@@ -857,21 +902,70 @@ func generate_map_image(width: int, height: int) -> Image:
 					Pixel.FLAG_WALL_LINE_FE_S, Pixel.FLAG_WALL_LINE_FW_S
 				]
 				
-				for flag: Pixel in flags_to_check:
-					if has_flag(pixel, flag):
+				## N_E
+				#if has_flag(pixel, Pixel.FLAG_WALL_SKIRT_FN_E) && has_flag(pixel, Pixel.FLAG_WALL_LINE_FN_E):
+					#for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 1, color_with_line_and_skirt)
+				#if has_flag(pixel, Pixel.FLAG_WALL_SKIRT_FN_E) && !has_flag(pixel, Pixel.FLAG_WALL_LINE_FN_E):
+					#for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 1, color_with_skirt)
+				#if !has_flag(pixel, Pixel.FLAG_WALL_SKIRT_FN_E) && has_flag(pixel, Pixel.FLAG_WALL_LINE_FN_E):
+					#for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 1, color_with_line)
+				#
+				
+				var flags_n_e: Array[String]
+				var flags_s_e: Array[String]
+				var flags_n_w: Array[String]
+				var flags_s_w: Array[String]
+				var flags_e_n: Array[String]
+				var flags_e_s: Array[String]
+				var flags_w_n: Array[String]
+				var flags_w_s: Array[String]
+
+				for flag: Pixel in flags_to_check: 
+					if has_flag(pixel, flag): 
 						var flag_name: String = Pixel.keys()[Pixel.values().find(flag)]
 						var suffix: String = flag_name.right(3)
-						
 						match suffix:
-							"N_E": for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 1, pink)
-							"S_E": for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 4, pink)
-							"N_W": for dx in range(0,3): image.set_pixel(x * 6 + dx, y * 6 + 1, pink)
-							"S_W": for dx in range(0,3): image.set_pixel(x * 6 + dx, y * 6 + 4, pink)
-							"E_N": for dy in range(0,3): image.set_pixel(x * 6 + 4, y * 6 + dy, pink)
-							"W_N": for dy in range(0,3): image.set_pixel(x * 6 + 1, y * 6 + dy, pink)
-							"E_S": for dy in range(3,6): image.set_pixel(x * 6 + 4, y * 6 + dy, pink)
-							"W_S": for dy in range(3,6): image.set_pixel(x * 6 + 1, y * 6 + dy, pink)
-			
+							"N_E": flags_n_e.append(flag_name)
+							"S_E": flags_s_e.append(flag_name)
+							"N_W": flags_n_w.append(flag_name)
+							"S_W": flags_s_w.append(flag_name)
+							"E_N": flags_e_n.append(flag_name)
+							"W_N": flags_w_n.append(flag_name)
+							"E_S": flags_e_s.append(flag_name)
+							"W_S": flags_w_s.append(flag_name)
+				
+				for dx in range(3,6): _set_wall_edge_pixel(image, flags_n_e, x * 6 + dx, y * 6 + 1) #N_E
+				for dx in range(3,6): _set_wall_edge_pixel(image, flags_s_e, x * 6 + dx, y * 6 + 4) #S_E
+				for dx in range(0,3): _set_wall_edge_pixel(image, flags_n_w, x * 6 + dx, y * 6 + 1) #N_W
+				for dx in range(0,3): _set_wall_edge_pixel(image, flags_s_w, x * 6 + dx, y * 6 + 4) #S_W
+				for dy in range(0,3): _set_wall_edge_pixel(image, flags_e_n, x * 6 + 4, y * 6 + dy) #E_N
+				for dy in range(0,3): _set_wall_edge_pixel(image, flags_w_n, x * 6 + 1, y * 6 + dy) #W_N
+				for dy in range(3,6): _set_wall_edge_pixel(image, flags_e_s, x * 6 + 4, y * 6 + dy) #E_S
+				for dy in range(3,6): _set_wall_edge_pixel(image, flags_w_s, x * 6 + 1, y * 6 + dy) #W_S
+				
+				
+					#
+				#for flag: Pixel in flags_to_check:
+					#if has_flag(pixel, flag):
+						#var flag_name: String = Pixel.keys()[Pixel.values().find(flag)]
+						#var suffix: String = flag_name.right(3)
+						#
+						#var edge_color: Color = color_with_line_and_skirt
+						#if !flag_name.contains("SKIRT"):
+							#edge_color = color_with_line
+						#if !flag_name.contains("LINE"):
+							#edge_color = color_with_skirt
+						#
+						#match suffix:
+							#"N_E": for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 1, edge_color)
+							#"S_E": for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 4, edge_color)
+							#"N_W": for dx in range(0,3): image.set_pixel(x * 6 + dx, y * 6 + 1, edge_color)
+							#"S_W": for dx in range(0,3): image.set_pixel(x * 6 + dx, y * 6 + 4, edge_color)
+							#"E_N": for dy in range(0,3): image.set_pixel(x * 6 + 4, y * 6 + dy, edge_color)
+							#"W_N": for dy in range(0,3): image.set_pixel(x * 6 + 1, y * 6 + dy, edge_color)
+							#"E_S": for dy in range(3,6): image.set_pixel(x * 6 + 4, y * 6 + dy, edge_color)
+							#"W_S": for dy in range(3,6): image.set_pixel(x * 6 + 1, y * 6 + dy, edge_color)
+			#
 				for dy in range(2,4):
 					for dx in range(2,4):
 						image.set_pixel(x * 6 + dx, y * 6 + dy, color)

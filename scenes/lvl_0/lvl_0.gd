@@ -21,10 +21,7 @@ var _player: Player = null
 var _did_hit_floor: bool = false
 
 class ModelModefier:
-	var remove_n: bool = false
-	var remove_s: bool = false
-	var remove_w: bool = false
-	var remove_e: bool = false
+	var remove_meshes_with_postfix: Array[String] = []
 	var yoffset_n: float = 0
 	var yoffset_s: float = 0
 	var yoffset_w: float = 0
@@ -121,7 +118,7 @@ func _handle_player_landing() -> void:
 func _place_wall_specific(model: Model, tile_index: Vector2i, angle: float, model_modefier: ModelModefier = null) -> void:
 	_instantiate_model(model, tile_index, angle, model_modefier)
 
-func _place_wall(wall_model_x: Model, wall_model_i: Model, wall_model_e: Model, tile_index: Vector2i) -> void:
+func _place_wall(wall_model_x: Model, _wall_model_i: Model, _wall_model_e: Model, tile_index: Vector2i) -> void:
 	var pc: MapGenerator.Pixel = _get_pixel_at(tile_index.x, tile_index.y)
 	var pn: MapGenerator.Pixel = _get_pixel_at(tile_index.x, tile_index.y - 1)
 	var ps: MapGenerator.Pixel = _get_pixel_at(tile_index.x, tile_index.y + 1)
@@ -133,11 +130,11 @@ func _place_wall(wall_model_x: Model, wall_model_i: Model, wall_model_e: Model, 
 	# var s: MapGenerator.Pixel = ps & MapGenerator.TILE_MASK as MapGenerator.Pixel
 	# var e: MapGenerator.Pixel = pe & MapGenerator.TILE_MASK as MapGenerator.Pixel
 	# var w: MapGenerator.Pixel = pw & MapGenerator.TILE_MASK as MapGenerator.Pixel
-	var wall_n: bool = MapGenerator.is_wall(pn)
-	var wall_s: bool = MapGenerator.is_wall(ps)
-	var wall_e: bool = MapGenerator.is_wall(pe)
-	var wall_w: bool = MapGenerator.is_wall(pw)
-	
+	#var wall_n: bool = MapGenerator.is_wall(pn)
+	#var wall_s: bool = MapGenerator.is_wall(ps)
+	#var wall_e: bool = MapGenerator.is_wall(pe)
+	#var wall_w: bool = MapGenerator.is_wall(pw)
+	#
 	#var special: bool = MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_TOP_GAP)
 	
 	##if  ( !special && wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0)
@@ -155,10 +152,11 @@ func _place_wall(wall_model_x: Model, wall_model_i: Model, wall_model_e: Model, 
 	
 	if (pc & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_WALL:
 		model_modefier = ModelModefier.new()
-		model_modefier.remove_w = !wall_w
-		model_modefier.remove_e = !wall_e
-		model_modefier.remove_n = !wall_n
-		model_modefier.remove_s = !wall_s
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_LOBE_N): model_modefier.remove_meshes_with_postfix.append("_n")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_LOBE_S): model_modefier.remove_meshes_with_postfix.append("_s")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_LOBE_E): model_modefier.remove_meshes_with_postfix.append("_e")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_LOBE_W): model_modefier.remove_meshes_with_postfix.append("_w")
+		
 		var top_gap_offset: float = -1.0
 		if MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_TOP_GAP):
 			model_modefier.yoffset_n = top_gap_offset
@@ -170,6 +168,33 @@ func _place_wall(wall_model_x: Model, wall_model_i: Model, wall_model_e: Model, 
 		if MapGenerator.has_flag(ps, MapGenerator.Pixel.FLAG_WALL_TOP_GAP): model_modefier.yoffset_s = top_gap_offset
 		if MapGenerator.has_flag(pe, MapGenerator.Pixel.FLAG_WALL_TOP_GAP): model_modefier.yoffset_e = top_gap_offset
 		if MapGenerator.has_flag(pw, MapGenerator.Pixel.FLAG_WALL_TOP_GAP): model_modefier.yoffset_w = top_gap_offset
+		
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_SKIRT_FN_E):	model_modefier.remove_meshes_with_postfix.append("_skirt_fn_e")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_SKIRT_FS_E):	model_modefier.remove_meshes_with_postfix.append("_skirt_fs_e")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_SKIRT_FN_W):	model_modefier.remove_meshes_with_postfix.append("_skirt_fn_w")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_SKIRT_FS_W):	model_modefier.remove_meshes_with_postfix.append("_skirt_fs_w")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_SKIRT_FE_N):	model_modefier.remove_meshes_with_postfix.append("_skirt_fe_n")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_SKIRT_FW_N):	model_modefier.remove_meshes_with_postfix.append("_skirt_fw_n")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_SKIRT_FE_S):	model_modefier.remove_meshes_with_postfix.append("_skirt_fe_s")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_SKIRT_FW_S):	model_modefier.remove_meshes_with_postfix.append("_skirt_fw_s")
+		
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_LINE_FN_E):	model_modefier.remove_meshes_with_postfix.append("_line_fn_e")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_LINE_FS_E):	model_modefier.remove_meshes_with_postfix.append("_line_fs_e")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_LINE_FN_W):	model_modefier.remove_meshes_with_postfix.append("_line_fn_w")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_LINE_FS_W):	model_modefier.remove_meshes_with_postfix.append("_line_fs_w")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_LINE_FE_N):	model_modefier.remove_meshes_with_postfix.append("_line_fe_n")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_LINE_FW_N):	model_modefier.remove_meshes_with_postfix.append("_line_fw_n")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_LINE_FE_S):	model_modefier.remove_meshes_with_postfix.append("_line_fe_s")
+		if !MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_LINE_FW_S):	model_modefier.remove_meshes_with_postfix.append("_line_fw_s")
+		
+		#	FLAG_WALL_SKIRT_FN_E         = 0x000001000000, # skirt FacingNorth, on eastern 'lobe' 
+		#	FLAG_WALL_SKIRT_FS_E         = 0x000002000000,
+		#	FLAG_WALL_SKIRT_FN_W         = 0x000004000000,
+		#	FLAG_WALL_SKIRT_FS_W         = 0x000008000000,
+		#	FLAG_WALL_SKIRT_FE_N         = 0x000010000000,
+		#	FLAG_WALL_SKIRT_FW_N         = 0x000020000000,
+		#	FLAG_WALL_SKIRT_FE_S         = 0x000040000000,
+		#	FLAG_WALL_SKIRT_FW_S         = 0x000080000000,
 		
 	if (pc & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH:
 		model_modefier = ModelModefier.new()
@@ -373,10 +398,9 @@ class HandleTilesCache:
 
 func _handle_model_modefier_should_remove_node(node: Node3D, model_modefier: ModelModefier) -> bool:
 	if model_modefier:
-		if (node.name.ends_with("_n") && model_modefier.remove_n): return true
-		if (node.name.ends_with("_s") && model_modefier.remove_s): return true
-		if (node.name.ends_with("_w") && model_modefier.remove_w): return true
-		if (node.name.ends_with("_e") && model_modefier.remove_e): return true
+		for postfix in model_modefier.remove_meshes_with_postfix:
+			if node.name.ends_with(postfix):
+				return true
 	return false
 
 func _handle_model_modefier_of_node(node: Node3D, model_modefier: ModelModefier) -> void:
