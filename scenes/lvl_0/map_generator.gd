@@ -166,6 +166,41 @@ func _get_wall_direction(ctx: Context) -> Vector2i:
 			return Vector2i(1, 0)
 	return Vector2i(0, 0)
 
+func _get_wall_direction_at_offset(ctx: Context) -> Vector2i:
+
+
+func _has_wall_face_at_offset(ctx: Context, facing_dir: Vector2i, offset_x: int, offset_y: int) -> bool:
+	var c: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y))
+	var n: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y - 1))
+	var s: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y + 1))
+	var e: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x + 1, offset_y))
+	var w: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x - 1, offset_y))
+	
+	if !c:
+		return false
+	
+	if facing_dir.y < 0:
+		if facing_dir.x == -1:	return w
+		if facing_dir.x == 1:	return e
+		else:					return e && w && !n
+	
+	if facing_dir.y > 0:
+		if facing_dir.x == -1:	return w
+		if facing_dir.x == 1:	return e
+		else:					return e && w && !s
+	
+	if facing_dir.x < 0:
+		if facing_dir.y == -1:	return n
+		if facing_dir.y == 1:	return s
+		else:					return n && s && !w
+	
+	if facing_dir.x > 0:
+		if facing_dir.y == -1:	return n
+		if facing_dir.y == 1:	return s
+		else:					return n && s && !e
+	
+	return false
+
 # returns the all relative positions of a wall section. 
 # Wall section meaning a piece of wall from one end to the other, until it meets corner or intersection.
 # intersection or corner itself will be included if 'include_intersection_or_corner' is set. but never beyond it.
@@ -183,23 +218,52 @@ func _get_all_pixel_offsets_of_wall_section(ctx: Context, limit: int, offset_x: 
 	retval.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit - 1, offset_x + direction.x, offset_y + direction.y, direction, include_intersection_or_corner))
 	return retval
 
-func _get_wall_section_hash(ctx: Context, limit: int = 50) -> int:
+func _get_wall_section_hash(ctx: Context, limit: int = 50, facing_direction: Vector2i = Vector2i(0, 0)) -> int:
 	var direction: Vector2i = _get_wall_direction(ctx)
 	if direction == Vector2i(0, 0):
 		return 0
 	
+	if facing_direction.length() == 0:
+		var it: Vector2i = Vector2i(ctx.x, ctx.y)
+		for i in range(0, 50):
+			#_has_wall_face_at_offset
+			if _is_wall_at_offset(ctx, direction.x * i, direction.y * i):
+			
+		
+	
 	var offsets: Array[Vector2i] = []
-	offsets.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit, 0, 0, direction, true))
-	offsets.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit, 0, 0, -direction, true))
+	offsets.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit, 0, 0, direction, false))
+	offsets.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit, 0, 0, -direction, false))
+	if offsets.size() == 0:
+		return 0
 	
-	# Sort offsets to ensure stable hash
-	offsets.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
-		if a.x != b.x:
-			return a.x < b.x
-		return a.y < b.y
-	)
-	
-	return hash(offsets)
+	var value_min: int = 0
+	var value_max: int = 0
+	var value_c: int = 0
+	var hash_vec: Vector4i = Vector4i(0, 0, 0, 0)
+	if direction.y == 0:
+		value_c = ctx.y
+		value_min = offsets[0].x
+		for v in offsets:
+			value_min = min(value_min, v.x)
+			value_max = min(value_max, v.x)
+		value_min += ctx.x
+		value_max += ctx.x
+		value_c += ctx.y
+		hash_vec = Vector4i(value_min, value_max, value_c, value_c)
+			
+	if direction.x == 0:
+		value_c = ctx.x
+		value_min = offsets[0].y
+		for v in offsets:
+			value_min = min(value_min, v.y)
+			value_max = min(value_max, v.y)
+		value_min += ctx.y
+		value_max += ctx.y
+		value_c += ctx.x
+		hash_vec = Vector4i(value_c, value_c, value_min, value_max)
+		
+	return hash(hash_vec)
 	
 
 func _get_wall_length(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, check_diagonal: bool = true, visited: Dictionary = {}) -> int:
@@ -253,11 +317,14 @@ func _handle_walltypes(ctx: Context, current_pixel: Pixel) -> Pixel:
 
 	if (pixel & TILE_MASK) == Pixel.TILE_WALL:
 		
-		var randomness_scale: float = 0.5
-		var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * randomness_scale, ctx.y_flt * randomness_scale, 16.7217, 31731.31, 1)
+		var wall_hash: int = _get_wall_section_hash(ctx)
+		var random: float = ctx.random_with_seed(wall_hash)
 		
-		var should_have_line_e: bool = noise > 0.5
-		
+		#var randomness_scale: float = 0.5
+		#var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * randomness_scale, ctx.y_flt * randomness_scale, 16.7217, 31731.31, 1)
+		#
+		var should_have_line_e: bool = random > 0.5
+		#
 		
 		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_N):
 			if should_have_line_e:
@@ -442,13 +509,16 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 			return Pixel.TILE_EMPTY
 		
 		1:
+			if pp.wall_c:
+				var wall_hash: int = _get_wall_section_hash(ctx)
+				print("wallhash [" + str(ctx.x) + "," + str(ctx.y) + "] = " + str(wall_hash))
 			return _connect_lobes(ctx, pp.pixel_c)
 			
 	return Pixel.INVALID
 
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
-	# return _test(pass_index, ctx)
+	return _test(pass_index, ctx)
 	
 	var pp: PreviousPass = ctx.previous_pass
 	var retval: Pixel = Pixel.INVALID
