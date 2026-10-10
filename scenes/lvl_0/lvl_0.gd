@@ -1,5 +1,5 @@
 class_name Lvl_0
-extends Node3D
+extends Node
 
 const TILE_SIZE: float = 1.0
 const CHUNK_SIZE: int = 128
@@ -15,7 +15,7 @@ var model_wall_x:                 Model = _load_model(preload("res://scenes/lvl_
 var model_arch_i:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_i.tscn"))
 var model_arch_e:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_e.tscn"))
 
-@onready var _node_map: Node3D = $Map
+@onready var _node_map: Node3D = $_viewport/Map
 var _player: Player = null
 
 var _did_hit_floor: bool = false
@@ -76,7 +76,7 @@ func initialized() -> bool:
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	_player = $Player
+	_player = $_viewport/Player
 	
 	_player.add_wieldable("lvl_0_landing", false, true,  {
 							"max_look_freedom_degrees_v": 10.0, 
@@ -109,7 +109,7 @@ func _process(_delta: float) -> void:
 	_handle_static_collision_shapes()
 
 func _handle_player_landing() -> void:
-	var player: Player = $Player
+	var player: Player = $_viewport/Player
 	if player:
 		if !_did_hit_floor && player.is_on_floor():
 			player.active_wieldable = "lvl_0_landing"

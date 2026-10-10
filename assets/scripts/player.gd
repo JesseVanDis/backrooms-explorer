@@ -32,7 +32,7 @@ class SpeedScale:
 
 @onready var _node_camera : Camera3D = null
 @onready var _node_hands_yaw : Node3D = null
-@onready var _node_subtitles : PlayerSubtitles = $_UI/_Subtitles
+# @onready var _node_subtitles : PlayerSubtitles = $_UI/_Subtitles
 
 #var active_voice_sequence: Array[AudioStream] = []:
 #	set(value):
@@ -109,7 +109,7 @@ func _ready() -> void:
 	add_wieldable("wield_push",    true,  false, {"max_movement_speed_to_target": 0.15})
 
 	_ensure_sound_controller()
-	_node_subtitles.setup(_audio_player_voice)
+	# _node_subtitles.setup(_audio_player_voice)
 	_audio_player_voice.finished.connect(_on_voice_finished)
 
 
@@ -118,7 +118,7 @@ func replace_voice(sequence: Array[AudioStream]) -> void:
 		return
 		
 	_audio_player_voice.stop()
-	_node_subtitles.stop_subtitles()
+	# _node_subtitles.stop_subtitles()
 	_remaining_voice_sequence = sequence.duplicate()
 	_play_next_voice()
 
@@ -161,7 +161,7 @@ func get_subtitle_path(path_to_voice_ogg: String) -> String:
 	return base + "_sub_en.srt"
 
 func _on_voice_finished() -> void:
-	_node_subtitles.stop_subtitles()
+	# _node_subtitles.stop_subtitles()
 	_play_next_voice()
 
 func _play_next_voice() -> void:
@@ -179,7 +179,7 @@ func _play_next_voice() -> void:
 	
 	_audio_player_voice.stream = next_stream
 	_audio_player_voice.play()
-	_node_subtitles.play_subtitles(subtitle_path)
+	# _node_subtitles.play_subtitles(subtitle_path)
 
 func _ensure_sound_controller() -> void:
 	if not is_inside_tree():

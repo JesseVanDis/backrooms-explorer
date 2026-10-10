@@ -15,6 +15,7 @@
 [ext_resource type="AudioStream" uid="uid://dcoqo3uqck04t" path="res://scenes/lvl_0/voice/gen/voice_fell_from_above.ogg" id="17_spjc5"]
 [ext_resource type="AudioStream" uid="uid://bn7itch4k1xai" path="res://scenes/lvl_0/voice/gen/voice_yell_hello.ogg" id="18_1blqs"]
 [ext_resource type="AudioStream" uid="uid://c6c0xml2gxahn" path="res://assets/sounds/silence_3s.ogg" id="19_8uaq6"]
+[ext_resource type="Script" uid="uid://d3k4hcch35ngc" path="res://assets/scripts/player_subtitles.gd" id="19_qwn25"]
 [ext_resource type="AudioStream" uid="uid://c7rokqw77d73u" path="res://scenes/lvl_0/voice/gen/voice_yell_jen.ogg" id="20_k0yso"]
 [ext_resource type="AudioStream" uid="uid://bnlsw57h1vbjr" path="res://scenes/lvl_0/voice/gen/voice_scream_hello.ogg" id="21_k0yso"]
 [ext_resource type="AudioStream" uid="uid://bh4ssiab4dreb" path="res://scenes/lvl_0/voice/gen/voice_find_the_exit_then.ogg" id="22_vygta"]
@@ -65,83 +66,93 @@ radius = 12.881
 height = 4.222
 radius = 15.738
 
-[node name="lvl_0" type="Node3D" unique_id=1577277307]
+[sub_resource type="ViewportTexture" id="ViewportTexture_khlrb"]
+viewport_path = NodePath("_viewport")
+
+[sub_resource type="LabelSettings" id="LabelSettings_8uaq6"]
+font_size = 20
+outline_size = 6
+outline_color = Color(0, 0, 0, 0.5058824)
+
+[node name="lvl_0" type="Node" unique_id=1955532005]
 script = ExtResource("1_j6thp")
 
-[node name="SoundController" type="Node" parent="." unique_id=1699843859]
+[node name="_viewport" type="SubViewport" parent="." unique_id=330160752]
+
+[node name="SoundController" type="Node" parent="_viewport" unique_id=1699843859]
 script = ExtResource("10_mkhuw")
 reverb_enabled = true
 room_size = 0.12
 damping = 0.369
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=538118835]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="_viewport" unique_id=538118835]
 environment = SubResource("Environment_j6thp")
 
-[node name="Player" parent="." unique_id=1091834531 instance=ExtResource("1_rj2d8")]
+[node name="Player" parent="_viewport" unique_id=1091834531 instance=ExtResource("1_rj2d8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, 0)
 max_fall_speed = 15.0
 initial_velocity = Vector3(0, -10, 0)
 initial_pitch = -90.0
 
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1023188745]
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="_viewport" unique_id=1023188745]
 stream = ExtResource("3_smeuj")
 volume_db = -21.85
 autoplay = true
 parameters/looping = true
 
-[node name="entry_tube" parent="." unique_id=431533070 instance=ExtResource("8_qmsdi")]
+[node name="entry_tube" parent="_viewport" unique_id=431533070 instance=ExtResource("8_qmsdi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.01, 0)
 
-[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=21189907]
+[node name="StaticBody3D" type="StaticBody3D" parent="_viewport" unique_id=21189907]
 transform = Transform3D(-0.6117623, 0.7910417, -3.457753e-08, 0, -4.371139e-08, -1, -0.7910417, -0.6117623, 2.674098e-08, 3.2632046, 0.28376234, 1.2538795)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1798941479]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="_viewport/StaticBody3D" unique_id=1798941479]
 transform = Transform3D(1, 0, 1.7763568e-15, 0, 1, 0, 0, 0, 1, -0.12744331, 3.5636752, 0.097900555)
 shape = SubResource("BoxShape3D_khlrb")
 
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="StaticBody3D" unique_id=1413527696]
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="_viewport/StaticBody3D" unique_id=1413527696]
 transform = Transform3D(0.86673236, 0.4987737, -2.1802087e-08, -0.4987737, 0.86673236, 5.8253136e-09, 2.180208e-08, 5.825312e-09, 1, -1.1982951, 1.3099065, 0.0979007)
 shape = SubResource("BoxShape3D_khlrb")
 
-[node name="box2" parent="StaticBody3D" unique_id=811570403 instance=ExtResource("9_63adb")]
+[node name="box2" parent="_viewport/StaticBody3D" unique_id=811570403 instance=ExtResource("9_63adb")]
 transform = Transform3D(0.95713776, -0.03314808, 0.2877299, -0.03314805, 0.9743645, 0.22251962, -0.2877299, -0.22251962, 0.9315023, -0.12792563, 3.1431215, 0.16849393)
 
-[node name="box" parent="StaticBody3D" unique_id=998870341 instance=ExtResource("9_63adb")]
+[node name="box" parent="_viewport/StaticBody3D" unique_id=998870341 instance=ExtResource("9_63adb")]
 transform = Transform3D(-0.84877837, -0.119614236, -0.51504195, 0.50583285, 0.099970266, -0.85681933, 0.15397663, -0.98777455, -0.024347777, -1.2265072, 1.3249304, 0.5047604)
 
-[node name="CollisionShape3D3" type="CollisionShape3D" parent="StaticBody3D" unique_id=530382544]
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="_viewport/StaticBody3D" unique_id=530382544]
 transform = Transform3D(0.70710677, -0.70710677, 3.090862e-08, 0.70710677, 0.70710677, 1.2802772e-08, -3.090862e-08, 1.2802778e-08, 1, -1.5868654, 2.4288433, -2.5260518)
 shape = SubResource("BoxShape3D_f4hk2")
 
-[node name="trigger_sfx_fall_voice" type="Area3D" parent="." unique_id=1740220397]
+[node name="trigger_sfx_fall_voice" type="Area3D" parent="_viewport" unique_id=1740220397]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.392723, 0)
 script = ExtResource("11_ns1bo")
 mode = 1
 sounds = Array[AudioStream]([ExtResource("12_n8t5v")])
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_fall_voice" unique_id=611511678]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="_viewport/trigger_sfx_fall_voice" unique_id=611511678]
 shape = SubResource("SphereShape3D_khlrb")
 
-[node name="trigger_sfx_small_walk" type="Area3D" parent="." unique_id=1824151684]
+[node name="trigger_sfx_small_walk" type="Area3D" parent="_viewport" unique_id=1824151684]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.271307, 8.628757, 0.37732053)
 script = ExtResource("11_ns1bo")
 mode = 2
 sounds = Array[AudioStream]([ExtResource("16_spjc5"), ExtResource("13_n8t5v")])
 trigger_delay_ms = 10000
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_small_walk" unique_id=1080582823]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="_viewport/trigger_sfx_small_walk" unique_id=1080582823]
 shape = SubResource("CylinderShape3D_ns1bo")
 
-[node name="trigger_sfx_found_boxes" type="Area3D" parent="." unique_id=959028025]
+[node name="trigger_sfx_found_boxes" type="Area3D" parent="_viewport" unique_id=959028025]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2742953, 0.08286917, 0.97806096)
 script = ExtResource("11_ns1bo")
 mode = 3
 sounds = Array[AudioStream]([ExtResource("14_kftwb"), ExtResource("16_spjc5"), ExtResource("16_spjc5"), ExtResource("16_1blqs"), ExtResource("16_spjc5")])
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_found_boxes" unique_id=991467708]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="_viewport/trigger_sfx_found_boxes" unique_id=991467708]
 shape = SubResource("CylinderShape3D_ns1bo")
 
-[node name="trigger_sfx_lookup" type="Area3D" parent="." unique_id=177865652 node_paths=PackedStringArray("condition_arg_node")]
+[node name="trigger_sfx_lookup" type="Area3D" parent="_viewport" unique_id=177865652 node_paths=PackedStringArray("condition_arg_node")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07821679, 0.08286917, -0.14294791)
 script = ExtResource("11_ns1bo")
 mode = 3
@@ -149,22 +160,41 @@ sounds = Array[AudioStream]([ExtResource("17_spjc5")])
 condition = 2
 condition_arg_node = NodePath("Marker3D")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_lookup" unique_id=459897780]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="_viewport/trigger_sfx_lookup" unique_id=459897780]
 shape = SubResource("CylinderShape3D_iq5gy")
 debug_color = Color(0, 0.6193612, 0.5734779, 0.41960785)
 
-[node name="Marker3D" type="Marker3D" parent="trigger_sfx_lookup" unique_id=435516112]
+[node name="Marker3D" type="Marker3D" parent="_viewport/trigger_sfx_lookup" unique_id=435516112]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20.017433, 0)
 
-[node name="trigger_sfx_leave_center" type="Area3D" parent="." unique_id=609289356]
+[node name="trigger_sfx_leave_center" type="Area3D" parent="_viewport" unique_id=609289356]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.271, 0, 0.377)
 script = ExtResource("11_ns1bo")
 mode = 2
 sounds = Array[AudioStream]([ExtResource("18_1blqs"), ExtResource("16_spjc5"), ExtResource("20_k0yso"), ExtResource("19_8uaq6"), ExtResource("21_k0yso"), ExtResource("19_8uaq6"), ExtResource("19_8uaq6"), ExtResource("22_vygta")])
 condition = 1
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_sfx_leave_center" unique_id=789829829]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="_viewport/trigger_sfx_leave_center" unique_id=789829829]
 shape = SubResource("CylinderShape3D_spjc5")
 debug_color = Color(0.42465097, 0.46038312, 1, 0.41960785)
 
-[node name="Map" type="Node3D" parent="." unique_id=565862601]
+[node name="Map" type="Node3D" parent="_viewport" unique_id=565862601]
+
+[node name="_UI" type="CanvasLayer" parent="." unique_id=300596660]
+
+[node name="Sprite2D" type="Sprite2D" parent="_UI" unique_id=580570144]
+position = Vector2(548, 295)
+texture = SubResource("ViewportTexture_khlrb")
+
+[node name="_Subtitles" type="Label" parent="_UI" unique_id=966974039]
+anchors_preset = -1
+anchor_top = 0.89100003
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = -5.368042
+offset_bottom = -2.0
+label_settings = SubResource("LabelSettings_8uaq6")
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("19_qwn25")
