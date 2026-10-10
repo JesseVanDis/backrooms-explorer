@@ -3,7 +3,6 @@ class_name IngameUI
 
 var _viewport: SubViewport
 var _subtitles: PlayerSubtitles
-@onready var _3d_display: Sprite2D = $_3d_display
 
 func _get_subtitles() -> PlayerSubtitles:
 	if _subtitles == null:
@@ -17,7 +16,7 @@ func _ready() -> void:
 		_viewport = _find_viewport()
 	if _viewport == null:
 		push_error("Failed to find viewport.")
-	_3d_display.texture = _viewport.get_texture()
+	# _3d_display.texture = _viewport.get_texture()
 
 func setup(audio_player: AudioStreamPlayer3D) -> void:
 	_get_subtitles().setup(audio_player)

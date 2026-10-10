@@ -15,7 +15,7 @@ var model_wall_x:                 Model = _load_model(preload("res://scenes/lvl_
 var model_arch_i:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_i.tscn"))
 var model_arch_e:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_e.tscn"))
 
-@onready var _node_map: Node3D = $_viewport/Map
+@onready var _node_map: Node3D = $_viewport_container/_viewport/Map
 var _player: Player = null
 
 var _did_hit_floor: bool = false
@@ -76,7 +76,7 @@ func initialized() -> bool:
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	_player = $_viewport/Player
+	_player = $_viewport_container/_viewport/Player
 	
 	_player.add_wieldable("lvl_0_landing", false, true,  {
 							"max_look_freedom_degrees_v": 10.0, 
@@ -109,10 +109,9 @@ func _process(_delta: float) -> void:
 	_handle_static_collision_shapes()
 
 func _handle_player_landing() -> void:
-	var player: Player = $_viewport/Player
-	if player:
-		if !_did_hit_floor && player.is_on_floor():
-			player.active_wieldable = "lvl_0_landing"
+	if _player:
+		if !_did_hit_floor && _player.is_on_floor():
+			_player.active_wieldable = "lvl_0_landing"
 			_did_hit_floor = true
 
 func _place_wall_specific(model: Model, tile_index: Vector2i, angle: float, model_modefier: ModelModefier = null) -> void:

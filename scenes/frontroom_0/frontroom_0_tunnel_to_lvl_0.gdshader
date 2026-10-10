@@ -1,18 +1,7 @@
-shader_type spatial;
-
-varying float y_pos;
-
-void vertex() {
-	y_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).y;
-}
+shader_type canvas_item;
 
 void fragment() {
-	float factor = clamp((y_pos * 0.1) + 1.0, 0.0, 1.0);
-	ALBEDO = mix(vec3(0.0), vec3(0.3), factor);
-	SPECULAR = 0.0;
+    vec4 color = texture(TEXTURE, UV);
+    float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+    COLOR = vec4(vec3(gray), color.a);
 }
-
-//void light() {
-//	// Called for every pixel for every light affecting the material.
-//	// Uncomment to replace the default light processing function with this one.
-//}
