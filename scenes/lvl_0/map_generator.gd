@@ -97,11 +97,11 @@ func _ceiling_light(ctx: Context, misplacement_chance: float, interval_range: in
 func _extend_walls(ctx: Context) -> bool:
 	var pp: PreviousPass = ctx.previous_pass
 	if !pp.wall_c:
-		if pp.wall_nw || pp.wall_ne || pp.wall_sw || pp.wall_se: return false
-		if pp.wall_w && pp.wall_ww && !pp.wall_n && !pp.wall_s: return true
-		if pp.wall_e && pp.wall_ee && !pp.wall_n && !pp.wall_s: return true
-		if pp.wall_n && pp.wall_nn && !pp.wall_w && !pp.wall_e: return true
-		if pp.wall_s && pp.wall_ss && !pp.wall_w && !pp.wall_e: return true
+		if _is_wall_at_offset(ctx, -1, -1) || _is_wall_at_offset(ctx, 1, -1) || _is_wall_at_offset(ctx, -1, 1) || _is_wall_at_offset(ctx, 1, 1): return false
+		if pp.wall_w && _is_wall_at_offset(ctx, -2, 0) && !pp.wall_n && !pp.wall_s: return true
+		if pp.wall_e && _is_wall_at_offset(ctx, 2, 0) && !pp.wall_n && !pp.wall_s: return true
+		if pp.wall_n && _is_wall_at_offset(ctx, 0, -2) && !pp.wall_w && !pp.wall_e: return true
+		if pp.wall_s && _is_wall_at_offset(ctx, 0, 2) && !pp.wall_w && !pp.wall_e: return true
 	return false
 
 func _retract_walls(ctx: Context) -> bool:
@@ -148,10 +148,10 @@ static func is_wall_arch(pixel: Pixel) -> bool:
 func _is_open_corner(ctx: Context) -> bool:
 	var pp: PreviousPass = ctx.previous_pass
 	if !pp.wall_c:
-		if (pp.wall_w && pp.wall_ww) && (pp.wall_n || pp.wall_s): return true
-		if (pp.wall_e && pp.wall_ee) && (pp.wall_n || pp.wall_s): return true
-		if (pp.wall_n && pp.wall_nn) && (pp.wall_e || pp.wall_w): return true
-		if (pp.wall_s && pp.wall_ss) && (pp.wall_e || pp.wall_w): return true
+		if (pp.wall_w && _is_wall_at_offset(ctx, -2, 0)) && (pp.wall_n || pp.wall_s): return true
+		if (pp.wall_e && _is_wall_at_offset(ctx, 2, 0)) && (pp.wall_n || pp.wall_s): return true
+		if (pp.wall_n && _is_wall_at_offset(ctx, 0, -2)) && (pp.wall_e || pp.wall_w): return true
+		if (pp.wall_s && _is_wall_at_offset(ctx, 0, 2)) && (pp.wall_e || pp.wall_w): return true
 	return false
 
 func _is_corner(ctx: Context) -> bool:
@@ -1043,31 +1043,15 @@ class PreviousPass:
 	var tile_c: Pixel = Pixel.NONE
 	var biome_c: Pixel = Pixel.NONE
 	var pixel_n: Pixel
-	var pixel_nn: Pixel
 	var pixel_s: Pixel
-	var pixel_ss: Pixel
 	var pixel_e: Pixel
-	var pixel_ee: Pixel
 	var pixel_w: Pixel
-	var pixel_ww: Pixel
-	var pixel_nw: Pixel
-	var pixel_ne: Pixel
-	var pixel_sw: Pixel
-	var pixel_se: Pixel
 	var wall_c: bool
 	var wall_n: bool
-	var wall_nn: bool
 	var wall_s: bool
-	var wall_ss: bool
 	var wall_e: bool
-	var wall_ee: bool
 	var wall_w: bool
-	var wall_ww: bool
-	var wall_nw: bool
-	var wall_ne: bool
-	var wall_sw: bool
-	var wall_se: bool
-	
+
 	func with_tile(tile: Pixel) -> Pixel:
 		if tile & BIOME_MASK != 0:
 			push_error("argument given to 'with_tile' MUST be a tile")
@@ -1088,44 +1072,24 @@ class PreviousPass:
 		biome_c = TileUtils.get_biome(pixel_c)
 		tile_c = (pixel_c & TILE_MASK) as Pixel
 
-		var test_x_n2: int = clamp(ctx.lx - 2, 0, ctx.w - 1)
 		var test_x_n1: int = clamp(ctx.lx - 1, 0, ctx.w - 1)
 		var test_x_p0: int = clamp(ctx.lx + 0, 0, ctx.w - 1)
 		var test_x_p1: int = clamp(ctx.lx + 1, 0, ctx.w - 1)
-		var test_x_p2: int = clamp(ctx.lx + 2, 0, ctx.w - 1)
 		
-		var test_y_n2_w: int = clamp(ctx.ly - 2, 0, ctx.h - 1) * ctx.w
 		var test_y_n1_w: int = clamp(ctx.ly - 1, 0, ctx.h - 1) * ctx.w
 		var test_y_p0_w: int = clamp(ctx.ly + 0, 0, ctx.h - 1) * ctx.w
 		var test_y_p1_w: int = clamp(ctx.ly + 1, 0, ctx.h - 1) * ctx.w
-		var test_y_p2_w: int = clamp(ctx.ly + 2, 0, ctx.h - 1) * ctx.w
 
 		pixel_n  = data[test_x_p0 + test_y_n1_w]
-		pixel_nn = data[test_x_p0 + test_y_n2_w]
 		pixel_s  = data[test_x_p0 + test_y_p1_w]
-		pixel_ss = data[test_x_p0 + test_y_p2_w]
 		pixel_e  = data[test_x_p1 + test_y_p0_w]
-		pixel_ee = data[test_x_p2 + test_y_p0_w]
 		pixel_w  = data[test_x_n1 + test_y_p0_w]
-		pixel_ww = data[test_x_n2 + test_y_p0_w]
-		pixel_nw = data[test_x_n1 + test_y_n1_w]
-		pixel_ne = data[test_x_p1 + test_y_n1_w]
-		pixel_sw = data[test_x_n1 + test_y_p1_w]
-		pixel_se = data[test_x_p1 + test_y_p1_w]
 		
 		wall_c = pixel_c & WALL_MASK != 0
 		wall_n = pixel_n & WALL_MASK != 0
-		wall_nn = pixel_nn & WALL_MASK != 0
 		wall_s = pixel_s & WALL_MASK != 0
-		wall_ss = pixel_ss & WALL_MASK != 0
 		wall_e = pixel_e & WALL_MASK != 0
-		wall_ee = pixel_ee & WALL_MASK != 0
 		wall_w = pixel_w & WALL_MASK != 0
-		wall_ww = pixel_ww & WALL_MASK != 0
-		wall_nw = pixel_nw & WALL_MASK != 0
-		wall_ne = pixel_ne & WALL_MASK != 0
-		wall_sw = pixel_sw & WALL_MASK != 0
-		wall_se = pixel_se & WALL_MASK != 0
 
 	func _init() -> void:
 		pass;
