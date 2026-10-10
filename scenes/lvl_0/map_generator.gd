@@ -1007,7 +1007,7 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 			return pp.no_change()
 		
 		10:
-			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
+			return _connect_lobes(ctx, pp.pixel_c)
 
 			
 	return Pixel.INVALID
