@@ -6,8 +6,8 @@
 [resource]
 render_priority = 0
 shader = ExtResource("1_bj0ij")
-shader_parameter/base_color = Color(0.91, 0.9009, 0.819, 1)
-shader_parameter/edge_color = Color(1, 1, 1, 1)
+shader_parameter/base_color = Color(0.89411765, 0.8627451, 0.7254902, 1)
+shader_parameter/edge_color = Color(0.95257527, 0.93579406, 0.8680602, 1)
 shader_parameter/noise_texture = ExtResource("2_ay827")
 shader_parameter/edge_thickness = 0.018000000855
 shader_parameter/noise_strength = 0.4050000192375

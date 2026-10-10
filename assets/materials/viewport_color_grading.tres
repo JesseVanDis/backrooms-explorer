@@ -1,0 +1,27 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://b8bfndt0egqw1"]
+
+[ext_resource type="Shader" uid="uid://b37htylxv0px3" path="res://assets/materials/viewport_color_grading.gdshader" id="1_225yj"]
+
+[sub_resource type="Curve" id="Curve_xkndf"]
+_data = [Vector2(0, 0), 0.0, 1.0, 0, 1, Vector2(1, 1), 1.0, 0.0, 1, 0]
+point_count = 2
+
+[sub_resource type="Curve" id="Curve_225yj"]
+_data = [Vector2(0, 0), 0.0, 1.0, 0, 1, Vector2(1, 1), 1.0, 0.0, 1, 0]
+point_count = 2
+
+[sub_resource type="Curve" id="Curve_cw8ms"]
+_data = [Vector2(0, 0), 0.0, 1.0, 0, 1, Vector2(1, 1), 1.0, 0.0, 1, 0]
+point_count = 2
+
+[sub_resource type="CurveXYZTexture" id="CurveXYZTexture_0yo3g"]
+curve_x = SubResource("Curve_xkndf")
+curve_y = SubResource("Curve_225yj")
+curve_z = SubResource("Curve_cw8ms")
+
+[resource]
+shader = ExtResource("1_225yj")
+shader_parameter/temperature = 0.25900005980249996
+shader_parameter/tint = -0.34899996907749997
+shader_parameter/curve_rgb = SubResource("CurveXYZTexture_0yo3g")
+shader_parameter/color_boost = 1.0050000477375

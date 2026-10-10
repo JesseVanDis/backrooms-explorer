@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://rbo2fgyyfpte" path="res://scenes/lvl_0/lvl_0.gd" id="1_j6thp"]
 [ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://assets/models/player.tscn" id="1_rj2d8"]
-[ext_resource type="Shader" uid="uid://g31d12ndmjqv" path="res://scenes/frontroom_0/frontroom_0_tunnel_to_lvl_0.gdshader" id="2_8uaq6"]
+[ext_resource type="Material" uid="uid://b8bfndt0egqw1" path="res://assets/materials/viewport_color_grading.tres" id="2_tl4y0"]
 [ext_resource type="AudioStream" uid="uid://dmf0wv5g66kt4" path="res://scenes/lvl_0/fluorescent-light-buzz.mp3" id="3_smeuj"]
 [ext_resource type="PackedScene" uid="uid://3lboeybp8vsi" path="res://scenes/lvl_0/entry_tube.tscn" id="8_qmsdi"]
 [ext_resource type="PackedScene" uid="uid://giixkepmc5qq" path="res://assets/models/box.gltf" id="9_63adb"]
@@ -18,14 +18,11 @@
 [ext_resource type="AudioStream" uid="uid://c6c0xml2gxahn" path="res://assets/sounds/silence_3s.ogg" id="19_8uaq6"]
 [ext_resource type="PackedScene" uid="uid://ubdrlfctnl7h" path="res://scenes/menu_ui/menu_ui.tscn" id="19_qwn25"]
 [ext_resource type="AudioStream" uid="uid://c7rokqw77d73u" path="res://scenes/lvl_0/voice/gen/voice_yell_jen.ogg" id="20_k0yso"]
+[ext_resource type="PackedScene" uid="uid://cw0j6y6cqtu8y" path="res://scenes/lvl_0/part_wall_x.tscn" id="20_vygta"]
 [ext_resource type="AudioStream" uid="uid://bnlsw57h1vbjr" path="res://scenes/lvl_0/voice/gen/voice_scream_hello.ogg" id="21_k0yso"]
+[ext_resource type="PackedScene" uid="uid://dbac8i5a3v6kp" path="res://scenes/lvl_0/part_1x1_floor.tscn" id="21_tl4y0"]
+[ext_resource type="PackedScene" uid="uid://dausxfxho355c" path="res://scenes/lvl_0/part_1x1_ceiling.tscn" id="22_tl4y0"]
 [ext_resource type="AudioStream" uid="uid://bh4ssiab4dreb" path="res://scenes/lvl_0/voice/gen/voice_find_the_exit_then.ogg" id="22_vygta"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_8uaq6"]
-shader = ExtResource("2_8uaq6")
-shader_parameter/temperature = 0.25900005980249996
-shader_parameter/tint = -0.34899996907749997
-shader_parameter/color_boost = 1.0050000477375
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -77,7 +74,7 @@ radius = 15.738
 script = ExtResource("1_j6thp")
 
 [node name="_viewport_container" type="SubViewportContainer" parent="." unique_id=903414844]
-material = SubResource("ShaderMaterial_8uaq6")
+material = ExtResource("2_tl4y0")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -195,5 +192,28 @@ shape = SubResource("CylinderShape3D_spjc5")
 debug_color = Color(0.42465097, 0.46038312, 1, 0.41960785)
 
 [node name="Map" type="Node3D" parent="_viewport_container/_viewport" unique_id=565862601]
+
+[node name="part_wall_x" parent="_viewport_container/_viewport/Map" unique_id=1026156291 instance=ExtResource("20_vygta")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 0, -8)
+
+[node name="part_wall_x" parent="_viewport_container/_viewport/Map/part_wall_x" unique_id=1960922944 instance=ExtResource("20_vygta")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_floor" parent="_viewport_container/_viewport/Map/part_wall_x" unique_id=84726402 instance=ExtResource("21_tl4y0")]
+
+[node name="part_1x1_floor" parent="_viewport_container/_viewport/Map/part_wall_x/part_1x1_floor" unique_id=1155024021 instance=ExtResource("21_tl4y0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_floor2" parent="_viewport_container/_viewport/Map/part_wall_x/part_1x1_floor" unique_id=1355090904 instance=ExtResource("21_tl4y0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+
+[node name="part_1x1_floor" parent="_viewport_container/_viewport/Map/part_wall_x/part_1x1_floor/part_1x1_floor2" unique_id=1064823156 instance=ExtResource("21_tl4y0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="part_1x1_ceiling" parent="_viewport_container/_viewport/Map/part_wall_x/part_1x1_floor/part_1x1_floor2/part_1x1_floor" unique_id=1743678236 instance=ExtResource("22_tl4y0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 1)
+
+[node name="part_1x1_ceiling" parent="_viewport_container/_viewport/Map/part_wall_x/part_1x1_floor/part_1x1_floor2/part_1x1_floor/part_1x1_ceiling" unique_id=1921107349 instance=ExtResource("22_tl4y0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
 [node name="_UI" parent="." unique_id=1192981015 instance=ExtResource("19_qwn25")]
