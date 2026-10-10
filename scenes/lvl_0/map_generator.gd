@@ -214,39 +214,31 @@ func _get_wall_direction_at_offset(ctx: Context, offset_x: int, offset_y: int) -
 
 func _has_wall_face_at_offset(ctx: Context, face: WallFace, offset_x: int, offset_y: int) -> bool:
 	var c: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y))
-	var n: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y - 1))
-	var s: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y + 1))
-	var e: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x + 1, offset_y))
-	var w: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x - 1, offset_y))
 	
 	if !c:
 		return false
 	
 	match face:
-		WallFace.FN_E, WallFace.FS_E: return e;
-		WallFace.FN_W, WallFace.FS_W: return w;
-		WallFace.FE_N, WallFace.FW_N: return n;
-		WallFace.FE_S, WallFace.FW_S: return s;
+		WallFace.FN_E, WallFace.FS_E: return is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x + 1, offset_y));
+		WallFace.FN_W, WallFace.FS_W: return is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x - 1, offset_y));
+		WallFace.FE_N, WallFace.FW_N: return is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y - 1));
+		WallFace.FE_S, WallFace.FW_S: return is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y + 1));
 	
 	return false
 
-func _get_attached_faces_at_offset(ctx: Context, face: WallFace, offset_x: int, offset_y: int, accept_90_deg_angles: bool, include_self: bool = false) -> Array[WallFace]:
-	var attached: Array[WallFace] = []
+# returns attached faces using the mask. so expect something like WallFace.FN_E | WallFace.FE_N
+func _get_attached_faces_at_offset(ctx: Context, face: WallFace, offset_x: int, offset_y: int, accept_90_deg_angles: bool, include_self: bool = false) -> int:
 	
-	var c: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y))
-	var n: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y - 1))
-	var s: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y + 1))
-	var e: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x + 1, offset_y))
-	var w: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x - 1, offset_y))
+	var test_x_c: int = clamp(ctx.lx + offset_x, 0, ctx.w - 1)
+	var test_y_c: int = clamp(ctx.ly + offset_y, 0, ctx.h - 1)
+	var c: bool = ctx.previous_pass.data[(test_x_c) + (test_y_c) * ctx.w] & WALL_MASK != 0
 	
 	if !c:
-		return attached
-
-	if !_has_wall_face_at_offset(ctx, face, offset_x, offset_y):
-		return attached
+		return 0
 	
+	var retval: int = 0
 	if include_self:
-		attached.append(face)
+		retval |= int(face)
 	
 	#
 	#               FW_N | FE_N
@@ -257,31 +249,63 @@ func _get_attached_faces_at_offset(ctx: Context, face: WallFace, offset_x: int, 
 	
 	match face:
 		WallFace.FN_E:
-			if accept_90_deg_angles && n:	attached.append(WallFace.FE_N)
-			if !n && w: 					attached.append(WallFace.FN_W)
+			var test_x_n1: int = clamp(ctx.lx + (offset_x-1), 0, ctx.w - 1)
+			var test_y_p1: int = clamp(ctx.ly + (offset_y+1), 0, ctx.h - 1)
+			var n: bool = ctx.previous_pass.data[(test_x_c) + (test_y_p1) * ctx.w] & WALL_MASK != 0
+			var w: bool = ctx.previous_pass.data[(test_x_n1) + (test_y_c) * ctx.w] & WALL_MASK != 0
+			if accept_90_deg_angles && n:	retval |= int(WallFace.FE_N)
+			if !n && w: 					retval |= int(WallFace.FN_W)
 		WallFace.FN_W:
-			if accept_90_deg_angles && n:	attached.append(WallFace.FW_N)
-			if !n && e:						attached.append(WallFace.FN_E)
+			var test_x_p1: int = clamp(ctx.lx + (offset_x+1), 0, ctx.w - 1)
+			var test_y_p1: int = clamp(ctx.ly + (offset_y+1), 0, ctx.h - 1)
+			var n: bool = ctx.previous_pass.data[(test_x_c) + (test_y_p1) * ctx.w] & WALL_MASK != 0
+			var e: bool = ctx.previous_pass.data[(test_x_p1) + (test_y_c) * ctx.w] & WALL_MASK != 0
+			if accept_90_deg_angles && n:	retval |= int(WallFace.FW_N)
+			if !n && e:						retval |= int(WallFace.FN_E)
 		WallFace.FS_E:
-			if accept_90_deg_angles && s:	attached.append(WallFace.FE_S)
-			if !s && w:						attached.append(WallFace.FS_W)
+			var test_x_n1: int = clamp(ctx.lx + (offset_x-1), 0, ctx.w - 1)
+			var test_y_n1: int = clamp(ctx.ly + (offset_y-1), 0, ctx.h - 1)
+			var s: bool = ctx.previous_pass.data[(test_x_c) + (test_y_n1) * ctx.w] & WALL_MASK != 0
+			var w: bool = ctx.previous_pass.data[(test_x_n1) + (test_y_c) * ctx.w] & WALL_MASK != 0
+			if accept_90_deg_angles && s:	retval |= int(WallFace.FE_S)
+			if !s && w:						retval |= int(WallFace.FS_W)
 		WallFace.FS_W:
-			if accept_90_deg_angles && s:	attached.append(WallFace.FW_S)
-			if !s && e:						attached.append(WallFace.FS_E)
+			var test_x_p1: int = clamp(ctx.lx + (offset_x+1), 0, ctx.w - 1)
+			var test_y_n1: int = clamp(ctx.ly + (offset_y-1), 0, ctx.h - 1)
+			var s: bool = ctx.previous_pass.data[(test_x_c) + (test_y_n1) * ctx.w] & WALL_MASK != 0
+			var e: bool = ctx.previous_pass.data[(test_x_p1) + (test_y_c) * ctx.w] & WALL_MASK != 0
+			if accept_90_deg_angles && s:	retval |= int(WallFace.FW_S)
+			if !s && e:						retval |= int(WallFace.FS_E)
 		WallFace.FW_N:
-			if accept_90_deg_angles && w:	attached.append(WallFace.FN_W)
-			if !w && s:						attached.append(WallFace.FW_S)
+			var test_x_n1: int = clamp(ctx.lx + (offset_x-1), 0, ctx.w - 1)
+			var test_y_n1: int = clamp(ctx.ly + (offset_y-1), 0, ctx.h - 1)
+			var w: bool = ctx.previous_pass.data[(test_x_n1) + (test_y_c) * ctx.w] & WALL_MASK != 0
+			var s: bool = ctx.previous_pass.data[(test_x_c) + (test_y_n1) * ctx.w] & WALL_MASK != 0
+			if accept_90_deg_angles && w:	retval |= int(WallFace.FN_W)
+			if !w && s:						retval |= int(WallFace.FW_S)
 		WallFace.FE_N:
-			if accept_90_deg_angles && e:	attached.append(WallFace.FN_E)
-			if !e && s:						attached.append(WallFace.FE_S)
+			var test_x_p1: int = clamp(ctx.lx + (offset_x+1), 0, ctx.w - 1)
+			var test_y_n1: int = clamp(ctx.ly + (offset_y-1), 0, ctx.h - 1)
+			var e: bool = ctx.previous_pass.data[(test_x_p1) + (test_y_c) * ctx.w] & WALL_MASK != 0
+			var s: bool = ctx.previous_pass.data[(test_x_c) + (test_y_n1) * ctx.w] & WALL_MASK != 0
+			if accept_90_deg_angles && e:	retval |= int(WallFace.FN_E)
+			if !e && s:						retval |= int(WallFace.FE_S)
 		WallFace.FW_S:
-			if accept_90_deg_angles && w:	attached.append(WallFace.FS_W)
-			if !w && n:						attached.append(WallFace.FW_N)
+			var test_x_n1: int = clamp(ctx.lx + (offset_x-1), 0, ctx.w - 1)
+			var test_y_p1: int = clamp(ctx.ly + (offset_y+1), 0, ctx.h - 1)
+			var n: bool = ctx.previous_pass.data[(test_x_c) + (test_y_p1) * ctx.w] & WALL_MASK != 0
+			var w: bool = ctx.previous_pass.data[(test_x_n1) + (test_y_c) * ctx.w] & WALL_MASK != 0
+			if accept_90_deg_angles && w:	retval |= int(WallFace.FS_W)
+			if !w && n:						retval |= int(WallFace.FW_N)
 		WallFace.FE_S:
-			if accept_90_deg_angles && e:	attached.append(WallFace.FS_E)
-			if !e && n:						attached.append(WallFace.FE_N)
+			var test_x_p1: int = clamp(ctx.lx + (offset_x+1), 0, ctx.w - 1)
+			var test_y_p1: int = clamp(ctx.ly + (offset_y+1), 0, ctx.h - 1)
+			var n: bool = ctx.previous_pass.data[(test_x_c) + (test_y_p1) * ctx.w] & WALL_MASK != 0
+			var e: bool = ctx.previous_pass.data[(test_x_p1) + (test_y_c) * ctx.w] & WALL_MASK != 0
+			if accept_90_deg_angles && e:	retval |= int(WallFace.FS_E)
+			if !e && n:						retval |= int(WallFace.FE_N)
 	
-	return attached
+	return retval
 
 func _get_neighbor_offset_for_face(face: WallFace, offset_x: int, offset_y: int) -> Vector2i:
 	match face:
@@ -308,7 +332,6 @@ static func _get_linked_face(face: WallFace) -> WallFace:
 	return face
 	
 func _get_connected_walls_recursive(ctx: Context, face: WallFace, offset_x: int, offset_y: int, accept_90_deg_angles: bool, visited: Dictionary, connected: Dictionary, limit: int) -> void:
-	#var depth: int = 50 - limit;
 	if limit <= 0:
 		return
 	var position := Vector3i(offset_x, offset_y, int(face))
@@ -319,18 +342,20 @@ func _get_connected_walls_recursive(ctx: Context, face: WallFace, offset_x: int,
 		return
 		
 	connected[Vector3i(offset_x, offset_y, face)] = true
-	# 1 = FN_E, 4 = FN_W
-	#print(" ".repeat(depth) + " - [" + str(offset_x + ctx.x) + ", " + str(offset_y + ctx.y) + "] face: " + str(face))
+	var attached_faces: int = _get_attached_faces_at_offset(ctx, face, offset_x, offset_y, accept_90_deg_angles, true)
 	
-	#print(" - [" + str(offset_x + ctx.x) + ", " + str(offset_y + ctx.y) + "] face: " + str(face) + " depth: " + str(depth))
-	var attached_faces := _get_attached_faces_at_offset(ctx, face, offset_x, offset_y, accept_90_deg_angles, true)
-	for attached_face in attached_faces:
+	for face_it in all_wall_faces:
+		var attached_face: int = face_it & attached_faces
+		if attached_face == 0:
+			continue
 		var next_offset := _get_neighbor_offset_for_face(attached_face, offset_x, offset_y)
 		var linked_face: WallFace = _get_linked_face(attached_face)
-
-		#print(" ".repeat(depth) + "   checking: [" + str(next_offset.x + ctx.x) + ", " + str(next_offset.y + ctx.y) + "] face: " + str(linked_face))		
-		#print("   - checking [" + str(next_offset.x + ctx.x) + ", " + str(next_offset.y + ctx.y) + "] face: " + str(linked_face) + " depth: " + str(depth))
 		_get_connected_walls_recursive(ctx, linked_face, next_offset.x, next_offset.y, accept_90_deg_angles, visited, connected, limit-1)
+	
+	#for attached_face in attached_faces:
+		#var next_offset := _get_neighbor_offset_for_face(attached_face, offset_x, offset_y)
+		#var linked_face: WallFace = _get_linked_face(attached_face)
+		#_get_connected_walls_recursive(ctx, linked_face, next_offset.x, next_offset.y, accept_90_deg_angles, visited, connected, limit-1)
 
 # returns Array[(index_x, index_y, WallFace)]
 func _get_connected_walls_at_offset(ctx: Context, face: WallFace, offset_x: int, offset_y: int, accept_90_deg_angles: bool, include_self: bool = false, limit: int = 50) -> Array[Vector3i]:
@@ -344,39 +369,11 @@ func _get_connected_walls_at_offset(ctx: Context, face: WallFace, offset_x: int,
 	retval.sort()
 	return retval
 
-#func _transform_wall_face_to_lobe(face: WallFace, dir: LobeDir) -> WallFace:
-	#match dir:
-		#LobeDir.W:
-			#if face == WallFace.FN_E: return WallFace.FN_W
-			#if face == WallFace.FS_E: return WallFace.FS_W
-				#
-	#return face
-
-## returns the all relative positions of a wall section. 
-## Wall section meaning a piece of wall from one end to the other, until it meets corner or intersection.
-## intersection or corner itself will be included if 'include_intersection_or_corner' is set. but never beyond it.
-#func _get_all_pixel_offsets_of_wall_section(ctx: Context, limit: int, offset_x: int, offset_y: int, direction: Vector2i, include_intersection_or_corner: bool = false) -> Array[Vector2i]:
-	#var retval: Array[Vector2i] = []
-	#if limit <= 0:
-		#return retval
-	#if !_is_wall_at_offset(ctx, offset_x, offset_y):
-		#return retval
-	#if _is_junction_at_offset(ctx, offset_x, offset_y):
-		#if include_intersection_or_corner:
-			#retval.append(Vector2i(offset_x, offset_y))
-		#return retval
-	#retval.append(Vector2i(offset_x, offset_y))
-	#retval.append_array(_get_all_pixel_offsets_of_wall_section(ctx, limit - 1, offset_x + direction.x, offset_y + direction.y, direction, include_intersection_or_corner))
-	#return retval
-
 func _get_wall_face_hash(ctx: Context, face: WallFace, limit: int = 50) -> int:
 	if !_has_wall_face_at_offset(ctx, face, 0, 0):
 		return 0
-	#if ctx.x != 4 || ctx.y != 4:
-	#	return 0
 	
 	var hash_vec3 := Vector3i(0,0,0)
-	#print(" calc from [" + str(ctx.x) + "," + str(ctx.y) + "] for face: " + str(face)) # 1 = FN_E, 4 = FN_W
 	var connected_faces: Array[Vector3i] = _get_connected_walls_at_offset(ctx, face, 0, 0, false, false, limit)
 	if connected_faces.size() == 0:
 		return 0
@@ -384,7 +381,6 @@ func _get_wall_face_hash(ctx: Context, face: WallFace, limit: int = 50) -> int:
 	for v in connected_faces:
 		var index_x: int = v.x + ctx.x
 		var index_y: int = v.y + ctx.y
-		#print(" - [" + str(index_x) + ", " + str(index_y) + "] face: " + str(v.z))
 		hash_vec3.x += index_x
 		hash_vec3.y += index_y
 		hash_vec3.z += v.z
