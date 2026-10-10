@@ -1154,10 +1154,10 @@ func _set_wall_edge_pixel(image: Image, flags: Array[String], x: int, y: int) ->
 	if !has_line && has_skirt:
 		image.set_pixel(x, y, color_with_skirt)
 
-func generate_map_image(width: int, height: int) -> Image:
+func generate_map_image(width: int, height: int, margin: int = 8) -> Image:
 	var image: Image = Image.create(width * 6, height * 6, false, Image.FORMAT_RGB8)
 		
-	var map: Section = generate_map(0, 0, width, height);
+	var map: Section = generate_map(0, 0, width, height, margin);
 	for y in range(0, height):
 		for x in range(0, width):
 			var pixel: Pixel = map.get_pixel(x, y)
@@ -1288,10 +1288,10 @@ func generate_map_image(width: int, height: int) -> Image:
 	
 	return image;
 
-func generate_biome_image(width: int, height: int) -> Image:
+func generate_biome_image(width: int, height: int, margin: int) -> Image:
 	var image: Image = Image.create(width, height, false, Image.FORMAT_RGB8)
 		
-	var map: Section = generate_map(0, 0, width, height);
+	var map: Section = generate_map(0, 0, width, height, margin);
 	for y in range(0, height):
 		for x in range(0, width):
 			image.set_pixel(x, y, TileUtils.to_color(map.get_pixel(x, y)))
@@ -1299,9 +1299,17 @@ func generate_biome_image(width: int, height: int) -> Image:
 	return image;
 	
 
-func generate_map(x0: int, y0: int, x1: int, y1: int) -> Section:
-	var retval: Section = Section.new(x0, y0, x1, y1);
-	_run_mapshader(retval)
+func generate_map(x0: int, y0: int, x1: int, y1: int, margin: int = 8) -> Section:
+	var retval: Section = Section.new(x0, y0, x1, y1)
+	if margin > 0:
+		var expanded: Section = Section.new(x0 - margin, y0 - margin, x1 + margin, y1 + margin)
+		_run_mapshader(expanded)
+		
+		for y in range(y0, y1):
+			for x in range(x0, x1):
+				retval.set_pixel(x, y, expanded.get_pixel(x, y))
+	else:
+		_run_mapshader(retval)
 	return retval
 
 func _run_mapshader(section: Section) -> void:

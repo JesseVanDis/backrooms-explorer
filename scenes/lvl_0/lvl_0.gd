@@ -241,7 +241,7 @@ func _generate_chunk(chunk_index: Vector2i) -> MapGenerator.Section:
 	var y0: int = chunk_index.y * CHUNK_SIZE
 	var generator := MapGenerator.new()
 	print(" - generating bitmap...")
-	var section: MapGenerator.Section = generator.generate_map(x0, y0, x0 + CHUNK_SIZE, y0 + CHUNK_SIZE)
+	var section: MapGenerator.Section = generator.generate_map(x0, y0, x0 + CHUNK_SIZE, y0 + CHUNK_SIZE, 8)
 	return section
 	
 func _generate_chunk_thread(chunk_index: Vector2i) -> void:
