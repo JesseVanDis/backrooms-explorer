@@ -3,7 +3,6 @@
 [ext_resource type="LightmapGIData" uid="uid://2gpusrt81l4" path="res://scenes/frontroom_0/frontroom_0.lmbake" id="1_56db3"]
 [ext_resource type="Script" uid="uid://p4ju0w0gemo1" path="res://scenes/frontroom_0/frontroom_0.gd" id="1_gvot5"]
 [ext_resource type="Shader" uid="uid://cp3tsmuhr3dd0" path="res://scenes/frontroom_0/frontroom_0_sky.gdshader" id="1_uy0mw"]
-[ext_resource type="Shader" uid="uid://g31d12ndmjqv" path="res://scenes/frontroom_0/frontroom_0_tunnel_to_lvl_0.gdshader" id="2_o8j4s"]
 [ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://assets/models/player.tscn" id="4_8lqa0"]
 [ext_resource type="Texture2D" uid="uid://bv2llcnedu1yx" path="res://assets/textures/box_01.jpg" id="5_qjbi0"]
 [ext_resource type="PackedScene" uid="uid://b8fv4gxs3jk1l" path="res://scenes/frontroom_0/frontrooms_0_model.tscn" id="6_gvot5"]
@@ -19,9 +18,6 @@
 [ext_resource type="AudioStream" uid="uid://qt3y1d0ktao0" path="res://scenes/frontroom_0/voice/gen/voice_boxes_gone.ogg" id="15_nsiha"]
 [ext_resource type="AudioStream" uid="uid://di3l3umht5mnk" path="res://scenes/frontroom_0/voice/gen/voice_slip_fall.ogg" id="16_22odh"]
 [ext_resource type="PackedScene" uid="uid://ubdrlfctnl7h" path="res://scenes/menu_ui/menu_ui.tscn" id="19_cj6qb"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_qv4eq"]
-shader = ExtResource("2_o8j4s")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uy0mw"]
 shader = ExtResource("1_uy0mw")
@@ -218,7 +214,6 @@ radius = 1.215
 script = ExtResource("1_gvot5")
 
 [node name="_viewport_container" type="SubViewportContainer" parent="." unique_id=93003097]
-material = SubResource("ShaderMaterial_qv4eq")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
