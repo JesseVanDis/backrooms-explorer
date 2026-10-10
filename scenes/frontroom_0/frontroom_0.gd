@@ -1,11 +1,11 @@
-extends Node3D
+extends Node
 
 
-@onready var _node_moving_box_1: RigidBody3D = $MovingBox1
-@onready var _node_moving_box_2: RigidBody3D = $MovingBox2
-@onready var _node_moving_box_3: RigidBody3D = $MovingBox_kitchen_big
-@onready var _node_moving_box_4: RigidBody3D = $MovingBox_kitchen_big2
-@onready var _node_world_environment: WorldEnvironment = $WorldEnvironment
+@onready var _node_moving_box_1: RigidBody3D = $_viewport_container/_viewport/MovingBox1
+@onready var _node_moving_box_2: RigidBody3D = $_viewport_container/_viewport/MovingBox2
+@onready var _node_moving_box_3: RigidBody3D = $_viewport_container/_viewport/MovingBox_kitchen_big
+@onready var _node_moving_box_4: RigidBody3D = $_viewport_container/_viewport/MovingBox_kitchen_big2
+@onready var _node_world_environment: WorldEnvironment = $_viewport_container/_viewport/WorldEnvironment
 var _player: Player
 var _level_transition: LevelTransition
 const LVL_0_PATH: String = "res://scenes/lvl_0/lvl_0.tscn"
