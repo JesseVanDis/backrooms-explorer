@@ -330,32 +330,42 @@ static func _get_linked_face(face: WallFace) -> WallFace:
 		WallFace.FS_W:	return WallFace.FS_E
 	return face
 	
-func _get_connected_walls_recursive(ctx: Context, face: WallFace, offset_x: int, offset_y: int, accept_90_deg_angles: bool, visited: Dictionary, connected: Dictionary, limit: int) -> void:
-	if limit <= 0:
-		return
-	var position := Vector3i(offset_x, offset_y, int(face))
-	if visited.has(position):
-		return
-	visited[position] = true
-	if !_has_wall_face_at_offset(ctx, face, offset_x, offset_y):
-		return
-		
-	connected[Vector3i(offset_x, offset_y, face)] = true
-	var attached_faces: int = _get_attached_faces_at_offset(ctx, face, offset_x, offset_y, accept_90_deg_angles, true)
-	
-	for face_it in all_wall_faces:
-		var attached_face: int = face_it & attached_faces
-		if attached_face == 0:
-			continue
-		var next_offset := _get_neighbor_offset_for_face(attached_face, offset_x, offset_y)
-		var linked_face: WallFace = _get_linked_face(attached_face)
-		_get_connected_walls_recursive(ctx, linked_face, next_offset.x, next_offset.y, accept_90_deg_angles, visited, connected, limit-1)
-
-# returns Array[(index_x, index_y, WallFace)]
 func _get_connected_walls_at_offset(ctx: Context, face: WallFace, offset_x: int, offset_y: int, accept_90_deg_angles: bool, include_self: bool = false, limit: int = 50) -> Array[Vector3i]:
-	var connected: Dictionary = {}# (index_x, index_y, WallFace), bool
+	var connected: Dictionary = {} # (index_x, index_y, WallFace), bool
 	var visited: Dictionary = {} # (index_x, index_y, WallFace), bool
-	_get_connected_walls_recursive(ctx, face, offset_x, offset_y, accept_90_deg_angles, visited, connected, limit)
+	
+	var stack: Array = [[face, offset_x, offset_y, limit]]
+	
+	while stack.size() > 0:
+		var current: Array = stack.pop_back()
+		var curr_face: WallFace = current[0]
+		var curr_x: int = current[1]
+		var curr_y: int = current[2]
+		var curr_limit: int = current[3]
+		
+		if curr_limit <= 0:
+			continue
+			
+		var position := Vector3i(curr_x, curr_y, int(curr_face))
+		if visited.has(position):
+			continue
+		visited[position] = true
+		
+		if !_has_wall_face_at_offset(ctx, curr_face, curr_x, curr_y):
+			continue
+			
+		connected[position] = true
+		
+		var attached_faces: int = _get_attached_faces_at_offset(ctx, curr_face, curr_x, curr_y, accept_90_deg_angles, true)
+		
+		for face_it in all_wall_faces:
+			var attached_face: int = face_it & attached_faces
+			if attached_face == 0:
+				continue
+			var next_offset := _get_neighbor_offset_for_face(attached_face, curr_x, curr_y)
+			var linked_face: WallFace = _get_linked_face(attached_face)
+			stack.push_back([linked_face, next_offset.x, next_offset.y, curr_limit - 1])
+
 	if !include_self:
 		connected.erase(Vector3i(offset_x, offset_y, int(face)))
 	
@@ -430,24 +440,39 @@ func _get_wall_section_hash(ctx: Context, limit: int = 50) -> int:
 	return hash(hash_vec)
 	
 
-func _get_wall_length(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, check_diagonal: bool = true, visited: Dictionary = {}) -> int:
-	var key := Vector2i(offset_x, offset_y)
-	if visited.has(key):
-		return 0
-	visited[key] = true
-	if !_is_wall_at_offset(ctx, offset_x, offset_y):
-		return 0
-	var count := 1
-	if count >= limit: return limit
-	count += _get_wall_length(pp, ctx, limit - count, offset_x + 1, offset_y, check_diagonal, visited);     if count >= limit:	return limit
-	count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y, check_diagonal, visited);     if count >= limit:	return limit
-	count += _get_wall_length(pp, ctx, limit - count, offset_x, offset_y + 1, check_diagonal, visited);     if count >= limit:	return limit
-	count += _get_wall_length(pp, ctx, limit - count, offset_x, offset_y - 1, check_diagonal, visited);     if count >= limit:	return limit
-	if check_diagonal:
-		count += _get_wall_length(pp, ctx, limit - count, offset_x + 1, offset_y - 1, check_diagonal, visited); if count >= limit:	return limit
-		count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y - 1, check_diagonal, visited); if count >= limit:	return limit
-		count += _get_wall_length(pp, ctx, limit - count, offset_x + 1, offset_y + 1, check_diagonal, visited); if count >= limit:	return limit
-		count += _get_wall_length(pp, ctx, limit - count, offset_x - 1, offset_y + 1, check_diagonal, visited); if count >= limit:	return limit
+func _get_wall_length(_pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, check_diagonal: bool = true, visited: Dictionary = {}) -> int:
+	var stack: Array = [[offset_x, offset_y]]
+	var count := 0
+	
+	while stack.size() > 0 && count < limit:
+		var curr: Array = stack.pop_back()
+		var curr_x: int = curr[0]
+		var curr_y: int = curr[1]
+		
+		var key := Vector2i(curr_x, curr_y)
+		if visited.has(key):
+			continue
+		visited[key] = true
+		
+		if !_is_wall_at_offset(ctx, curr_x, curr_y):
+			continue
+			
+		count += 1
+		if count >= limit:
+			break
+			
+		# Push neighbors to stack
+		stack.push_back([curr_x + 1, curr_y])
+		stack.push_back([curr_x - 1, curr_y])
+		stack.push_back([curr_x, curr_y + 1])
+		stack.push_back([curr_x, curr_y - 1])
+		
+		if check_diagonal:
+			stack.push_back([curr_x + 1, curr_y - 1])
+			stack.push_back([curr_x - 1, curr_y - 1])
+			stack.push_back([curr_x + 1, curr_y + 1])
+			stack.push_back([curr_x - 1, curr_y + 1])
+			
 	return count
 
 func _is_junction(ctx: Context) -> bool:
@@ -494,34 +519,47 @@ func _handle_walltypes(ctx: Context, current_pixel: Pixel) -> Pixel:
 
 
 func _find_distance_to_deadend(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, visited: Dictionary = {}) -> int:
-	if limit <= 0:
-		return -1
-	var key := Vector2i(offset_x, offset_y)
-	if visited.has(key):
-		return -1
-	visited[key] = true
-	var c: bool = is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y))
-	if !c:
-		return -1
-	var n: bool = is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y - 1))
-	var s: bool = is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y + 1))
-	var e: bool = is_wall(ctx.get_at_offset(pp.data, offset_x + 1, offset_y))
-	var w: bool = is_wall(ctx.get_at_offset(pp.data, offset_x - 1, offset_y))
-	var is_junction: bool = (n || s) && (e || w)
-	if is_junction:
-		return -1
-	var is_dead_end: bool = (int(n) + int(s) + int(e) + int(w)) == 1
-	if is_dead_end:
-		return 0
-	else:
-		var result: int = -1
-		if n:	result = max(result, _find_distance_to_deadend(pp, ctx, limit-1, offset_x, offset_y - 1, visited))
-		if s:	result = max(result, _find_distance_to_deadend(pp, ctx, limit-1, offset_x, offset_y + 1, visited))
-		if e:	result = max(result, _find_distance_to_deadend(pp, ctx, limit-1, offset_x + 1, offset_y, visited))
-		if w:	result = max(result, _find_distance_to_deadend(pp, ctx, limit-1, offset_x - 1, offset_y, visited))
-		if result >= 0:
-			return result + 1
-	return -1
+	var stack: Array = [[offset_x, offset_y, 0]] # [x, y, distance]
+	var min_dist: int = -1
+	
+	while stack.size() > 0:
+		var curr: Array = stack.pop_back()
+		var curr_x: int = curr[0]
+		var curr_y: int = curr[1]
+		var curr_dist: int = curr[2]
+		
+		if curr_dist >= limit:
+			continue
+			
+		var key := Vector2i(curr_x, curr_y)
+		if visited.has(key) && visited[key] <= curr_dist:
+			continue
+		visited[key] = curr_dist
+		
+		var c: bool = is_wall(ctx.get_at_offset(pp.data, curr_x, curr_y))
+		if !c:
+			continue
+			
+		var n: bool = is_wall(ctx.get_at_offset(pp.data, curr_x, curr_y - 1))
+		var s: bool = is_wall(ctx.get_at_offset(pp.data, curr_x, curr_y + 1))
+		var e: bool = is_wall(ctx.get_at_offset(pp.data, curr_x + 1, curr_y))
+		var w: bool = is_wall(ctx.get_at_offset(pp.data, curr_x - 1, curr_y))
+		
+		var is_junction: bool = (n || s) && (e || w)
+		if is_junction:
+			continue
+			
+		var is_dead_end: bool = (int(n) + int(s) + int(e) + int(w)) == 1
+		if is_dead_end:
+			if min_dist == -1 || curr_dist < min_dist:
+				min_dist = curr_dist
+		else:
+			if n: stack.push_back([curr_x, curr_y - 1, curr_dist + 1])
+			if s: stack.push_back([curr_x, curr_y + 1, curr_dist + 1])
+			if e: stack.push_back([curr_x + 1, curr_y, curr_dist + 1])
+			if w: stack.push_back([curr_x - 1, curr_y, curr_dist + 1])
+			
+	return min_dist
 
 #func _most_northern_ending_of_wall(pp: PreviousPass, ctx: Context, limit: int = 50, offset_x: int = 0, offset_y: int = 0, visited: Dictionary = {}) -> int:
 	#if limit <= 0:
