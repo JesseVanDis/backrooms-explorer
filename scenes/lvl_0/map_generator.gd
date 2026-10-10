@@ -508,8 +508,8 @@ func _handle_walltypes(ctx: Context, current_pixel: Pixel) -> Pixel:
 		for wall_face in all_wall_faces:
 			var face_hash: int = _get_wall_face_hash(ctx, wall_face)
 			if face_hash != 0:
-				var add_line: bool = ctx.random_with_seed(hash([face_hash, "line"])) > 0.5
-				var add_skirt: bool = ctx.random_with_seed(hash([face_hash, "skirt"])) > 0.5
+				var add_line: bool = ctx.random_with_seed(hash([face_hash, "line"])) > 0.7
+				var add_skirt: bool = ctx.random_with_seed(hash([face_hash, "skirt"])) > 0.7
 				if add_line:
 					pixel = with_flag(pixel, _face_to_flag_wall_line(wall_face))
 				if add_skirt:
