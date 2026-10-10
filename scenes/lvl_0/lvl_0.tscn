@@ -15,7 +15,7 @@
 [ext_resource type="AudioStream" uid="uid://dcoqo3uqck04t" path="res://scenes/lvl_0/voice/gen/voice_fell_from_above.ogg" id="17_spjc5"]
 [ext_resource type="AudioStream" uid="uid://bn7itch4k1xai" path="res://scenes/lvl_0/voice/gen/voice_yell_hello.ogg" id="18_1blqs"]
 [ext_resource type="AudioStream" uid="uid://c6c0xml2gxahn" path="res://assets/sounds/silence_3s.ogg" id="19_8uaq6"]
-[ext_resource type="Script" uid="uid://d3k4hcch35ngc" path="res://assets/scripts/player_subtitles.gd" id="19_qwn25"]
+[ext_resource type="PackedScene" uid="uid://ubdrlfctnl7h" path="res://scenes/menu_ui/menu_ui.tscn" id="19_qwn25"]
 [ext_resource type="AudioStream" uid="uid://c7rokqw77d73u" path="res://scenes/lvl_0/voice/gen/voice_yell_jen.ogg" id="20_k0yso"]
 [ext_resource type="AudioStream" uid="uid://bnlsw57h1vbjr" path="res://scenes/lvl_0/voice/gen/voice_scream_hello.ogg" id="21_k0yso"]
 [ext_resource type="AudioStream" uid="uid://bh4ssiab4dreb" path="res://scenes/lvl_0/voice/gen/voice_find_the_exit_then.ogg" id="22_vygta"]
@@ -66,18 +66,11 @@ radius = 12.881
 height = 4.222
 radius = 15.738
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_khlrb"]
-viewport_path = NodePath("_viewport")
-
-[sub_resource type="LabelSettings" id="LabelSettings_8uaq6"]
-font_size = 20
-outline_size = 6
-outline_color = Color(0, 0, 0, 0.5058824)
-
 [node name="lvl_0" type="Node" unique_id=1955532005]
 script = ExtResource("1_j6thp")
 
 [node name="_viewport" type="SubViewport" parent="." unique_id=330160752]
+audio_listener_enable_3d = true
 
 [node name="SoundController" type="Node" parent="_viewport" unique_id=1699843859]
 script = ExtResource("10_mkhuw")
@@ -180,21 +173,4 @@ debug_color = Color(0.42465097, 0.46038312, 1, 0.41960785)
 
 [node name="Map" type="Node3D" parent="_viewport" unique_id=565862601]
 
-[node name="_UI" type="CanvasLayer" parent="." unique_id=300596660]
-
-[node name="Sprite2D" type="Sprite2D" parent="_UI" unique_id=580570144]
-position = Vector2(548, 295)
-texture = SubResource("ViewportTexture_khlrb")
-
-[node name="_Subtitles" type="Label" parent="_UI" unique_id=966974039]
-anchors_preset = -1
-anchor_top = 0.89100003
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 4.0
-offset_top = -5.368042
-offset_bottom = -2.0
-label_settings = SubResource("LabelSettings_8uaq6")
-horizontal_alignment = 1
-vertical_alignment = 1
-script = ExtResource("19_qwn25")
+[node name="_UI" parent="." unique_id=1192981015 instance=ExtResource("19_qwn25")]

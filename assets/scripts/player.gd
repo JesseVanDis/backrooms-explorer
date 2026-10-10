@@ -32,7 +32,7 @@ class SpeedScale:
 
 @onready var _node_camera : Camera3D = null
 @onready var _node_hands_yaw : Node3D = null
-# @onready var _node_subtitles : PlayerSubtitles = $_UI/_Subtitles
+var _ingame_ui: IngameUI = null
 
 #var active_voice_sequence: Array[AudioStream] = []:
 #	set(value):
@@ -88,8 +88,10 @@ var moving_direction_2d: Vector2:
 
 func add_wieldable(unique_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void:
 	_wield.add_wieldable(unique_name, p_rewind_for_dequip, p_clear_wield_when_finish, p_additional_args)
-
+	
 func _ready() -> void:
+	_ingame_ui = _find_ingame_ui()
+	
 	UtilsScreen.fade_out_screen(get_tree())
 	_node_camera = UtilsNode.find_camera_recursive(self)
 	if _node_camera == null:
@@ -109,7 +111,7 @@ func _ready() -> void:
 	add_wieldable("wield_push",    true,  false, {"max_movement_speed_to_target": 0.15})
 
 	_ensure_sound_controller()
-	# _node_subtitles.setup(_audio_player_voice)
+	_ingame_ui.setup(_audio_player_voice)
 	_audio_player_voice.finished.connect(_on_voice_finished)
 
 
@@ -118,7 +120,7 @@ func replace_voice(sequence: Array[AudioStream]) -> void:
 		return
 		
 	_audio_player_voice.stop()
-	# _node_subtitles.stop_subtitles()
+	_ingame_ui.stop_subtitles()
 	_remaining_voice_sequence = sequence.duplicate()
 	_play_next_voice()
 
@@ -161,7 +163,7 @@ func get_subtitle_path(path_to_voice_ogg: String) -> String:
 	return base + "_sub_en.srt"
 
 func _on_voice_finished() -> void:
-	# _node_subtitles.stop_subtitles()
+	_ingame_ui.stop_subtitles()
 	_play_next_voice()
 
 func _play_next_voice() -> void:
@@ -179,7 +181,7 @@ func _play_next_voice() -> void:
 	
 	_audio_player_voice.stream = next_stream
 	_audio_player_voice.play()
-	# _node_subtitles.play_subtitles(subtitle_path)
+	_ingame_ui.play_subtitles(subtitle_path)
 
 func _ensure_sound_controller() -> void:
 	if not is_inside_tree():
@@ -420,3 +422,15 @@ func _handle_hands_aim(dt: float) -> void:
 		target_yaw = atan2(-local_direction.x, -local_direction.z)
 	
 	_node_hands_yaw.rotation.y = lerp_angle(_node_hands_yaw.rotation.y, target_yaw, minf(1.0, dt * 30.0))
+
+func _find_ingame_ui() -> IngameUI:
+	var current: Node = self
+	while current != null:
+		if current is IngameUI:
+			return current as IngameUI
+		for node in current.find_children("*", "Node", true, false):
+			if node is IngameUI:
+				return node as IngameUI
+		current = current.get_parent()
+	push_error("IngameUI not found!")
+	return null

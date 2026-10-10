@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://ubdrlfctnl7h"]
+
+[ext_resource type="Script" uid="uid://b2452t0l2y8c4" path="res://scenes/menu_ui/menu_ui.gd" id="1_4omru"]
+[ext_resource type="Script" uid="uid://d3k4hcch35ngc" path="res://assets/scripts/player_subtitles.gd" id="1_hddiw"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_khlrb"]
+viewport_path = NodePath("_viewport")
+
+[sub_resource type="LabelSettings" id="LabelSettings_8uaq6"]
+font_size = 20
+outline_size = 6
+outline_color = Color(0, 0, 0, 0.5058824)
+
+[node name="_UI" type="CanvasLayer" unique_id=1192981015]
+script = ExtResource("1_4omru")
+
+[node name="_3d_display" type="Sprite2D" parent="." unique_id=387232181]
+position = Vector2(548, 295)
+texture = SubResource("ViewportTexture_khlrb")
+
+[node name="_subtitles" type="Label" parent="." unique_id=178813970]
+anchors_preset = -1
+anchor_top = 0.89100003
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = -5.368042
+offset_bottom = -2.0
+label_settings = SubResource("LabelSettings_8uaq6")
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("1_hddiw")
