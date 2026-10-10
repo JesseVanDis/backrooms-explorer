@@ -211,18 +211,17 @@ func _get_wall_direction_at_offset(ctx: Context, offset_x: int, offset_y: int) -
 			return Vector2i(1, 0)
 	return Vector2i(0, 0)
 
-
 func _has_wall_face_at_offset(ctx: Context, face: WallFace, offset_x: int, offset_y: int) -> bool:
-	var c: bool = is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y))
+	var c: bool = _is_wall_at_offset(ctx, offset_x, offset_y)
 	
 	if !c:
 		return false
 	
 	match face:
-		WallFace.FN_E, WallFace.FS_E: return is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x + 1, offset_y));
-		WallFace.FN_W, WallFace.FS_W: return is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x - 1, offset_y));
-		WallFace.FE_N, WallFace.FW_N: return is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y - 1));
-		WallFace.FE_S, WallFace.FW_S: return is_wall(ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y + 1));
+		WallFace.FN_E, WallFace.FS_E: return _is_wall_at_offset(ctx, offset_x + 1, offset_y);
+		WallFace.FN_W, WallFace.FS_W: return _is_wall_at_offset(ctx, offset_x - 1, offset_y);
+		WallFace.FE_N, WallFace.FW_N: return _is_wall_at_offset(ctx, offset_x, offset_y - 1);
+		WallFace.FE_S, WallFace.FW_S: return _is_wall_at_offset(ctx, offset_x, offset_y + 1);
 	
 	return false
 
@@ -351,11 +350,6 @@ func _get_connected_walls_recursive(ctx: Context, face: WallFace, offset_x: int,
 		var next_offset := _get_neighbor_offset_for_face(attached_face, offset_x, offset_y)
 		var linked_face: WallFace = _get_linked_face(attached_face)
 		_get_connected_walls_recursive(ctx, linked_face, next_offset.x, next_offset.y, accept_90_deg_angles, visited, connected, limit-1)
-	
-	#for attached_face in attached_faces:
-		#var next_offset := _get_neighbor_offset_for_face(attached_face, offset_x, offset_y)
-		#var linked_face: WallFace = _get_linked_face(attached_face)
-		#_get_connected_walls_recursive(ctx, linked_face, next_offset.x, next_offset.y, accept_90_deg_angles, visited, connected, limit-1)
 
 # returns Array[(index_x, index_y, WallFace)]
 func _get_connected_walls_at_offset(ctx: Context, face: WallFace, offset_x: int, offset_y: int, accept_90_deg_angles: bool, include_self: bool = false, limit: int = 50) -> Array[Vector3i]:
@@ -373,6 +367,12 @@ func _get_wall_face_hash(ctx: Context, face: WallFace, limit: int = 50) -> int:
 	if !_has_wall_face_at_offset(ctx, face, 0, 0):
 		return 0
 	
+	var cache_key: Vector3i = Vector3i(ctx.x, ctx.y, int(face) | (int(limit) << 18))
+	var cached: Variant = ctx.pass_cache.get(cache_key)
+	if cached != null:
+		var cached_int: int = cached
+		return cached_int
+	
 	var hash_vec3 := Vector3i(0,0,0)
 	var connected_faces: Array[Vector3i] = _get_connected_walls_at_offset(ctx, face, 0, 0, false, false, limit)
 	if connected_faces.size() == 0:
@@ -385,7 +385,12 @@ func _get_wall_face_hash(ctx: Context, face: WallFace, limit: int = 50) -> int:
 		hash_vec3.y += index_y
 		hash_vec3.z += v.z
 	
-	return hash(hash_vec3)
+	var result: int = hash(hash_vec3)
+	for v in connected_faces:
+		var key: Vector3i = Vector3i(ctx.x + v.x, ctx.y + v.y, v.z | (int(limit) << 18))
+		ctx.pass_cache[key] = result
+		
+	return result
 
 func _get_wall_section_hash(ctx: Context, limit: int = 50) -> int:
 	var direction: Vector2i = _get_wall_direction(ctx)
@@ -473,7 +478,7 @@ func _connect_lobes(ctx: Context, current_pixel: Pixel) -> Pixel:
 
 func _handle_walltypes(ctx: Context, current_pixel: Pixel) -> Pixel:
 	var pixel: Pixel = current_pixel
-
+	
 	if (pixel & TILE_MASK) == Pixel.TILE_WALL:
 		for wall_face in all_wall_faces:
 			var face_hash: int = _get_wall_face_hash(ctx, wall_face)
@@ -1100,6 +1105,7 @@ class Context:
 	var x_flt: float
 	var y_flt: float
 	var previous_pass: PreviousPass;
+	var pass_cache: Dictionary; # store anything here. sort of a way to communication between pixels
 	
 	func get_at(pass_data: Array[Pixel]) -> Pixel:
 		return pass_data[lx + ly * w]
@@ -1329,6 +1335,7 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[Pixel], pass_in
 	context.start_y = y0;
 	context.previous_pass = PreviousPass.new()
 	context.previous_pass.data = previous_pass_array
+	context.pass_cache = {}
 	var all_pixels_set_to_count := true
 		
 	target.resize(context.w * context.h);
