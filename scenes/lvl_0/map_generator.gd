@@ -1068,22 +1068,14 @@ class PreviousPass:
 		return pixel_c
 
 	func update(ctx: Context) -> void:
-		pixel_c = ctx.get_at(data)
-		biome_c = TileUtils.get_biome(pixel_c)
+		pixel_c = data[ctx.lx + ctx.ly * ctx.w] as Pixel
+		biome_c = (pixel_c & BIOME_MASK) as Pixel
 		tile_c = (pixel_c & TILE_MASK) as Pixel
 
-		var test_x_n1: int = clamp(ctx.lx - 1, 0, ctx.w - 1)
-		var test_x_p0: int = clamp(ctx.lx + 0, 0, ctx.w - 1)
-		var test_x_p1: int = clamp(ctx.lx + 1, 0, ctx.w - 1)
-		
-		var test_y_n1_w: int = clamp(ctx.ly - 1, 0, ctx.h - 1) * ctx.w
-		var test_y_p0_w: int = clamp(ctx.ly + 0, 0, ctx.h - 1) * ctx.w
-		var test_y_p1_w: int = clamp(ctx.ly + 1, 0, ctx.h - 1) * ctx.w
-
-		pixel_n  = data[test_x_p0 + test_y_n1_w]
-		pixel_s  = data[test_x_p0 + test_y_p1_w]
-		pixel_e  = data[test_x_p1 + test_y_p0_w]
-		pixel_w  = data[test_x_n1 + test_y_p0_w]
+		pixel_n  = data[ctx.lx + (ctx.ly - 1) * ctx.w]
+		pixel_s  = data[ctx.lx + (ctx.ly + 1) * ctx.w]
+		pixel_e  = data[(ctx.lx + 1) + ctx.ly * ctx.w]
+		pixel_w  = data[(ctx.lx - 1) + ctx.ly * ctx.w]
 		
 		wall_c = pixel_c & WALL_MASK != 0
 		wall_n = pixel_n & WALL_MASK != 0
@@ -1315,8 +1307,8 @@ func generate_map(x0: int, y0: int, x1: int, y1: int, margin: int = 8) -> Sectio
 func _run_mapshader(section: Section) -> void:
 	var size: int = section.w * section.h
 
-	var pass_a: Array[Pixel] = []
-	var pass_b: Array[Pixel] = []
+	var pass_a: PackedInt64Array = []
+	var pass_b: PackedInt64Array = []
 	pass_a.resize(size)
 	
 	_run_pass(section.x, section.y, section.x + section.w, section.y + section.h, pass_b, 0, pass_a);
@@ -1335,7 +1327,7 @@ func _run_mapshader(section: Section) -> void:
 		#print("Pass: " + str(pass_index))
 		pass_index = pass_index+1
 
-func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[Pixel], pass_index: int, previous_pass_array: Array[Pixel]) -> bool:
+func _run_pass(x0: int, y0: int, x1: int, y1: int, target: PackedInt64Array, pass_index: int, previous_pass_array: PackedInt64Array) -> bool:
 	print("Running pass: " + str(pass_index))
 	var width: int = x1 - x0;
 	var context: Context = Context.new()
@@ -1349,17 +1341,17 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[Pixel], pass_in
 	var all_pixels_set_to_count := true
 		
 	target.resize(context.w * context.h);
-	for y in range(y0, y1):
+	for y in range(y0+1, y1-1):
 		var ly: int = y - y0
 		context.ly = ly
-		for x in range(x0, x1):
+		context.y = y;
+		context.y_flt = float(y);
+		for x in range(x0+1, x1-1):
 			var lx: int = x - x0
 			var index := lx + ly * width
 			context.x = x;
-			context.y = y;
 			context.lx = lx
 			context.x_flt = float(x);
-			context.y_flt = float(y);
 			context.previous_pass.update(context)
 			var pixel: Pixel = _gen(pass_index, context);
 			if pixel != Pixel.INVALID:
