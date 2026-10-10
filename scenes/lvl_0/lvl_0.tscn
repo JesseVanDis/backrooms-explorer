@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://rbo2fgyyfpte" path="res://scenes/lvl_0/lvl_0.gd" id="1_j6thp"]
 [ext_resource type="PackedScene" uid="uid://ccyky7e256pn4" path="res://assets/models/player.tscn" id="1_rj2d8"]
-[ext_resource type="Script" uid="uid://cgerptugqp4gv" path="res://assets/scripts/viewport_container.gd" id="3_k0yso"]
+[ext_resource type="Shader" uid="uid://g31d12ndmjqv" path="res://scenes/frontroom_0/frontroom_0_tunnel_to_lvl_0.gdshader" id="2_8uaq6"]
 [ext_resource type="AudioStream" uid="uid://dmf0wv5g66kt4" path="res://scenes/lvl_0/fluorescent-light-buzz.mp3" id="3_smeuj"]
 [ext_resource type="PackedScene" uid="uid://3lboeybp8vsi" path="res://scenes/lvl_0/entry_tube.tscn" id="8_qmsdi"]
 [ext_resource type="PackedScene" uid="uid://giixkepmc5qq" path="res://assets/models/box.gltf" id="9_63adb"]
@@ -20,6 +20,9 @@
 [ext_resource type="AudioStream" uid="uid://c7rokqw77d73u" path="res://scenes/lvl_0/voice/gen/voice_yell_jen.ogg" id="20_k0yso"]
 [ext_resource type="AudioStream" uid="uid://bnlsw57h1vbjr" path="res://scenes/lvl_0/voice/gen/voice_scream_hello.ogg" id="21_k0yso"]
 [ext_resource type="AudioStream" uid="uid://bh4ssiab4dreb" path="res://scenes/lvl_0/voice/gen/voice_find_the_exit_then.ogg" id="22_vygta"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8uaq6"]
+shader = ExtResource("2_8uaq6")
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rj2d8"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -71,6 +74,7 @@ radius = 15.738
 script = ExtResource("1_j6thp")
 
 [node name="_viewport_container" type="SubViewportContainer" parent="." unique_id=903414844]
+material = SubResource("ShaderMaterial_8uaq6")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -80,10 +84,10 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 stretch = true
-script = ExtResource("3_k0yso")
 
 [node name="_viewport" type="SubViewport" parent="_viewport_container" unique_id=330160752]
 handle_input_locally = false
+msaa_3d = 1
 audio_listener_enable_3d = true
 size = Vector2i(1152, 646)
 render_target_update_mode = 4
