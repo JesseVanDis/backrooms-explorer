@@ -64,8 +64,7 @@ enum WallFace {
 	FW_S         = 0x80,	
 }
 
-#const BIOME_MASK = (1 << 16) - 1
-#const TILE_MASK  = ((1 << 16) - 1) << 16
+const all_wall_faces: Array[WallFace] = [WallFace.FN_E, WallFace.FS_E, WallFace.FN_W, WallFace.FS_W, WallFace.FE_N, WallFace.FW_N, WallFace.FE_S, WallFace.FW_S]
 
 func _ceiling_light(ctx: Context, misplacement_chance: float, interval_range: int, offset: int) -> bool:
 	#if(posmod(ctx.x, 5) == 1 && posmod(ctx.y, 5) == 1):
@@ -378,7 +377,10 @@ func _get_wall_face_hash(ctx: Context, face: WallFace, limit: int = 50) -> int:
 	
 	var hash_vec3 := Vector3i(0,0,0)
 	#print(" calc from [" + str(ctx.x) + "," + str(ctx.y) + "] for face: " + str(face)) # 1 = FN_E, 4 = FN_W
-	var connected_faces: Array[Vector3i] = _get_connected_walls_at_offset(ctx, face, 0, 0, false, true, limit)
+	var connected_faces: Array[Vector3i] = _get_connected_walls_at_offset(ctx, face, 0, 0, false, false, limit)
+	if connected_faces.size() == 0:
+		return 0
+	connected_faces.append(Vector3i(0, 0, int(face)))
 	for v in connected_faces:
 		var index_x: int = v.x + ctx.x
 		var index_y: int = v.y + ctx.y
@@ -477,41 +479,16 @@ func _handle_walltypes(ctx: Context, current_pixel: Pixel) -> Pixel:
 	var pixel: Pixel = current_pixel
 
 	if (pixel & TILE_MASK) == Pixel.TILE_WALL:
+		for wall_face in all_wall_faces:
+			var face_hash: int = _get_wall_face_hash(ctx, wall_face)
+			if face_hash != 0:
+				var add_line: bool = ctx.random_with_seed(hash([face_hash, "line"])) > 0.5
+				var add_skirt: bool = ctx.random_with_seed(hash([face_hash, "skirt"])) > 0.5
+				if add_line:
+					pixel = with_flag(pixel, _face_to_flag_wall_line(wall_face))
+				if add_skirt:
+					pixel = with_flag(pixel, _face_to_flag_wall_skirt(wall_face))
 		
-		var wall_hash: int = _get_wall_section_hash(ctx)
-		var random: float = ctx.random_with_seed(wall_hash)
-		
-		#var randomness_scale: float = 0.5
-		#var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * randomness_scale, ctx.y_flt * randomness_scale, 16.7217, 31731.31, 1)
-		#
-		var should_have_line_e: bool = random > 0.5
-		#
-		
-		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_N):
-			if should_have_line_e:
-				pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FE_N)
-			
-		#if has_flag(pixel, Pixel.FLAG_WALL_LOBE_N):
-		#	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FW_N)
-		
-		if has_flag(pixel, Pixel.FLAG_WALL_LOBE_S):
-			if should_have_line_e:
-				pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FE_S)
-			
-		#if has_flag(pixel, Pixel.FLAG_WALL_LOBE_S):
-		#	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FW_S)
-			
-		#if has_flag(pixel, Pixel.FLAG_WALL_LOBE_E):
-		#	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FN_E)
-			
-		#if has_flag(pixel, Pixel.FLAG_WALL_LOBE_E):
-		#	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FS_E)
-			
-		#if has_flag(pixel, Pixel.FLAG_WALL_LOBE_W):
-		#	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FN_W)
-			
-		#if has_flag(pixel, Pixel.FLAG_WALL_LOBE_W):
-		#	pixel = with_flag(pixel, Pixel.FLAG_WALL_LINE_FS_W)
 	return pixel
 
 
@@ -671,18 +648,18 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 			return Pixel.TILE_EMPTY
 		
 		1:
-			if pp.wall_c:
-				var wall_face: WallFace = WallFace.FN_E
-				var fn_e_hash: int = _get_wall_face_hash(ctx, wall_face)
-				var wall_hash: int = _get_wall_section_hash(ctx)
-				print("wallhash [" + str(ctx.x) + "," + str(ctx.y) + ", " + str(wall_face) + "] = " + str(fn_e_hash))
+			#if pp.wall_c:
+				#var wall_face: WallFace = WallFace.FN_E
+				#var fn_e_hash: int = _get_wall_face_hash(ctx, wall_face)
+				#var wall_hash: int = _get_wall_section_hash(ctx)
+				#print("wallhash [" + str(ctx.x) + "," + str(ctx.y) + ", " + str(wall_face) + "] = " + str(fn_e_hash))
 			return _connect_lobes(ctx, pp.pixel_c)
 			
 	return Pixel.INVALID
 
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
-	return _test(pass_index, ctx)
+	#return _test(pass_index, ctx)
 	
 	var pp: PreviousPass = ctx.previous_pass
 	var retval: Pixel = Pixel.INVALID
@@ -1380,6 +1357,30 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target: Array[Pixel], pass_in
 	# print("all_pixels_set_to_count: " + str(all_pixels_set_to_count) + " for index: " + str(pass_index))
 	return !all_pixels_set_to_count
 
+static func _face_to_flag_wall_skirt(face: WallFace) -> Pixel:
+	match face:
+		WallFace.FN_E: return Pixel.FLAG_WALL_SKIRT_FN_E
+		WallFace.FS_E: return Pixel.FLAG_WALL_SKIRT_FS_E
+		WallFace.FN_W: return Pixel.FLAG_WALL_SKIRT_FN_W
+		WallFace.FS_W: return Pixel.FLAG_WALL_SKIRT_FS_W
+		WallFace.FE_N: return Pixel.FLAG_WALL_SKIRT_FE_N
+		WallFace.FW_N: return Pixel.FLAG_WALL_SKIRT_FW_N
+		WallFace.FE_S: return Pixel.FLAG_WALL_SKIRT_FE_S
+		WallFace.FW_S: return Pixel.FLAG_WALL_SKIRT_FW_S
+	return Pixel.NONE
+
+static func _face_to_flag_wall_line(face: WallFace) -> Pixel:
+	match face:
+		WallFace.FN_E: return Pixel.FLAG_WALL_LINE_FN_E
+		WallFace.FS_E: return Pixel.FLAG_WALL_LINE_FS_E
+		WallFace.FN_W: return Pixel.FLAG_WALL_LINE_FN_W
+		WallFace.FS_W: return Pixel.FLAG_WALL_LINE_FS_W
+		WallFace.FE_N: return Pixel.FLAG_WALL_LINE_FE_N
+		WallFace.FW_N: return Pixel.FLAG_WALL_LINE_FW_N
+		WallFace.FE_S: return Pixel.FLAG_WALL_LINE_FE_S
+		WallFace.FW_S: return Pixel.FLAG_WALL_LINE_FW_S
+	return Pixel.NONE
+	
 class TileUtils:
 	static func get_biome(pixel: Pixel) -> Pixel:
 		return pixel & BIOME_MASK as Pixel
