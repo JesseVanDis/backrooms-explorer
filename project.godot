@@ -40,7 +40,6 @@ gdscript/warnings/function_used_as_property=2
 
 [display]
 
-window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
 [editor]
