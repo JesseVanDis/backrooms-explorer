@@ -1017,16 +1017,16 @@ class Section:
 	var y: int
 	var w: int
 	var h: int
-	var data: Array[Pixel] = []
+	var data: PackedInt64Array = []
 	
 	func set_pixel(global_x: int, global_y: int, tile_type: Pixel) -> void:
 		data[(global_x - x) + (global_y - y) * w] = tile_type;
 		
 	func get_pixel(global_x: int, global_y: int) -> Pixel:
-		return data[(global_x - x) + (global_y - y) * w];
+		return data[(global_x - x) + (global_y - y) * w] as Pixel;
 
 	func get_pixel_clamped(global_x: int, global_y: int) -> Pixel:
-		return data[clamp(global_x - x, 0, w-1) + clamp(global_y - y, 0, h-1) * w];
+		return data[clamp(global_x - x, 0, w-1) + clamp(global_y - y, 0, h-1) * w] as Pixel;
 	
 	func _init(x0: int, y0: int, x1: int, y1: int) -> void:
 		var size: int = (x1-x0) * (y1-y0)
@@ -1037,7 +1037,7 @@ class Section:
 		data.resize(size);
 
 class PreviousPass:
-	var data: Array[Pixel]
+	var data: PackedInt64Array
 	
 	var pixel_c: Pixel = Pixel.NONE
 	var tile_c: Pixel = Pixel.NONE
@@ -1109,13 +1109,13 @@ class Context:
 	var previous_pass: PreviousPass;
 	var pass_cache: Dictionary; # store anything here. sort of a way to communication between pixels
 	
-	func get_at(pass_data: Array[Pixel]) -> Pixel:
-		return pass_data[lx + ly * w]
+	func get_at(pass_data: PackedInt64Array) -> Pixel:
+		return pass_data[lx + ly * w] as Pixel
 	
-	func get_at_offset(pass_data: Array[Pixel], offset_x: int, offset_y: int) -> Pixel:
+	func get_at_offset(pass_data: PackedInt64Array, offset_x: int, offset_y: int) -> Pixel:
 		var test_x: int = clamp(lx + offset_x, 0, w - 1)
 		var test_y: int = clamp(ly + offset_y, 0, h - 1)
-		return pass_data[test_x + test_y * w]
+		return pass_data[test_x + test_y * w] as Pixel
 	
 	func random() -> float:
 		var seed_value: int = hash(Vector2i(int(x), int(y)))
