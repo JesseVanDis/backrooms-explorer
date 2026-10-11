@@ -75,10 +75,428 @@ enum WallFace {
 const all_wall_faces: Array[WallFace] = [WallFace.FN_E, WallFace.FS_E, WallFace.FN_W, WallFace.FS_W, WallFace.FE_N, WallFace.FW_N, WallFace.FE_S, WallFace.FW_S]
 
 class PropChances:
-	var total_spawn_chance: float = 0.004
+	var total_spawn_chance: float = 0.001
 	var chance_weight_chair: float = 0.5
 	var chance_weight_bin: float = 0.5
 
+
+const NUM_PASSES_IN_GEN_BIOMES = 1 # change this everytime you change the amount of cases in 'match pass_index' below
+func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
+	var noise_upscale: float = 0.01
+	
+	match pass_index:
+		0:
+			var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
+			if noise < 0.4:
+				return Pixel.BIOME_ROOMS
+			if noise < 0.44:
+				return Pixel.BIOME_ARCHES
+			if noise < 0.6:
+				return Pixel.BIOME_MESS
+			if noise < 0.62:
+				return Pixel.BIOME_ARCHES
+			else:
+				return Pixel.BIOME_PILLARS
+
+			# var grid_low_x: int = int(roundf(float(ctx.x) / 40.0))
+			# var grid_low_y: int = int(roundf(float(ctx.y) / 40.0))
+			# var random: float = _random_with_seed(hash(Vector2i(grid_low_x, grid_low_y)))
+			# if random < 0.2:
+			# 	return Pixel.BIOME_PILLARS
+			# if random < 0.6:
+			# 	return Pixel.BIOME_MESS
+			# else:
+			# 	return Pixel.BIOME_ROOMS
+	return Pixel.INVALID
+
+func _test(pass_index: int, ctx: Context) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	
+	match pass_index:
+		0:
+			# if ctx.x == 5 && ctx.y == 4: return Pixel.TILE_CEILING_LIGHT_BLINKING
+			if ctx.x == 2 && ctx.y == 2: return Pixel.TILE_CEILING_LIGHT
+			if ctx.x == 10 && ctx.y == 10: return Pixel.TILE_CEILING_LIGHT
+			if ctx.x == 2 && ctx.y == 10: return Pixel.TILE_CEILING_LIGHT
+			if ctx.x == 10 && ctx.y == 2: return Pixel.TILE_CEILING_LIGHT
+			
+			for x in range(4, 9):
+				if ctx.x == x && ctx.y == 4: 
+					if x <= 4:
+						return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_SKIRT_FN_E | Pixel.FLAG_WALL_SKIRT_FW_S | Pixel.FLAG_WALL_LINE_FW_S)
+					elif x >= 8:
+						return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_SKIRT_FN_W)
+					return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_SKIRT_FN_E | Pixel.FLAG_WALL_SKIRT_FN_W)
+
+				if ctx.x == x && ctx.y == 8: 
+					if x <= 4:
+						return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_LINE_FS_E | Pixel.FLAG_WALL_SKIRT_FW_N | Pixel.FLAG_WALL_LINE_FW_N)
+					elif x >= 8:
+						return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_LINE_FS_W)
+					return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_LINE_FS_E | Pixel.FLAG_WALL_LINE_FS_W)
+					
+			for y in range(5, 8):
+				if ctx.x == 4 && ctx.y == y:
+					return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_LINE_FW_N | Pixel.FLAG_WALL_LINE_FW_S | Pixel.FLAG_WALL_SKIRT_FW_N | Pixel.FLAG_WALL_SKIRT_FW_S)
+					
+				if ctx.x == 8 && ctx.y == y: return Pixel.TILE_WALL
+			
+			if ctx.x == 9 && ctx.y == 5: return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_TOP_GAP)
+			if ctx.x == 10 && ctx.y == 5: return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_TOP_GAP)
+
+			if ctx.x == 8 && ctx.y == 12: return Pixel.TILE_ARCH
+			if ctx.x == 8 && ctx.y == 11: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_MIRROR)
+
+			if ctx.x == 11 && ctx.y == 8: return with_flag(with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E), Pixel.FLAG_ARCH_MIRROR)
+			if ctx.x == 12 && ctx.y == 8: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E)
+			
+			return Pixel.TILE_EMPTY
+		
+		1:
+			#if pp.wall_c:
+				#var wall_face: WallFace = WallFace.FN_E
+				#var fn_e_hash: int = _get_wall_face_hash(ctx, wall_face)
+				#var wall_hash: int = _get_wall_section_hash(ctx)
+				#print("wallhash [" + str(ctx.x) + "," + str(ctx.y) + ", " + str(wall_face) + "] = " + str(fn_e_hash))
+			return _connect_lobes(ctx, pp.pixel_c)
+			
+	return Pixel.INVALID
+
+
+func _gen(pass_index: int, ctx: Context) -> Pixel:
+	#return _test(pass_index, ctx)
+	
+	var pp: PreviousPass = ctx.previous_pass
+	var retval: Pixel = Pixel.INVALID
+	if pass_index < NUM_PASSES_IN_GEN_BIOMES:
+		retval = _gen_biomes(pass_index, ctx)
+	else:
+		var biome_pass_index: int = pass_index - NUM_PASSES_IN_GEN_BIOMES
+		match pp.biome_c:
+			Pixel.BIOME_MESS:
+				retval = _gen_biome_mess(biome_pass_index, ctx)
+			Pixel.BIOME_ROOMS:
+				retval = _gen_biome_rooms(biome_pass_index, ctx)
+			Pixel.BIOME_ARCHES:
+				retval = _gen_biome_arches(biome_pass_index, ctx)
+			Pixel.BIOME_PILLARS:
+				retval = _gen_biome_pillars(biome_pass_index, ctx)
+	
+	# force empty area at spawn point
+	if Vector2(ctx.y, ctx.x).distance_to(Vector2(0,0)) < 10 && retval != Pixel.INVALID && pp.wall_c:
+		retval = pp.with_tile(Pixel.TILE_EMPTY)
+
+	# do not allow any props withing a certain radius
+	if Vector2(ctx.y, ctx.x).distance_to(Vector2(0,0)) < 20 && retval != Pixel.INVALID:
+		retval = retval & ~PROP_MASK
+	
+	return retval
+
+func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	var num_neighbour_walls: int = 0;
+	if pp.wall_w: num_neighbour_walls = num_neighbour_walls + 1
+	if pp.wall_e: num_neighbour_walls = num_neighbour_walls + 1
+	if pp.wall_s: num_neighbour_walls = num_neighbour_walls + 1
+	if pp.wall_n: num_neighbour_walls = num_neighbour_walls + 1
+	
+	match pass_index:
+		0:
+			if ctx.random() > 0.9:
+				return pp.with_tile(Pixel.TILE_WALL)
+			if _ceiling_light(ctx, 0.7, 5, 2):
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
+			return pp.with_tile(Pixel.TILE_EMPTY)
+	
+		1: # make some lights blinking
+			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
+			return pp.no_change()
+		
+		2:
+			if num_neighbour_walls > 0 && !pp.wall_c:
+				if ctx.random() > 0.75:
+					return pp.with_tile(Pixel.TILE_WALL)
+			return pp.no_change()
+			
+		3:
+			if _is_isolated_wall_dot(ctx):
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+		
+		4,5,6,7,8,9,10:
+			if ctx.random() > 0.1:
+				if _extend_walls(ctx):
+					return pp.with_tile(Pixel.TILE_WALL)
+			return pp.no_change()
+		
+		11:
+			if ctx.random() > 0.1:
+				if _extend_walls(ctx):
+					return pp.with_tile(Pixel.TILE_WALL)
+			if _is_isolated_wall_dot(ctx):
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+		
+		12:
+			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
+		
+		13: # props, must stay the last pass so every wall it looks at is final
+			var prop_chances := PropChances.new()
+			prop_chances.total_spawn_chance *= 0.3
+			return _gen_props(ctx, prop_chances)
+		
+		#12:
+			#if pp.wall_c && _find_distance_to_deadend(pp, ctx, 5) < 3:
+				#return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
+			#return pp.no_change()
+		
+	return Pixel.INVALID
+
+func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	
+	const grid_cell_size = 7
+	var grid_x := floori(ctx.x_flt / grid_cell_size)
+	var grid_y := floori(ctx.y_flt / grid_cell_size)
+	var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
+	var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
+
+	var noise_upscale: float = 0.4
+	
+	match pass_index:
+		0: # grid
+			if grid_local_x == 0:
+				return pp.with_tile(Pixel.TILE_WALL)
+			if grid_local_y == 0:
+				return pp.with_tile(Pixel.TILE_WALL)
+			return pp.with_tile(Pixel.TILE_EMPTY)
+
+		1: # openings
+			if pp.tile_c == Pixel.TILE_WALL:
+				var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
+				if noise > 0.55:
+					return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+		
+		2: # coridors
+			return pp.no_change()
+
+		3: # close open corners
+			if _is_open_corner(ctx):
+				return pp.with_tile(Pixel.TILE_WALL)
+			return pp.no_change()
+
+		4: # filter small walls
+			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 4):
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+
+		5: # lights
+			if !pp.wall_c:
+				if _ceiling_light(ctx, 0.1, 4, 2):
+					return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
+			return pp.no_change()
+		
+		6: # make some lights blinking
+			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
+			return pp.no_change()
+		
+		7:
+			if pp.wall_c && _is_wall_deadend(ctx) && ctx.random() > 0.70:
+				var distance_to_deadend: int = _find_distance_to_deadend(pp, ctx, 5)
+				var distance_to_junction: int = _find_distance_to_junction(pp, ctx, 5)
+				if distance_to_deadend >= 0 && distance_to_junction >= 0:
+					var total: int = distance_to_deadend + distance_to_junction
+					if total <= 3:
+						return with_flag(pp.with_tile(Pixel.TILE_WALL), Pixel.FLAG_WALL_TOP_GAP)
+			return pp.no_change()
+			
+		8, 9, 10:
+			if pp.wall_c && !_is_junction(ctx):
+				if has_flag(pp.pixel_n, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
+				if has_flag(pp.pixel_s, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
+				if has_flag(pp.pixel_w, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
+				if has_flag(pp.pixel_e, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
+			return pp.no_change()
+		
+		11:
+			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
+		
+		12: # props, must stay the last pass so every wall it looks at is final
+			var prop_chances := PropChances.new()
+			return _gen_props(ctx, prop_chances)
+			
+
+	return Pixel.INVALID
+
+func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	const grid_cell_size = 7
+	var grid_x := floori(ctx.x_flt / grid_cell_size)
+	var grid_y := floori(ctx.y_flt / grid_cell_size)
+	var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
+	var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
+
+	var noise_upscale: float = 0.4
+	
+	match pass_index:
+		0: # grid
+			if grid_local_x == 0:
+				return pp.with_tile(Pixel.TILE_ARCH)
+			if grid_local_y == 0:
+				return pp.with_tile(Pixel.TILE_ARCH)
+			return pp.with_tile(Pixel.TILE_EMPTY)
+
+		1: # openings
+			if pp.tile_c == Pixel.TILE_ARCH:
+				var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
+				if noise > 0.55:
+					return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+		
+		2: # coridors
+			return pp.no_change()
+
+		3: # filter small walls
+			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 4):
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+
+		4: # lights
+			if !pp.wall_c:
+				if _ceiling_light(ctx, 0.1, 4, 2):
+					return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
+			return pp.no_change()
+		
+		5: # make some lights blinking
+			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
+			return pp.no_change()
+		
+		6:
+			if pp.wall_c && _is_corner(ctx):
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+		
+		7:
+			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 5, 0, 0, false): 
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+	
+		8: # close open corners
+			if _is_open_corner(ctx):
+				return pp.with_tile(Pixel.TILE_WALL)
+			var n: bool = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+			var s: bool = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+			var e: bool = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+			var w: bool = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+			if (n && s) || (w && e):
+				return pp.with_tile(Pixel.TILE_ARCH)
+			return pp.no_change()
+	
+		9: # alighn
+			if pp.tile_c == Pixel.TILE_ARCH:# && ((ctx.x & 1) == 1 || (ctx.y & 1) == 1): 
+				var n: bool = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+				var s: bool = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+				var e: bool = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+				var w: bool = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
+				var pixel: Pixel = pp.pixel_c
+				if (e || w):
+					pixel = with_flag(pixel, Pixel.FLAG_ARCH_ROT_TO_E)
+				if ((n || s) && (ctx.y & 1) == 1):
+					pixel = with_flag(pixel, Pixel.FLAG_ARCH_MIRROR)
+				if ((e || w) && (ctx.x & 1) == 1):
+					pixel = with_flag(pixel, Pixel.FLAG_ARCH_MIRROR)
+				return pixel
+			return pp.no_change()
+		
+		10: # fix mis-alighned
+			if !is_wall_arch(pp.tile_c):
+				return pp.no_change() 
+			var n: Pixel = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel)
+			var s: Pixel = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel)
+			var e: Pixel = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel)
+			var w: Pixel = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel)
+			
+			# safety
+			if !is_wall_arch(n) && !has_flag(pp.pixel_c, Pixel.FLAG_ARCH_ROT_TO_E) && !has_flag(pp.pixel_c, Pixel.FLAG_ARCH_MIRROR):
+				if pp.wall_n: 
+					return pp.with_tile(Pixel.TILE_WALL) 
+				else: 
+					return pp.with_tile(Pixel.TILE_EMPTY)
+			if !is_wall_arch(s) && !has_flag(pp.pixel_c, Pixel.FLAG_ARCH_ROT_TO_E) && has_flag(pp.pixel_c, Pixel.FLAG_ARCH_MIRROR):
+				if pp.wall_s: 
+					return pp.with_tile(Pixel.TILE_WALL) 
+				else: 
+					return pp.with_tile(Pixel.TILE_EMPTY)
+			if !is_wall_arch(e) && has_flag(pp.pixel_c, Pixel.FLAG_ARCH_ROT_TO_E) && !has_flag(pp.pixel_c, Pixel.FLAG_ARCH_MIRROR):
+				if pp.wall_e: 
+					return pp.with_tile(Pixel.TILE_WALL) 
+				else: 
+					return pp.with_tile(Pixel.TILE_EMPTY)
+			if !is_wall_arch(w) && has_flag(pp.pixel_c, Pixel.FLAG_ARCH_ROT_TO_E) && has_flag(pp.pixel_c, Pixel.FLAG_ARCH_MIRROR):
+				if pp.wall_w: 
+					return pp.with_tile(Pixel.TILE_WALL) 
+				else: 
+					return pp.with_tile(Pixel.TILE_EMPTY)
+			
+			return pp.no_change()
+	
+		11:
+			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
+		
+		12: # props, must stay the last pass so every wall it looks at is final
+			var prop_chances := PropChances.new()
+			prop_chances.total_spawn_chance *= 0.7
+			return _gen_props(ctx, prop_chances)
+		
+	return Pixel.INVALID
+
+func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	
+	const grid_cell_size = 3
+	var grid_x := floori(ctx.x_flt / grid_cell_size)
+	var grid_y := floori(ctx.y_flt / grid_cell_size)
+	var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
+	var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
+	
+	match pass_index:
+		0:
+			if _ceiling_light(ctx, 1.0, 3, 1):
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
+			return pp.with_tile(Pixel.TILE_EMPTY)
+		
+		1: # make some lights blinking
+			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
+				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
+			return pp.no_change()
+		
+		2:
+			var x_offset := 1
+			var y_offset := 1
+			if ((grid_local_x == x_offset + 0 && grid_local_y == y_offset + 0) || 
+				(grid_local_x == x_offset + 0 && grid_local_y == y_offset + 1) ||
+				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 0) || 
+				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 1)):
+					return pp.with_tile(Pixel.TILE_WALL)
+
+		3,4,5,6,7,8:
+			return pp.no_change()
+		
+		9:
+			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 4): 
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+		
+		10:
+			return _connect_lobes(ctx, pp.pixel_c)
+		
+		# no props here!
+		
+	return Pixel.INVALID
 
 func _ceiling_light(ctx: Context, misplacement_chance: float, interval_range: int, offset: int) -> bool:
 	#if(posmod(ctx.x, 5) == 1 && posmod(ctx.y, 5) == 1):
@@ -165,11 +583,11 @@ static func get_prop(pixel: Pixel) -> Pixel:
 
 # replaces (instead of ORs) the prop field, because prop values are not individual bits and ORing two
 # of them would produce a third, bogus prop
-static func with_prop(pixel: Pixel, prop: Pixel) -> Pixel:
-	if prop & PROP_MASK as Pixel != prop:
-		push_error("argument given to 'with_prop' MUST be a prop value")
-		return pixel
-	return ((pixel & ~PROP_MASK) | (prop as int)) as Pixel
+#static func _with_prop(pixel: Pixel, prop: Pixel) -> Pixel:
+	#if prop & PROP_MASK as Pixel != prop:
+		#push_error("argument given to 'with_prop' MUST be a prop value")
+		#return pixel
+	#return ((pixel & ~PROP_MASK) | (prop as int)) as Pixel
 
 func _is_open_corner(ctx: Context) -> bool:
 	var pp: PreviousPass = ctx.previous_pass
@@ -587,23 +1005,6 @@ func _find_distance_to_deadend(pp: PreviousPass, ctx: Context, limit: int = 10, 
 			
 	return min_dist
 
-#func _most_northern_ending_of_wall(pp: PreviousPass, ctx: Context, limit: int = 50, offset_x: int = 0, offset_y: int = 0, visited: Dictionary = {}) -> int:
-	#if limit <= 0:
-		#return 0xffffffff
-	#var key := Vector2i(offset_x, offset_y)
-	#if visited.has(key):
-		#return 0xffffffff
-	#visited[key] = true
-	#var c: bool = is_wall(ctx.get_at_offset(pp.data, offset_x, offset_y))
-	#if !c:
-		#return 0xffffffff
-	#var result: int = ctx.y + offset_y
-	#result = min(result, _most_northern_ending_of_wall(pp, ctx, limit-1, offset_x, offset_y - 1, visited))
-	#result = min(result, _most_northern_ending_of_wall(pp, ctx, limit-1, offset_x, offset_y + 1, visited))
-	#result = min(result, _most_northern_ending_of_wall(pp, ctx, limit-1, offset_x + 1, offset_y, visited))
-	#result = min(result, _most_northern_ending_of_wall(pp, ctx, limit-1, offset_x - 1, offset_y, visited))
-	#return result
-
 func _find_distance_to_junction(pp: PreviousPass, ctx: Context, limit: int = 10, offset_x: int = 0, offset_y: int = 0, visited: Dictionary = {}) -> int:
 	if limit <= 0:
 		return -1
@@ -639,419 +1040,6 @@ func _is_wall_length_lesser_then(pp: PreviousPass, ctx: Context, threshold: int,
 	if !pp.wall_c:
 		return true
 	return _get_wall_length(pp, ctx, threshold+1, offset_x, offset_y, check_diagonal) < threshold
-
-const NUM_PASSES_IN_GEN_BIOMES = 1 # change this everytime you change the amount of cases in 'match pass_index' below
-func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
-	var noise_upscale: float = 0.01
-	
-	match pass_index:
-		0:
-			var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
-			if noise < 0.4:
-				return Pixel.BIOME_ROOMS
-			if noise < 0.44:
-				return Pixel.BIOME_ARCHES
-			if noise < 0.6:
-				return Pixel.BIOME_MESS
-			if noise < 0.62:
-				return Pixel.BIOME_ARCHES
-			else:
-				return Pixel.BIOME_PILLARS
-
-			# var grid_low_x: int = int(roundf(float(ctx.x) / 40.0))
-			# var grid_low_y: int = int(roundf(float(ctx.y) / 40.0))
-			# var random: float = _random_with_seed(hash(Vector2i(grid_low_x, grid_low_y)))
-			# if random < 0.2:
-			# 	return Pixel.BIOME_PILLARS
-			# if random < 0.6:
-			# 	return Pixel.BIOME_MESS
-			# else:
-			# 	return Pixel.BIOME_ROOMS
-	return Pixel.INVALID
-
-func _test(pass_index: int, ctx: Context) -> Pixel:
-	var pp: PreviousPass = ctx.previous_pass
-	
-	match pass_index:
-		0:
-			# if ctx.x == 5 && ctx.y == 4: return Pixel.TILE_CEILING_LIGHT_BLINKING
-			if ctx.x == 2 && ctx.y == 2: return Pixel.TILE_CEILING_LIGHT
-			if ctx.x == 10 && ctx.y == 10: return Pixel.TILE_CEILING_LIGHT
-			if ctx.x == 2 && ctx.y == 10: return Pixel.TILE_CEILING_LIGHT
-			if ctx.x == 10 && ctx.y == 2: return Pixel.TILE_CEILING_LIGHT
-			
-			for x in range(4, 9):
-				if ctx.x == x && ctx.y == 4: 
-					if x <= 4:
-						return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_SKIRT_FN_E | Pixel.FLAG_WALL_SKIRT_FW_S | Pixel.FLAG_WALL_LINE_FW_S)
-					elif x >= 8:
-						return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_SKIRT_FN_W)
-					return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_SKIRT_FN_E | Pixel.FLAG_WALL_SKIRT_FN_W)
-
-				if ctx.x == x && ctx.y == 8: 
-					if x <= 4:
-						return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_LINE_FS_E | Pixel.FLAG_WALL_SKIRT_FW_N | Pixel.FLAG_WALL_LINE_FW_N)
-					elif x >= 8:
-						return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_LINE_FS_W)
-					return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_LINE_FS_E | Pixel.FLAG_WALL_LINE_FS_W)
-					
-			for y in range(5, 8):
-				if ctx.x == 4 && ctx.y == y:
-					return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_LINE_FW_N | Pixel.FLAG_WALL_LINE_FW_S | Pixel.FLAG_WALL_SKIRT_FW_N | Pixel.FLAG_WALL_SKIRT_FW_S)
-					
-				if ctx.x == 8 && ctx.y == y: return Pixel.TILE_WALL
-			
-			if ctx.x == 9 && ctx.y == 5: return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_TOP_GAP)
-			if ctx.x == 10 && ctx.y == 5: return with_flag(Pixel.TILE_WALL, Pixel.FLAG_WALL_TOP_GAP)
-
-			if ctx.x == 8 && ctx.y == 12: return Pixel.TILE_ARCH
-			if ctx.x == 8 && ctx.y == 11: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_MIRROR)
-
-			if ctx.x == 11 && ctx.y == 8: return with_flag(with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E), Pixel.FLAG_ARCH_MIRROR)
-			if ctx.x == 12 && ctx.y == 8: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E)
-			
-			return Pixel.TILE_EMPTY
-		
-		1:
-			#if pp.wall_c:
-				#var wall_face: WallFace = WallFace.FN_E
-				#var fn_e_hash: int = _get_wall_face_hash(ctx, wall_face)
-				#var wall_hash: int = _get_wall_section_hash(ctx)
-				#print("wallhash [" + str(ctx.x) + "," + str(ctx.y) + ", " + str(wall_face) + "] = " + str(fn_e_hash))
-			return _connect_lobes(ctx, pp.pixel_c)
-			
-	return Pixel.INVALID
-
-
-func _gen(pass_index: int, ctx: Context) -> Pixel:
-	#return _test(pass_index, ctx)
-	
-	var pp: PreviousPass = ctx.previous_pass
-	var retval: Pixel = Pixel.INVALID
-	if pass_index < NUM_PASSES_IN_GEN_BIOMES:
-		retval = _gen_biomes(pass_index, ctx)
-	else:
-		var biome_pass_index: int = pass_index - NUM_PASSES_IN_GEN_BIOMES
-		match pp.biome_c:
-			Pixel.BIOME_MESS:
-				retval = _gen_biome_mess(biome_pass_index, ctx)
-			Pixel.BIOME_ROOMS:
-				retval = _gen_biome_rooms(biome_pass_index, ctx)
-			Pixel.BIOME_ARCHES:
-				retval = _gen_biome_arches(biome_pass_index, ctx)
-			Pixel.BIOME_PILLARS:
-				retval = _gen_biome_pillars(biome_pass_index, ctx)
-	
-	# force empty area at spawn point
-	if (ctx.x * ctx.x) < 100 && (ctx.y * ctx.y) < 100 && retval != Pixel.INVALID && pp.wall_c:
-		retval = Pixel.BIOME_ROOMS | Pixel.TILE_EMPTY # pp.with_tile(Pixel.TILE_EMPTY)
-	return retval
-
-func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
-	var pp: PreviousPass = ctx.previous_pass
-	var num_neighbour_walls: int = 0;
-	if pp.wall_w: num_neighbour_walls = num_neighbour_walls + 1
-	if pp.wall_e: num_neighbour_walls = num_neighbour_walls + 1
-	if pp.wall_s: num_neighbour_walls = num_neighbour_walls + 1
-	if pp.wall_n: num_neighbour_walls = num_neighbour_walls + 1
-	
-	match pass_index:
-		0:
-			if ctx.random() > 0.9:
-				return pp.with_tile(Pixel.TILE_WALL)
-			if _ceiling_light(ctx, 0.7, 5, 2):
-				return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
-			return pp.with_tile(Pixel.TILE_EMPTY)
-	
-		1: # make some lights blinking
-			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
-				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
-			return pp.no_change()
-		
-		2:
-			if num_neighbour_walls > 0 && !pp.wall_c:
-				if ctx.random() > 0.75:
-					return pp.with_tile(Pixel.TILE_WALL)
-			return pp.no_change()
-			
-		3:
-			if _is_isolated_wall_dot(ctx):
-				return pp.with_tile(Pixel.TILE_EMPTY)
-			return pp.no_change()
-		
-		4,5,6,7,8,9,10:
-			if ctx.random() > 0.1:
-				if _extend_walls(ctx):
-					return pp.with_tile(Pixel.TILE_WALL)
-			return pp.no_change()
-		
-		11:
-			if ctx.random() > 0.1:
-				if _extend_walls(ctx):
-					return pp.with_tile(Pixel.TILE_WALL)
-			if _is_isolated_wall_dot(ctx):
-				return pp.with_tile(Pixel.TILE_EMPTY)
-			return pp.no_change()
-		
-		12:
-			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
-		
-		13: # props, must stay the last pass so every wall it looks at is final
-			var prop_chances := PropChances.new()
-			prop_chances.total_spawn_chance *= 0.3
-			return _gen_props(ctx, prop_chances)
-		
-		#12:
-			#if pp.wall_c && _find_distance_to_deadend(pp, ctx, 5) < 3:
-				#return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
-			#return pp.no_change()
-		
-	return Pixel.INVALID
-
-func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
-	var pp: PreviousPass = ctx.previous_pass
-	
-	const grid_cell_size = 7
-	var grid_x := floori(ctx.x_flt / grid_cell_size)
-	var grid_y := floori(ctx.y_flt / grid_cell_size)
-	var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
-	var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
-
-	var noise_upscale: float = 0.4
-	
-	match pass_index:
-		0: # grid
-			if grid_local_x == 0:
-				return pp.with_tile(Pixel.TILE_WALL)
-			if grid_local_y == 0:
-				return pp.with_tile(Pixel.TILE_WALL)
-			return pp.with_tile(Pixel.TILE_EMPTY)
-
-		1: # openings
-			if pp.tile_c == Pixel.TILE_WALL:
-				var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
-				if noise > 0.55:
-					return pp.with_tile(Pixel.TILE_EMPTY)
-			return pp.no_change()
-		
-		2: # coridors
-			return pp.no_change()
-
-		3: # close open corners
-			if _is_open_corner(ctx):
-				return pp.with_tile(Pixel.TILE_WALL)
-			return pp.no_change()
-
-		4: # filter small walls
-			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 4):
-				return pp.with_tile(Pixel.TILE_EMPTY)
-			return pp.no_change()
-
-		5: # lights
-			if !pp.wall_c:
-				if _ceiling_light(ctx, 0.1, 4, 2):
-					return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
-			return pp.no_change()
-		
-		6: # make some lights blinking
-			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
-				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
-			return pp.no_change()
-		
-		7:
-			if pp.wall_c && _is_wall_deadend(ctx) && ctx.random() > 0.70:
-				var distance_to_deadend: int = _find_distance_to_deadend(pp, ctx, 5)
-				var distance_to_junction: int = _find_distance_to_junction(pp, ctx, 5)
-				if distance_to_deadend >= 0 && distance_to_junction >= 0:
-					var total: int = distance_to_deadend + distance_to_junction
-					if total <= 3:
-						return with_flag(pp.with_tile(Pixel.TILE_WALL), Pixel.FLAG_WALL_TOP_GAP)
-			return pp.no_change()
-			
-		8, 9, 10:
-			if pp.wall_c && !_is_junction(ctx):
-				if has_flag(pp.pixel_n, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
-				if has_flag(pp.pixel_s, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
-				if has_flag(pp.pixel_w, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
-				if has_flag(pp.pixel_e, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
-			return pp.no_change()
-		
-		11:
-			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
-		
-		12: # props, must stay the last pass so every wall it looks at is final
-			var prop_chances := PropChances.new()
-			return _gen_props(ctx, prop_chances)
-			
-
-	return Pixel.INVALID
-
-func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
-	var pp: PreviousPass = ctx.previous_pass
-	const grid_cell_size = 7
-	var grid_x := floori(ctx.x_flt / grid_cell_size)
-	var grid_y := floori(ctx.y_flt / grid_cell_size)
-	var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
-	var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
-
-	var noise_upscale: float = 0.4
-	
-	match pass_index:
-		0: # grid
-			if grid_local_x == 0:
-				return pp.with_tile(Pixel.TILE_ARCH)
-			if grid_local_y == 0:
-				return pp.with_tile(Pixel.TILE_ARCH)
-			return pp.with_tile(Pixel.TILE_EMPTY)
-
-		1: # openings
-			if pp.tile_c == Pixel.TILE_ARCH:
-				var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
-				if noise > 0.55:
-					return pp.with_tile(Pixel.TILE_EMPTY)
-			return pp.no_change()
-		
-		2: # coridors
-			return pp.no_change()
-
-		3: # filter small walls
-			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 4):
-				return pp.with_tile(Pixel.TILE_EMPTY)
-			return pp.no_change()
-
-		4: # lights
-			if !pp.wall_c:
-				if _ceiling_light(ctx, 0.1, 4, 2):
-					return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
-			return pp.no_change()
-		
-		5: # make some lights blinking
-			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
-				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
-			return pp.no_change()
-		
-		6:
-			if pp.wall_c && _is_corner(ctx):
-				return pp.with_tile(Pixel.TILE_EMPTY)
-			return pp.no_change()
-		
-		7:
-			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 5, 0, 0, false): 
-				return pp.with_tile(Pixel.TILE_EMPTY)
-			return pp.no_change()
-	
-		8: # close open corners
-			if _is_open_corner(ctx):
-				return pp.with_tile(Pixel.TILE_WALL)
-			var n: bool = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
-			var s: bool = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
-			var e: bool = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
-			var w: bool = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
-			if (n && s) || (w && e):
-				return pp.with_tile(Pixel.TILE_ARCH)
-			return pp.no_change()
-	
-		9: # alighn
-			if pp.tile_c == Pixel.TILE_ARCH:# && ((ctx.x & 1) == 1 || (ctx.y & 1) == 1): 
-				var n: bool = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
-				var s: bool = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
-				var e: bool = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
-				var w: bool = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
-				var pixel: Pixel = pp.pixel_c
-				if (e || w):
-					pixel = with_flag(pixel, Pixel.FLAG_ARCH_ROT_TO_E)
-				if ((n || s) && (ctx.y & 1) == 1):
-					pixel = with_flag(pixel, Pixel.FLAG_ARCH_MIRROR)
-				if ((e || w) && (ctx.x & 1) == 1):
-					pixel = with_flag(pixel, Pixel.FLAG_ARCH_MIRROR)
-				return pixel
-			return pp.no_change()
-		
-		10: # fix mis-alighned
-			if !is_wall_arch(pp.tile_c):
-				return pp.no_change() 
-			var n: Pixel = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel)
-			var s: Pixel = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel)
-			var e: Pixel = (ctx.get_at_offset(pp.data, -1,  0) & TILE_MASK as Pixel)
-			var w: Pixel = (ctx.get_at_offset(pp.data,  1,  0) & TILE_MASK as Pixel)
-			
-			# safety
-			if !is_wall_arch(n) && !has_flag(pp.pixel_c, Pixel.FLAG_ARCH_ROT_TO_E) && !has_flag(pp.pixel_c, Pixel.FLAG_ARCH_MIRROR):
-				if pp.wall_n: 
-					return pp.with_tile(Pixel.TILE_WALL) 
-				else: 
-					return pp.with_tile(Pixel.TILE_EMPTY)
-			if !is_wall_arch(s) && !has_flag(pp.pixel_c, Pixel.FLAG_ARCH_ROT_TO_E) && has_flag(pp.pixel_c, Pixel.FLAG_ARCH_MIRROR):
-				if pp.wall_s: 
-					return pp.with_tile(Pixel.TILE_WALL) 
-				else: 
-					return pp.with_tile(Pixel.TILE_EMPTY)
-			if !is_wall_arch(e) && has_flag(pp.pixel_c, Pixel.FLAG_ARCH_ROT_TO_E) && !has_flag(pp.pixel_c, Pixel.FLAG_ARCH_MIRROR):
-				if pp.wall_e: 
-					return pp.with_tile(Pixel.TILE_WALL) 
-				else: 
-					return pp.with_tile(Pixel.TILE_EMPTY)
-			if !is_wall_arch(w) && has_flag(pp.pixel_c, Pixel.FLAG_ARCH_ROT_TO_E) && has_flag(pp.pixel_c, Pixel.FLAG_ARCH_MIRROR):
-				if pp.wall_w: 
-					return pp.with_tile(Pixel.TILE_WALL) 
-				else: 
-					return pp.with_tile(Pixel.TILE_EMPTY)
-			
-			return pp.no_change()
-	
-		11:
-			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
-		
-		12: # props, must stay the last pass so every wall it looks at is final
-			var prop_chances := PropChances.new()
-			prop_chances.total_spawn_chance *= 0.7
-			return _gen_props(ctx, prop_chances)
-		
-	return Pixel.INVALID
-
-func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
-	var pp: PreviousPass = ctx.previous_pass
-	
-	const grid_cell_size = 3
-	var grid_x := floori(ctx.x_flt / grid_cell_size)
-	var grid_y := floori(ctx.y_flt / grid_cell_size)
-	var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
-	var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
-	
-	match pass_index:
-		0:
-			if _ceiling_light(ctx, 1.0, 3, 1):
-				return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
-			return pp.with_tile(Pixel.TILE_EMPTY)
-		
-		1: # make some lights blinking
-			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
-				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
-			return pp.no_change()
-		
-		2:
-			var x_offset := 1
-			var y_offset := 1
-			if ((grid_local_x == x_offset + 0 && grid_local_y == y_offset + 0) || 
-				(grid_local_x == x_offset + 0 && grid_local_y == y_offset + 1) ||
-				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 0) || 
-				(grid_local_x == x_offset + 1 && grid_local_y == y_offset + 1)):
-					return pp.with_tile(Pixel.TILE_WALL)
-
-		3,4,5,6,7,8:
-			return pp.no_change()
-		
-		9:
-			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 4): 
-				return pp.with_tile(Pixel.TILE_EMPTY)
-			return pp.no_change()
-		
-		10:
-			return _connect_lobes(ctx, pp.pixel_c)
-		
-		# no props here!
-		
-	return Pixel.INVALID
 
 class Section:
 	var x: int
@@ -1094,16 +1082,26 @@ class PreviousPass:
 	var wall_w: bool
 
 	func with_tile(tile: Pixel) -> Pixel:
-		if tile & BIOME_MASK != 0:
+		if tile & TILE_MASK as Pixel != tile:
 			push_error("argument given to 'with_tile' MUST be a tile")
 			return no_change()
-		return (biome_c as int | tile as int) as Pixel
+		#return (biome_c as int | tile as int) as Pixel
+		
+		#return (tile_c | (tile as int)) as Pixel
+		return ((pixel_c & ~TILE_MASK) | (tile as int)) as Pixel
 
 	func with_biome(biome: Pixel) -> Pixel:
-		if biome & TILE_MASK != 0:
+		if biome & BIOME_MASK as Pixel != biome:
 			push_error("argument given to 'with_biome' MUST be a biome")
 			return no_change()
-		return (tile_c as int | biome as int) as Pixel
+		# return (tile_c as int | biome as int) as Pixel
+		return ((pixel_c & ~BIOME_MASK) | (biome as int)) as Pixel
+
+	func with_prop(prop: Pixel) -> Pixel:
+		if prop & PROP_MASK as Pixel != prop:
+			push_error("argument given to 'with_prop' MUST be a prop value")
+			return no_change()
+		return ((pixel_c & ~PROP_MASK) | (prop as int)) as Pixel
 		
 	func no_change() -> Pixel:
 		return pixel_c
@@ -1414,14 +1412,14 @@ func _gen_props(ctx: Context, prop_chances: PropChances) -> Pixel:
 		var rnd: float = rng.randf() * total_weight
 		rnd -= prop_chances.chance_weight_chair
 		if rnd < 0.0:
-			return with_prop(pp.pixel_c, Pixel.PROP_CHAIR)
+			return pp.with_prop(Pixel.PROP_CHAIR)
 			
 		rnd -= prop_chances.chance_weight_bin
 		if rnd < 0.0:
-			return with_prop(pp.pixel_c, Pixel.PROP_TRASH_BIN)
+			return pp.with_prop(Pixel.PROP_TRASH_BIN)
 		
 		# fallback 
-		return with_prop(pp.pixel_c, Pixel.PROP_CHAIR)
+		return pp.with_prop(Pixel.PROP_CHAIR)
 		
 	return pp.no_change()
 
