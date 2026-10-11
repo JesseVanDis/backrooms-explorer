@@ -74,6 +74,12 @@ enum WallFace {
 
 const all_wall_faces: Array[WallFace] = [WallFace.FN_E, WallFace.FS_E, WallFace.FN_W, WallFace.FS_W, WallFace.FE_N, WallFace.FW_N, WallFace.FE_S, WallFace.FW_S]
 
+class PropChances:
+	var total_spawn_chance: float = 0.004
+	var chance_weight_chair: float = 0.5
+	var chance_weight_bin: float = 0.5
+
+
 func _ceiling_light(ctx: Context, misplacement_chance: float, interval_range: int, offset: int) -> bool:
 	#if(posmod(ctx.x, 5) == 1 && posmod(ctx.y, 5) == 1):
 	#	return true
@@ -87,7 +93,7 @@ func _ceiling_light(ctx: Context, misplacement_chance: float, interval_range: in
 	var grid_y := floori(float(ctx.y) / float(interval_range))
 	var light_pos_x: int = (grid_x * interval_range) + offset
 	var light_pos_y: int = (grid_y * interval_range) + offset
-	var random: float = ctx.random_with_seed(hash(Vector2i(grid_x, grid_y)))
+	var random: float = _random_with_seed(hash(Vector2i(grid_x, grid_y)))
 	if random < misplacement_chance:
 		if random < 0.25 * misplacement_chance:
 			light_pos_x = light_pos_x+1
@@ -528,8 +534,8 @@ func _handle_walltypes(ctx: Context, current_pixel: Pixel) -> Pixel:
 		for wall_face in all_wall_faces:
 			var face_hash: int = _get_wall_face_hash(ctx, wall_face)
 			if face_hash != 0:
-				var add_line: bool = ctx.random_with_seed(hash([face_hash, "line"])) > 0.7
-				var add_skirt: bool = ctx.random_with_seed(hash([face_hash, "skirt"])) > 0.7
+				var add_line: bool = _random_with_seed(hash([face_hash, "line"])) > 0.7
+				var add_skirt: bool = _random_with_seed(hash([face_hash, "skirt"])) > 0.7
 				if add_line:
 					pixel = with_flag(pixel, _face_to_flag_wall_line(wall_face))
 				if add_skirt:
@@ -654,7 +660,7 @@ func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 
 			# var grid_low_x: int = int(roundf(float(ctx.x) / 40.0))
 			# var grid_low_y: int = int(roundf(float(ctx.y) / 40.0))
-			# var random: float = ctx.random_with_seed(hash(Vector2i(grid_low_x, grid_low_y)))
+			# var random: float = _random_with_seed(hash(Vector2i(grid_low_x, grid_low_y)))
 			# if random < 0.2:
 			# 	return Pixel.BIOME_PILLARS
 			# if random < 0.6:
@@ -738,7 +744,7 @@ func _gen(pass_index: int, ctx: Context) -> Pixel:
 	
 	# force empty area at spawn point
 	if (ctx.x * ctx.x) < 100 && (ctx.y * ctx.y) < 100 && retval != Pixel.INVALID && pp.wall_c:
-		retval = pp.with_tile(Pixel.TILE_EMPTY)
+		retval = Pixel.BIOME_ROOMS | Pixel.TILE_EMPTY # pp.with_tile(Pixel.TILE_EMPTY)
 	return retval
 
 func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
@@ -791,7 +797,9 @@ func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
 			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
 		
 		13: # props, must stay the last pass so every wall it looks at is final
-			return _gen_props(ctx)
+			var prop_chances := PropChances.new()
+			prop_chances.total_spawn_chance *= 0.3
+			return _gen_props(ctx, prop_chances)
 		
 		#12:
 			#if pp.wall_c && _find_distance_to_deadend(pp, ctx, 5) < 3:
@@ -872,7 +880,8 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
 		
 		12: # props, must stay the last pass so every wall it looks at is final
-			return _gen_props(ctx)
+			var prop_chances := PropChances.new()
+			return _gen_props(ctx, prop_chances)
 			
 
 	return Pixel.INVALID
@@ -994,7 +1003,9 @@ func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
 			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
 		
 		12: # props, must stay the last pass so every wall it looks at is final
-			return _gen_props(ctx)
+			var prop_chances := PropChances.new()
+			prop_chances.total_spawn_chance *= 0.7
+			return _gen_props(ctx, prop_chances)
 		
 	return Pixel.INVALID
 
@@ -1037,10 +1048,9 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 		
 		10:
 			return _connect_lobes(ctx, pp.pixel_c)
-
-		11: # props, must stay the last pass so every wall it looks at is final
-			return _gen_props(ctx)
-			
+		
+		# no props here!
+		
 	return Pixel.INVALID
 
 class Section:
@@ -1146,11 +1156,6 @@ class Context:
 		rng.seed = seed_value
 		return rng.randf()
 	
-	func random_with_seed(seed_val: Variant) -> float:
-		var seed_value: int = hash(seed_val)
-		var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-		rng.seed = seed_value
-		return rng.randf()
 	
 #	func with_biome(pixel: Pixel) -> Pixel:
 #		tile = TileUtils.remove_biome(pixel)
@@ -1393,149 +1398,31 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target: PackedInt64Array, pas
 	# print("all_pixels_set_to_count: " + str(all_pixels_set_to_count) + " for index: " + str(pass_index))
 	return !all_pixels_set_to_count
 
-## Prop pass
-##
-## Runs as the very last pass of every biome chain (see 'props' case in each '_gen_biome_*'), so all
-## walls and arches it inspects are already final. Placement is grid based, one candidate tile per
-## grid cell per prop type, chosen purely from the cell's global coordinates (no scan-order-dependent
-## state), so overlapping sections always agree and a chunk is stable across regeneration. The grid
-## size also doubles as the minimum spacing between props of the same type.
-const PROP_CHAIR_GRID_SIZE: int = 6
-const PROP_CHAIR_CHANCE: float = 0.2
-const PROP_CHAIR_MIN_OPEN_NEIGHBORS: int = 3
-const PROP_TRASH_BIN_GRID_SIZE: int = 6
-const PROP_TRASH_BIN_CHANCE: float = 0.2
-const PROP_SPAWN_EXCLUSION_RADIUS: int = 12 # larger than the hardcoded spawn-guard square in '_gen'
-const PROP_SALT_CHAIR: String = "prop_chair"
-const PROP_SALT_TRASH_BIN: String = "prop_trash_bin"
-
-# coordinate seeded instead of using a shared RNG, so the result never depends on scan order
-static func _prop_random(seed_val: Variant) -> float:
-	var seed_value: int = hash(seed_val)
-	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-	rng.seed = seed_value
-	return rng.randf()
-
-static func _is_in_prop_spawn_exclusion(x: int, y: int) -> bool:
-	return absi(x) < PROP_SPAWN_EXCLUSION_RADIUS && absi(y) < PROP_SPAWN_EXCLUSION_RADIUS
-
-# reads the previous pass through the context's clamped lookup, so a candidate near the edge of the
-# generated section can never index outside of it
-static func _prop_pixel_at(ctx: Context, offset_x: int, offset_y: int) -> Pixel:
-	return ctx.get_at_offset(ctx.previous_pass.data, offset_x, offset_y)
-
-static func _prop_tile_at(ctx: Context, offset_x: int, offset_y: int) -> Pixel:
-	return _prop_pixel_at(ctx, offset_x, offset_y) & TILE_MASK as Pixel
-
-# props only look at neighbours of their own biome: those have finished the same pass chain, so the
-# walls seen here are final and can not change after the prop was placed
-static func _has_uniform_biome_neighborhood(ctx: Context, offset_x: int, offset_y: int) -> bool:
-	var biome: Pixel = _prop_pixel_at(ctx, offset_x, offset_y) & BIOME_MASK as Pixel
-	if (_prop_pixel_at(ctx, offset_x, offset_y - 1) & BIOME_MASK as Pixel) != biome: return false
-	if (_prop_pixel_at(ctx, offset_x, offset_y + 1) & BIOME_MASK as Pixel) != biome: return false
-	if (_prop_pixel_at(ctx, offset_x + 1, offset_y) & BIOME_MASK as Pixel) != biome: return false
-	if (_prop_pixel_at(ctx, offset_x - 1, offset_y) & BIOME_MASK as Pixel) != biome: return false
-	return true
-
-# a tile that is TILE_EMPTY is walkable and has nothing else on it. the offsets are relative to the
-# pixel currently being generated
-static func _is_prop_site(ctx: Context, offset_x: int, offset_y: int) -> bool:
-	if _is_in_prop_spawn_exclusion(ctx.x + offset_x, ctx.y + offset_y):
-		return false
-	if _prop_tile_at(ctx, offset_x, offset_y) != Pixel.TILE_EMPTY:
-		return false
-	return _has_uniform_biome_neighborhood(ctx, offset_x, offset_y)
-
-# bins need exactly one adjacent wall to rest against, leaving the other three sides open
-static func _is_trash_bin_site(ctx: Context, offset_x: int, offset_y: int) -> bool:
-	if !_is_prop_site(ctx, offset_x, offset_y):
-		return false
-	var count: int = 0
-	if _prop_tile_at(ctx, offset_x, offset_y - 1) == Pixel.TILE_WALL: count += 1
-	if _prop_tile_at(ctx, offset_x, offset_y + 1) == Pixel.TILE_WALL: count += 1
-	if _prop_tile_at(ctx, offset_x + 1, offset_y) == Pixel.TILE_WALL: count += 1
-	if _prop_tile_at(ctx, offset_x - 1, offset_y) == Pixel.TILE_WALL: count += 1
-	return count == 1
-
-# chairs favor open floor rather than tight corridor corners
-static func _is_chair_site(ctx: Context, offset_x: int, offset_y: int) -> bool:
-	if !_is_prop_site(ctx, offset_x, offset_y):
-		return false
-	var count: int = 0
-	if !is_wall(_prop_pixel_at(ctx, offset_x, offset_y - 1)): count += 1
-	if !is_wall(_prop_pixel_at(ctx, offset_x, offset_y + 1)): count += 1
-	if !is_wall(_prop_pixel_at(ctx, offset_x + 1, offset_y)): count += 1
-	if !is_wall(_prop_pixel_at(ctx, offset_x - 1, offset_y)): count += 1
-	return count >= PROP_CHAIR_MIN_OPEN_NEIGHBORS
-
-static func _prop_cell_chance(chance: float, salt: String, grid_x: int, grid_y: int) -> bool:
-	return _prop_random(hash([salt, "chance", grid_x, grid_y])) < chance
-
-static func _prop_cell_candidate(grid_size: int, salt: String, grid_x: int, grid_y: int) -> Vector2i:
-	var local_x: int = int(_prop_random(hash([salt, "x", grid_x, grid_y])) * grid_size)
-	var local_y: int = int(_prop_random(hash([salt, "y", grid_x, grid_y])) * grid_size)
-	return Vector2i(grid_x * grid_size + local_x, grid_y * grid_size + local_y)
-
-static func _prop_cell_priority(salt: String, grid_x: int, grid_y: int) -> float:
-	return _prop_random(hash([salt, "priority", grid_x, grid_y]))
-
-# a candidate only wins if no same-type candidate in a neighbouring cell (closer than the grid size)
-# has a higher priority. keeps the minimum spacing deterministic, local (3x3 cell neighbourhood) and
-# independent of scan order. a rival in the same biome is only counted when it is a valid site; a
-# rival in another biome might not have finished its walls yet, so it is counted by its dice roll
-# alone - both sides then reach the same verdict, which keeps the spacing intact at biome borders.
-static func _is_suppressed_by_neighbor_cell(ctx: Context, grid_size: int, chance: float, salt: String, candidate: Vector2i, own_priority: float, site_check: Callable) -> bool:
-	var grid_x: int = floori(float(candidate.x) / grid_size)
-	var grid_y: int = floori(float(candidate.y) / grid_size)
-	var own_biome: Pixel = _prop_pixel_at(ctx, 0, 0) & BIOME_MASK as Pixel
-	for cell_offset_y in range(-1, 2):
-		for cell_offset_x in range(-1, 2):
-			if cell_offset_x == 0 && cell_offset_y == 0:
-				continue
-			var neighbor_grid_x: int = grid_x + cell_offset_x
-			var neighbor_grid_y: int = grid_y + cell_offset_y
-			if !_prop_cell_chance(chance, salt, neighbor_grid_x, neighbor_grid_y):
-				continue
-			var neighbor_candidate: Vector2i = _prop_cell_candidate(grid_size, salt, neighbor_grid_x, neighbor_grid_y)
-			if Vector2(candidate).distance_to(Vector2(neighbor_candidate)) >= grid_size:
-				continue
-			if _is_in_prop_spawn_exclusion(neighbor_candidate.x, neighbor_candidate.y):
-				continue
-			var offset_x: int = neighbor_candidate.x - ctx.x
-			var offset_y: int = neighbor_candidate.y - ctx.y
-			var neighbor_biome: Pixel = _prop_pixel_at(ctx, offset_x, offset_y) & BIOME_MASK as Pixel
-			if neighbor_biome == own_biome && !site_check.call(ctx, offset_x, offset_y):
-				continue
-			if _prop_cell_priority(salt, neighbor_grid_x, neighbor_grid_y) > own_priority:
-				return true
-	return false
-
-# true only for the one tile per grid cell that is picked as the cell's candidate and survives the
-# spacing comparison with the neighbouring cells
-static func _wins_prop_cell(ctx: Context, grid_size: int, chance: float, salt: String, site_check: Callable) -> bool:
-	var grid_x: int = floori(float(ctx.x) / grid_size)
-	var grid_y: int = floori(float(ctx.y) / grid_size)
-	if !_prop_cell_chance(chance, salt, grid_x, grid_y):
-		return false
-	var candidate: Vector2i = _prop_cell_candidate(grid_size, salt, grid_x, grid_y)
-	if candidate.x != ctx.x || candidate.y != ctx.y:
-		return false
-	if !site_check.call(ctx, 0, 0):
-		return false
-	var own_priority: float = _prop_cell_priority(salt, grid_x, grid_y)
-	return !_is_suppressed_by_neighbor_cell(ctx, grid_size, chance, salt, candidate, own_priority, site_check)
-
 # final pass of every biome: marks the pixel with a chair or a trash bin, or leaves it untouched.
 # done here instead of in a separate post-process so props are part of the regular pass pipeline.
 # a bin is checked first and returned immediately, so a tile never carries more than one prop
-func _gen_props(ctx: Context) -> Pixel:
+func _gen_props(ctx: Context, prop_chances: PropChances) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	if pp.tile_c != Pixel.TILE_EMPTY:
 		return pp.no_change()
-	if _wins_prop_cell(ctx, PROP_TRASH_BIN_GRID_SIZE, PROP_TRASH_BIN_CHANCE, PROP_SALT_TRASH_BIN, _is_trash_bin_site):
-		return with_prop(pp.pixel_c, Pixel.PROP_TRASH_BIN)
-	if _wins_prop_cell(ctx, PROP_CHAIR_GRID_SIZE, PROP_CHAIR_CHANCE, PROP_SALT_CHAIR, _is_chair_site):
+	
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = hash(Vector3i(ctx.x, ctx.y, hash("props")))
+	
+	if rng.randf() < prop_chances.total_spawn_chance:
+		var total_weight: float = prop_chances.chance_weight_chair + prop_chances.chance_weight_bin
+		var rnd: float = rng.randf() * total_weight
+		rnd -= prop_chances.chance_weight_chair
+		if rnd < 0.0:
+			return with_prop(pp.pixel_c, Pixel.PROP_CHAIR)
+			
+		rnd -= prop_chances.chance_weight_bin
+		if rnd < 0.0:
+			return with_prop(pp.pixel_c, Pixel.PROP_TRASH_BIN)
+		
+		# fallback 
 		return with_prop(pp.pixel_c, Pixel.PROP_CHAIR)
+		
 	return pp.no_change()
 
 static func _face_to_flag_wall_skirt(face: WallFace) -> Pixel:
@@ -1561,7 +1448,13 @@ static func _face_to_flag_wall_line(face: WallFace) -> Pixel:
 		WallFace.FE_S: return Pixel.FLAG_WALL_LINE_FE_S
 		WallFace.FW_S: return Pixel.FLAG_WALL_LINE_FW_S
 	return Pixel.NONE
-	
+
+static func _random_with_seed(seed_val: Variant) -> float:
+	var seed_value: int = hash(seed_val)
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	return rng.randf()
+		
 class TileUtils:
 	static func get_biome(pixel: Pixel) -> Pixel:
 		return pixel & BIOME_MASK as Pixel

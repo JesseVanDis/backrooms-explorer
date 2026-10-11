@@ -195,6 +195,7 @@ debug_color = Color(0.42465097, 0.46038312, 1, 0.41960785)
 
 [node name="part_wall_x" parent="_viewport_container/_viewport/Map" unique_id=1026156291 instance=ExtResource("20_vygta")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 0, -8)
+visible = false
 
 [node name="part_wall_x" parent="_viewport_container/_viewport/Map/part_wall_x" unique_id=1960922944 instance=ExtResource("20_vygta")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
