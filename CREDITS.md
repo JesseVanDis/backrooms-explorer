@@ -33,6 +33,7 @@ This game uses the following third-party assets:
 * [Format this] https://www.turbosquid.com/3d-models/old-wooden-chair-05-lowpoly-pbr-3d-model-2521993
 * [Format this] https://www.turbosquid.com/3d-models/old-wooden-chair-04-lowpoly-pbr-3d-2391747
 * [Format this] https://www.turbosquid.com/3d-models/old-chair-lowpoly-pbr-3d-2220114
+* [Format this] https://www.turbosquid.com/3d-models/3d-stool-chair-seat-1666383
 
 * **level 0 footsteps** ([url](https://pixabay.com/sound-effects/household-walking-footsteps-on-carpet-34094/)) - Abolla (Freesound), Pixabay Content License
 * **level frontrooms kitchen** ([url](https://www.turbosquid.com/FullPreview/1611240)) - Marcin Lubecki, TurboSquid's Standard 3D Model License
