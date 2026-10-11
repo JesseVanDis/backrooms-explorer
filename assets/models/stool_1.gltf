@@ -17,10 +17,10 @@
 			"mesh":0,
 			"name":"Stool_lowpoly_Cube.016",
 			"rotation":[
-				0.7071068286895752,
+				0.70710688829422,
 				0,
 				0,
-				0.7071068286895752
+				0.7071066498756409
 			]
 		}
 	],
@@ -74,17 +74,17 @@
 	],
 	"images":[
 		{
-			"mimeType":"image/jpg",
+			"mimeType":"image/jpeg",
 			"name":"stool_norm",
 			"uri":"specific_textures/stool_norm.jpg"
 		},
 		{
-			"mimeType":"image/jpg",
+			"mimeType":"image/jpeg",
 			"name":"stool_albedo",
 			"uri":"specific_textures/stool_albedo.jpg"
 		},
 		{
-			"mimeType":"image/jpg",
+			"mimeType":"image/jpeg",
 			"name":"stool_metallic-stool_roughness",
 			"uri":"specific_textures/stool_metallic-stool_roughness.jpg"
 		}
@@ -95,14 +95,14 @@
 			"componentType":5126,
 			"count":200,
 			"max":[
-				0.18990199267864227,
-				0.18993699550628662,
-				0
+				0.25661182403564453,
+				0.2566537857055664,
+				0.005843318998813629
 			],
 			"min":[
-				-0.19009800255298615,
-				-0.1900629997253418,
-				-0.5648509860038757
+				-0.25682976841926575,
+				-0.25678780674934387,
+				-0.7573619484901428
 			],
 			"type":"VEC3"
 		},

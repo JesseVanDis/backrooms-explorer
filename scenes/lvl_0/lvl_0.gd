@@ -19,8 +19,11 @@ var model_ceiling_light_blinking: Model = _load_model(preload("res://scenes/lvl_
 var model_wall_x:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_x.tscn"))
 var model_arch_i:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_i.tscn"))
 var model_arch_e:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_e.tscn"))
-var model_prop_chair:             Model = _load_model(preload("res://scenes/lvl_0/part_prop_chair.tscn"))
-var model_prop_trash_bin:         Model = _load_model(preload("res://scenes/lvl_0/part_prop_trash_bin.tscn"))
+var model_prop_chair_1:           Model = _load_model(preload("res://assets/models/chair_1.tscn"))
+var model_prop_chair_2:           Model = _load_model(preload("res://assets/models/chair_2.tscn"))
+var model_prop_chair_3:           Model = _load_model(preload("res://assets/models/chair_3.tscn"))
+var model_prop_stool_1:           Model = _load_model(preload("res://assets/models/stool_1.tscn"))
+var model_prop_bin_1:             Model = _load_model(preload("res://assets/models/bin_1.tscn"))
 
 @onready var _node_map: Node3D = $_viewport_container/_viewport/Map
 var _player: Player = null
@@ -419,10 +422,11 @@ func _instantiate_prop_model(model: Model, tile_index: Vector2i) -> void:
 
 func _place_prop(pixel: MapGenerator.Pixel, tile_index: Vector2i) -> void:
 	match MapGenerator.get_prop(pixel):
-		MapGenerator.Pixel.PROP_CHAIR:
-			_instantiate_prop_model(model_prop_chair, tile_index)
-		MapGenerator.Pixel.PROP_TRASH_BIN:
-			_instantiate_prop_model(model_prop_trash_bin, tile_index)
+		MapGenerator.Pixel.PROP_CHAIR_1:	_instantiate_prop_model(model_prop_chair_1, tile_index)
+		MapGenerator.Pixel.PROP_CHAIR_2:	_instantiate_prop_model(model_prop_chair_2, tile_index)
+		MapGenerator.Pixel.PROP_CHAIR_3:	_instantiate_prop_model(model_prop_chair_3, tile_index)
+		MapGenerator.Pixel.PROP_STOOL_1:	_instantiate_prop_model(model_prop_stool_1, tile_index)
+		MapGenerator.Pixel.PROP_BIN_1:		_instantiate_prop_model(model_prop_bin_1, tile_index)
 
 func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 	var pixel: MapGenerator.Pixel = section.get_pixel(x, y)

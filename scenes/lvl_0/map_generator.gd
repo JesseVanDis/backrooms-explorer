@@ -49,8 +49,11 @@ enum Pixel {
 	FLAG_WALL_TOP_GAP            = 0x00100000000000,
 	FLAG_ARCH_ROT_TO_E           = 0x00000001000000,
 	FLAG_ARCH_MIRROR             = 0x00000002000000,
-	PROP_CHAIR                   = 0x01000000000000, # scattered clutter, see '_gen_props' below. a tile carries at most one prop, so these are plain values, not bit flags
-	PROP_TRASH_BIN               = 0x02000000000000,
+	PROP_CHAIR_1                 = 0x01000000000000, # scattered clutter, see '_gen_props' below. a tile carries at most one prop, so these are plain values, not bit flags
+	PROP_CHAIR_2                 = 0x02000000000000, # scattered clutter, see '_gen_props' below. a tile carries at most one prop, so these are plain values, not bit flags
+	PROP_CHAIR_3                 = 0x03000000000000, # scattered clutter, see '_gen_props' below. a tile carries at most one prop, so these are plain values, not bit flags
+	PROP_STOOL_1                 = 0x04000000000000, # scattered clutter, see '_gen_props' below. a tile carries at most one prop, so these are plain values, not bit flags
+	PROP_BIN_1                   = 0x05000000000000,
 	INVALID                      = 0x7FFFFFFFFFFFFFFF
 }
 
@@ -73,11 +76,22 @@ enum WallFace {
 }
 
 const all_wall_faces: Array[WallFace] = [WallFace.FN_E, WallFace.FS_E, WallFace.FN_W, WallFace.FS_W, WallFace.FE_N, WallFace.FW_N, WallFace.FE_S, WallFace.FW_S]
-
+const all_props: Array[Pixel] = [
+	Pixel.PROP_CHAIR_1,
+	Pixel.PROP_CHAIR_2,
+	Pixel.PROP_CHAIR_3,
+	Pixel.PROP_STOOL_1,
+	Pixel.PROP_BIN_1
+]
+	
 class PropChances:
-	var total_spawn_chance: float = 0.001
-	var chance_weight_chair: float = 0.5
-	var chance_weight_bin: float = 0.5
+	var total_spawn_chance: float = 0.002
+	var weights: Dictionary = {} # {Pixel, float}
+	
+	func _init() -> void:
+		for v in all_props:
+			weights[v] = 0.25
+		# weights[Pixel.PROP_BIN_1] = 0.5
 
 
 const NUM_PASSES_IN_GEN_BIOMES = 1 # change this everytime you change the amount of cases in 'match pass_index' below
@@ -1396,9 +1410,6 @@ func _run_pass(x0: int, y0: int, x1: int, y1: int, target: PackedInt64Array, pas
 	# print("all_pixels_set_to_count: " + str(all_pixels_set_to_count) + " for index: " + str(pass_index))
 	return !all_pixels_set_to_count
 
-# final pass of every biome: marks the pixel with a chair or a trash bin, or leaves it untouched.
-# done here instead of in a separate post-process so props are part of the regular pass pipeline.
-# a bin is checked first and returned immediately, so a tile never carries more than one prop
 func _gen_props(ctx: Context, prop_chances: PropChances) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	if pp.tile_c != Pixel.TILE_EMPTY:
@@ -1408,18 +1419,17 @@ func _gen_props(ctx: Context, prop_chances: PropChances) -> Pixel:
 	rng.seed = hash(Vector3i(ctx.x, ctx.y, hash("props")))
 	
 	if rng.randf() < prop_chances.total_spawn_chance:
-		var total_weight: float = prop_chances.chance_weight_chair + prop_chances.chance_weight_bin
-		var rnd: float = rng.randf() * total_weight
-		rnd -= prop_chances.chance_weight_chair
-		if rnd < 0.0:
-			return pp.with_prop(Pixel.PROP_CHAIR)
-			
-		rnd -= prop_chances.chance_weight_bin
-		if rnd < 0.0:
-			return pp.with_prop(Pixel.PROP_TRASH_BIN)
+		var total_weight: float = 0.0
+		for v: float in prop_chances.weights.values():
+			total_weight += v
 		
-		# fallback 
-		return pp.with_prop(Pixel.PROP_CHAIR)
+		if total_weight > 0.0:
+			var rnd: float = rng.randf() * total_weight
+			for prop: Pixel in prop_chances.weights:
+				var weight: float = prop_chances.weights[prop]
+				rnd -= weight
+				if rnd < 0.0:
+					return pp.with_prop(prop)
 		
 	return pp.no_change()
 
@@ -1464,11 +1474,10 @@ class TileUtils:
 	static func to_color(pixel: Pixel) -> Color:
 		#if true:
 		#	return Color(float(pixel) / 255.0, float(pixel) / 255.0, float(pixel) / 255.0, 1.0)
-
-		match MapGenerator.get_prop(pixel):
-			Pixel.PROP_CHAIR:									return Color(0.0, 1.0, 0.0, 1.0) # green
-			Pixel.PROP_TRASH_BIN:								return Color(1.0, 0.5, 0.0, 1.0) # orange
-
+		
+		if pixel & PROP_MASK != 0:
+			return Color(0.0, 1.0, 0.0, 1.0) # green
+			
 		match pixel:
 			Pixel.BIOME_MESS    | Pixel.TILE_EMPTY:   return Color(0.587, 0.723, 1.0, 1.0)
 			Pixel.BIOME_ROOMS   | Pixel.TILE_EMPTY:   return Color(0.739, 0.634, 1.0, 1.0)
