@@ -51,6 +51,7 @@ exactly one owner so the same fact is never written down twice.
 │ DESIGN.md      MoSCoW feature list with progress, wiki interpretation     │
 │ TECHNICAL.md   how this level is built, scene tree, generation rules      │
 │ SCRIPT.md      narration / dialogue / subtitle text                       │
+│ NON_CANON.md   every design decision not sourced from the wiki, in one place │
 └───────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -73,6 +74,8 @@ Cross-level code lives in `assets/scripts/`. One spec per system:
 | [UI & subtitles](systems/ui_subtitles.md)         | `assets/scripts/player_subtitles.gd`, `scenes/menu_ui/menu_ui.gd`     |
 | [Utils](systems/utils.md)                         | `assets/scripts/utils/*.gd`                                           |
 | [Tooling](systems/tooling.md)                     | `tools/parse.sh`, `tools/static_check.sh`                             |
+| [Save and checkpoint](systems/save_system.md)     | none yet - planned, see the spec                                      |
+| [NPC bot](systems/npc_bot.md)                     | none yet - planned, see the spec                                      |
 
 ## 4. Levels
 
@@ -102,8 +105,10 @@ See the [level index](levels/README.md) for every level, its state, and where it
    - Added a script -> add an `[AI-DOC]` header.
 4. **Never invent lore.** Every gameplay claim must be traceable to the Backrooms Wiki page
    linked in the level's `DESIGN.md`, or be explicitly marked as `[interpretation]`.
-5. **Verify with `tools/static_check.sh`** before declaring a code change done.
-6. **Ask before editing an existing `.md` file** (hard rule in AGENTS.md). Creating new docs
+5. **Log every `[interpretation]` in that level's `NON_CANON.md`, in the same change.** See
+   [CONVENTIONS.md](CONVENTIONS.md#8-tracking-non-canon-additions).
+6. **Verify with `tools/static_check.sh`** before declaring a code change done.
+7. **Ask before editing an existing `.md` file** (hard rule in AGENTS.md). Creating new docs
    under `docs/ai/` as part of documenting your own change is expected and does not need asking.
 
 ---

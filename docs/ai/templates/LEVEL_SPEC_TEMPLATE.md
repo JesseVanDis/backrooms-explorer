@@ -7,7 +7,9 @@ they are - this document is meant to be machine readable, consistency matters mo
 Rules while filling it in:
 
 - Every lore claim must come from the linked wiki page. Anything you made up must be tagged
-  `[interpretation]` so a later contributor knows it is not canon.
+  `[interpretation]` so a later contributor knows it is not canon, **and** logged as a row in this
+  level's `NON_CANON.md` (copy [NON_CANON_TEMPLATE.md](NON_CANON_TEMPLATE.md) alongside this spec)
+  in the same change - see [CONVENTIONS.md](../CONVENTIONS.md#8-tracking-non-canon-additions).
 - Anything not decided yet is `TBD`, never a guess.
 - `state` values: `not-started` | `blocked` | `in-progress` | `playable` | `complete`.
 
@@ -107,4 +109,5 @@ so it can be turned directly into code.*
 - [DESIGN.md](DESIGN.md) - feature list and progress
 - [TECHNICAL.md](TECHNICAL.md) - how it is built
 - [SCRIPT.md](SCRIPT.md) - narration
+- [NON_CANON.md](NON_CANON.md) - every design decision in this level not sourced from the wiki
 - [AI documentation index](../../../docs/ai/README.md)

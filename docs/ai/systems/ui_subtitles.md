@@ -155,10 +155,14 @@ what the character says and when.
 
 ## 5. Known gaps
 
-- **No HUD.** No crosshair, interaction prompt, stamina, inventory or objective display - the only
-  UI node in `menu_ui.tscn` is the subtitle `Label`.
-- **No menus.** No main menu, no pause menu, no in-game overlay other than the fade screens of
-  [./level_flow.md](./level_flow.md).
+- **No HUD today, but not a permanent design choice.** No crosshair, interaction prompt, stamina,
+  inventory or objective display - the only UI node in `menu_ui.tscn` is the subtitle `Label`. A
+  Level 0 Game Over screen and a Red Room on-screen prompt are planned on top of this layer - see
+  section 7.
+- **No menus today, but two are now planned for Level 0.** No main menu, no pause menu, and
+  currently no in-game overlay other than the fade screens of [./level_flow.md](./level_flow.md) -
+  but see section 7 for the Holes Game Over screen and the Red Room restart prompt that are
+  planned to live here.
 - **No settings.** Subtitles cannot be turned off, resized or repositioned at runtime; the font
   size (20), outline (6) and anchor are baked into `menu_ui.tscn`. There is no audio/graphics/input
   options screen either.
@@ -178,8 +182,37 @@ what the character says and when.
 - Cue lookup is a linear scan over all cues every frame; fine at this scale, but there is no
   cursor/binary search and `_current_subtitle_index` is written but never used for anything.
 
-## 6. Related
+## 6. Planned additions (not implemented yet)
+
+Level 0's design (`scenes/lvl_0/docs/DESIGN.md`, `SPEC.md`) now calls for two more things drawn on
+top of the 3D world. Neither exists in code yet - this section exists so the next person who
+builds them has one place to start, and so section 5 above is not read as "menus and a HUD will
+never exist".
+
+- **Holes Game Over screen.** Falling through a Holes POI (see
+  [map_generation](./map_generation.md) and the lvl_0 `DESIGN.md`) is an instant death, shown as a
+  full-screen overlay with a clickable **"Restart from checkpoint"** button - the project's first
+  real menu, not just a fading title card. This needs the mouse released
+  (`Input.MOUSE_MODE_VISIBLE`) for the click, unlike the Red Room prompt below. Restarting calls
+  into the planned checkpoint system, see [./save_system.md](./save_system.md).
+- **Red Room restart prompt.** Once the player steps into a Red Room (gated behind having visited
+  the Manila room at least once - see [./npc_bot.md](./npc_bot.md)), a plain on-screen text reads
+  **"Press P to restart from checkpoint"**. This is a key-driven prompt, not a clickable button, by
+  design `[interpretation]`: the player never has to release the mouse while lost in the trap.
+  Pressing `P` triggers the same restart-from-checkpoint flow as the Game Over screen.
+- Both are expected to live as new scenes/scripts alongside `menu_ui.tscn` (likely new sibling
+  `CanvasLayer`s, or new nodes inside `IngameUI`), owned by `scenes/lvl_0/` rather than generalised
+  into a shared menu system on the first attempt - see the PRY rule in
+  [../CONVENTIONS.md](../CONVENTIONS.md#5-level-specific-vs-shared-code-pry). Generalise only once
+  a second level needs the same pattern.
+- Neither screen needs its own localisation, styling system, or settings - they inherit the same
+  gaps listed in section 5 until those are addressed project-wide.
+
+## 7. Related
 
 - [../ARCHITECTURE.md](../ARCHITECTURE.md) - where the UI layer sits inside a level's viewport
 - [./player.md](./player.md) - the voice queue, `get_subtitle_path`, and who calls the UI
 - [./audio.md](./audio.md) - voice recording pipeline and audio playback
+- [./save_system.md](./save_system.md) - the planned checkpoint/restart flow both new screens call into
+- [./npc_bot.md](./npc_bot.md) - the Manila room bot that gates Red Rooms
+- [lvl_0 DESIGN.md](../../../scenes/lvl_0/docs/DESIGN.md) - the feature list these screens belong to

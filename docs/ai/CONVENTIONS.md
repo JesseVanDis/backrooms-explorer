@@ -148,12 +148,15 @@ constant. The level passes those in (`apply_footsteps()`, `@export` fields on `T
    `scenes/lvl_<n>/docs/SPEC.md` and fill it in from the wiki page.
 3. Add `docs/DESIGN.md` (MoSCoW + progress) and `docs/TECHNICAL.md` (how it is built).
    Add `docs/SCRIPT.md` if there is narration.
-4. Create `lvl_<n>.tscn` following the scene anatomy in [ARCHITECTURE.md](ARCHITECTURE.md#3-scene-anatomy-of-a-level).
-5. Create `lvl_<n>.gd` with `class_name Lvl_<n>`, an `[AI-DOC]` header, and - if the level needs
+4. Copy [templates/NON_CANON_TEMPLATE.md](templates/NON_CANON_TEMPLATE.md) to `docs/NON_CANON.md`
+   and fill it in with every `[interpretation]`-tagged claim already in the files above - see
+   section 8 below.
+5. Create `lvl_<n>.tscn` following the scene anatomy in [ARCHITECTURE.md](ARCHITECTURE.md#3-scene-anatomy-of-a-level).
+6. Create `lvl_<n>.gd` with `class_name Lvl_<n>`, an `[AI-DOC]` header, and - if the level needs
    heavy loading - `initialize_async()` / `initialized()`.
-6. Wire the exit(s) with `LevelTransition`.
-7. Register the level in [levels/README.md](levels/README.md) and [STATUS.md](STATUS.md).
-8. Run `tools/static_check.sh`.
+7. Wire the exit(s) with `LevelTransition`.
+8. Register the level in [levels/README.md](levels/README.md) and [STATUS.md](STATUS.md).
+9. Run `tools/static_check.sh`.
 
 ## 7. Adding a new shared script: checklist
 
@@ -165,7 +168,37 @@ constant. The level passes those in (`apply_footsteps()`, `@export` fields on `T
 
 ---
 
-## 8. Definition of done
+## 8. Tracking non-canon additions
+
+Every gameplay claim must be traceable to the Backrooms Wiki page linked in the level's spec, or
+be explicitly tagged `[interpretation]` (see [GLOSSARY.md](GLOSSARY.md)). Tagging inline is not
+enough on its own - each level also keeps a **`NON_CANON.md`** that gathers every one of those
+tags into a single, scannable list, so a later contributor (or a future wiki update) can see at a
+glance what in a level is invented versus sourced.
+
+- Location: `scenes/<level>/docs/NON_CANON.md` for a level with a scene folder, or
+  `docs/ai/levels/planned/<level>_non_canon.md` for a level that only has a draft spec so far
+  (move it to the `scenes/` location the moment a scene folder is created, same rule as the spec
+  itself - see section 6 below).
+- Template: [templates/NON_CANON_TEMPLATE.md](templates/NON_CANON_TEMPLATE.md).
+- **Scope: world/lore decisions only.** `NON_CANON.md` tracks facts about the Backrooms world
+  itself that the wiki leaves undescribed (an NPC, an entity behaviour, what happens to the
+  player, dialogue, set dressing). It does **not** track purely gameplay-engine or UI mechanics -
+  menus, buttons, on-screen prompts, save/restart plumbing, HUD elements - because those are
+  needed by the game regardless of what the wiki says, so there is no lore gap for them to fill.
+  Still tag those `[interpretation]` inline where relevant, just do not add a `NON_CANON.md` row
+  for them.
+- **Whenever the wiki does not describe a world/lore fact and a new decision has to be made up
+  to fill that gap, do both of these in the same change:**
+  1. Tag the claim `[interpretation]` where it is actually written (`SPEC.md`, `DESIGN.md`,
+     `SCRIPT.md`, or the relevant `docs/ai/systems/*.md`).
+  2. Add a one-row entry to that level's `NON_CANON.md` describing the addition, the gap it
+     fills, and where it is documented.
+- A level whose spec is "n/a - not canon" by design (no detailed wiki page exists to compare
+  against, e.g. `frontroom_0`) still gets a short `NON_CANON.md` saying so, so the absence of a
+  wiki is itself a documented, deliberate fact rather than an oversight.
+
+## 9. Definition of done
 
 A change is done when **all** of these hold:
 

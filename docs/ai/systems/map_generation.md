@@ -656,13 +656,23 @@ Cross-checked against `scenes/lvl_0/docs/DESIGN.md`:
   half is still produced by rotating one model, and `part_arch_i_mirror.tscn` is dead weight.
 - **Biome: Pillars - 0% in DESIGN.md.** Same: `_gen_biome_pillars` exists but is minimal - a 2 x 2
   block every 3 tiles, six empty placeholder passes, and no wall line/skirt detailing at all.
-- **Biome: Holes - not implemented.** No `Pixel` value, no pass, no part scene.
+- **Biome: Holes - not implemented.** No `Pixel` value, no pass, no part scene. Per the wiki, Holes
+  are a grid-pattern pit cluster generated "like the pillars" - so per the resolved design in
+  `scenes/lvl_0/docs/DESIGN.md` this should become a sixth `BIOME_*` value implemented the same way
+  as `BIOME_PILLARS` (a grid of pitch-black pits), not a handcrafted one-off POI like the Manila
+  room. It does not lead to another level - walking into one is meant to trigger a Game Over screen
+  (see [./ui_subtitles.md](./ui_subtitles.md) section 6 and [./save_system.md](./save_system.md)).
 - **Biome: Blackout zones - not implemented.** Lights are the only lighting control and there is no
-  "no light" biome.
+  "no light" biome. Planned as a fifth `BIOME_*` value alongside `MESS`/`ROOMS`/`ARCHES`/`PILLARS`,
+  with a shallow-water tile subset and a hand-feel wall shader - see `DESIGN.md`.
 - **Biome: Extremely loud buzzing sound - not implemented.** Nothing in the generator produces audio
   markers.
-- **Biome: Manila room - not implemented.**
-- **Biome: Red rooms (Should) and The torment (Could) - not implemented.**
+- **Biome: Manila room - not implemented.** Planned as a handcrafted POI (like `entry_tube.tscn`),
+  not a tiled biome, gated by the save system so it stops appearing once visited once - see
+  [./npc_bot.md](./npc_bot.md) and [./save_system.md](./save_system.md).
+- **Biome: Red rooms (Should) and The torment (Could) - not implemented.** Red rooms are planned to
+  only become selectable by the biome generator once the save system reports the Manila room has
+  been visited - see `DESIGN.md` and [./save_system.md](./save_system.md).
 - **No glitched wall / exit to lvl_1.** `lvl_0.gd` never constructs a `LevelTransition`, and there
   is no `Pixel` value, flag or part for a glitched wall. Level 0 currently has no exit at all.
 - **No "layout changes where you don't look".** Generation is a pure function of the tile
@@ -697,3 +707,5 @@ Cross-checked against `scenes/lvl_0/docs/DESIGN.md`:
 - [./level_flow.md](./level_flow.md) - `LevelTransition` and the async loading contract
 - [../../../scenes/lvl_0/docs/SPEC.md](../../../scenes/lvl_0/docs/SPEC.md) - what Level 0 must be
 - [../../../scenes/lvl_0/docs/TECHNICAL.md](../../../scenes/lvl_0/docs/TECHNICAL.md) - Level 0 build notes (stale, see section 5)
+- [./npc_bot.md](./npc_bot.md) - the Manila room POI and its gating of Red Rooms
+- [./save_system.md](./save_system.md) - the persisted flag that gates the Manila room and Red Rooms

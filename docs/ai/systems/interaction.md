@@ -168,7 +168,9 @@ Always reference the generated `voice/gen/*.ogg`, never the `.flac` - see [./aud
   script reads input; everything is proximity or look-at driven.
 - No pickup, carry or inventory system. Boxes are plain `RigidBody3D` / `PhysicsSounds` objects that can
   only be pushed by walking into them.
-- No entity interaction at all: there are no NPCs or entities to interact with.
+- No entity interaction at all today: there are no NPCs or entities to interact with. A first one -
+  the Manila room's briefing bot - is planned on top of `Trigger`, see
+  [./npc_bot.md](./npc_bot.md).
 - `Trigger` fires exactly once per level load and cannot be reset, repeated, or disabled from script.
 - `Mode.None` with more than one stream is not implemented and only emits
   `push_error("Non-voice sound sequence not implemented yet.")`.
@@ -184,3 +186,4 @@ Always reference the generated `voice/gen/*.ogg`, never the `.flac` - see [./aud
 - [../ARCHITECTURE.md](../ARCHITECTURE.md) - how the systems are wired together at runtime.
 - [./player.md](./player.md) - `replace_voice` / `push_back_voice` / `push_front_voice` and the camera used by the look-at condition.
 - [./audio.md](./audio.md) - buses, the voice pipeline and the shared sounds in `assets/sounds/`.
+- [./npc_bot.md](./npc_bot.md) - the planned Manila room bot, the first thing built on top of `Trigger` that is not purely proximity driven.

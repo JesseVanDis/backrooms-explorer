@@ -11,8 +11,8 @@ Legend for **State**: `not-started` | `blocked` | `in-progress` | `playable` | `
 
 | Scene                 | Name                | State       | Docs                                                     |
 |-----------------------|---------------------|-------------|-----------------------------------------------------------|
-| `scenes/frontroom_0`  | Frontrooms 0 - Home | in-progress | [SPEC](../../../scenes/frontroom_0/docs/SPEC.md) · [SCRIPT](../../../scenes/frontroom_0/docs/SCRIPT.md) |
-| `scenes/lvl_0`        | Level 0 - The Lobby | in-progress | [SPEC](../../../scenes/lvl_0/docs/SPEC.md) · [DESIGN](../../../scenes/lvl_0/docs/DESIGN.md) · [TECHNICAL](../../../scenes/lvl_0/docs/TECHNICAL.md) · [SCRIPT](../../../scenes/lvl_0/docs/SCRIPT.md) |
+| `scenes/frontroom_0`  | Frontrooms 0 - Home | in-progress | [SPEC](../../../scenes/frontroom_0/docs/SPEC.md) · [SCRIPT](../../../scenes/frontroom_0/docs/SCRIPT.md) · [NON_CANON](../../../scenes/frontroom_0/docs/NON_CANON.md) |
+| `scenes/lvl_0`        | Level 0 - The Lobby | in-progress | [SPEC](../../../scenes/lvl_0/docs/SPEC.md) · [DESIGN](../../../scenes/lvl_0/docs/DESIGN.md) · [TECHNICAL](../../../scenes/lvl_0/docs/TECHNICAL.md) · [SCRIPT](../../../scenes/lvl_0/docs/SCRIPT.md) · [NON_CANON](../../../scenes/lvl_0/docs/NON_CANON.md) |
 
 ## Support scenes
 
@@ -28,11 +28,11 @@ Legend for **State**: `not-started` | `blocked` | `in-progress` | `playable` | `
 Specs below are **written from the wiki, not from code**. Nothing here exists yet. They are
 starting points to argue with, not commitments.
 
-| Level   | Name                   | State       | Spec                                 |
-|---------|------------------------|-------------|---------------------------------------|
-| `lvl_1` | Habitable Zone         | not-started | [planned/lvl_1.md](planned/lvl_1.md)  |
-| `lvl_2` | Pipe Dreams            | not-started | [planned/lvl_2.md](planned/lvl_2.md)  |
-| `lvl_3` | Electrical Station     | not-started | [planned/lvl_3.md](planned/lvl_3.md)  |
+| Level   | Name                   | State       | Spec                                 | Non-canon log                                        |
+|---------|------------------------|-------------|---------------------------------------|-------------------------------------------------------|
+| `lvl_1` | Habitable Zone         | not-started | [planned/lvl_1.md](planned/lvl_1.md)  | [planned/lvl_1_non_canon.md](planned/lvl_1_non_canon.md) |
+| `lvl_2` | Pipe Dreams            | not-started | [planned/lvl_2.md](planned/lvl_2.md)  | [planned/lvl_2_non_canon.md](planned/lvl_2_non_canon.md) |
+| `lvl_3` | Electrical Station     | not-started | [planned/lvl_3.md](planned/lvl_3.md)  | [planned/lvl_3_non_canon.md](planned/lvl_3_non_canon.md) |
 
 Further levels from the roadmap in [README.md](../../../README.md) have no spec yet. When you
 start one, copy [the template](../templates/LEVEL_SPEC_TEMPLATE.md) and add a row above.
@@ -68,4 +68,7 @@ out of it. Anything that claims otherwise is wrong.
 - The moment a level gets a `scenes/lvl_<n>/` folder, **move** its spec to
   `scenes/lvl_<n>/docs/SPEC.md` and replace the row above with a link to the new location.
   A spec must never exist in two places.
+- Every level also keeps a `NON_CANON.md` (`planned/<level>_non_canon.md` until it has a scene
+  folder, then `scenes/lvl_<n>/docs/NON_CANON.md`) - move it alongside the spec, at the same time.
+  See [CONVENTIONS.md](../CONVENTIONS.md#8-tracking-non-canon-additions).
 - Never copy wiki prose verbatim into a spec. Summarise, and link the source.
