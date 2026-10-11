@@ -79,17 +79,17 @@
 	],
 	"images":[
 		{
-			"mimeType":"image/png",
+			"mimeType":"image/jpg",
 			"name":"chair_Normal",
 			"uri":"specific_textures/chair_Normal.jpg"
 		},
 		{
-			"mimeType":"image/png",
+			"mimeType":"image/jpg",
 			"name":"chair_bcolor",
 			"uri":"specific_textures/chair_bcolor.jpg"
 		},
 		{
-			"mimeType":"image/png",
+			"mimeType":"image/jpg",
 			"name":"chair_Metallic-chair_Roughness",
 			"uri":"specific_textures/chair_Metallic-chair_Roughness.jpg"
 		}
