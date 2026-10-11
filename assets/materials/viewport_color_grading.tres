@@ -3,15 +3,15 @@
 [ext_resource type="Shader" uid="uid://b37htylxv0px3" path="res://assets/materials/viewport_color_grading.gdshader" id="1_225yj"]
 
 [sub_resource type="Curve" id="Curve_xkndf"]
-_data = [Vector2(0, 0), 0.0, 1.9809097, 0, 1, Vector2(0.058176097, 0.11524159), 1.1452135, 1.1452135, 0, 0, Vector2(0.5, 0.50185865), 0.73375195, 0.73375195, 0, 0, Vector2(1, 0.8550185), 0.7063197, 0.0, 1, 0]
+_data = [Vector2(0, 0), 0.0, 1.7594879, 0, 1, Vector2(0.067610055, 0.11895907), 1.1452135, 1.1452135, 0, 0, Vector2(0.5, 0.50185865), 0.73375195, 0.73375195, 0, 0, Vector2(1, 0.8550185), 0.7063197, 0.0, 1, 0]
 point_count = 4
 
 [sub_resource type="Curve" id="Curve_225yj"]
-_data = [Vector2(0, 0), 0.0, 1.0671141, 0, 1, Vector2(0.93710697, 1), 1.0671141, 0.0, 1, 0]
+_data = [Vector2(0, 0), 0.0, 1.0547264, 0, 1, Vector2(0.9481132, 1), 1.0547264, 0.0, 1, 0]
 point_count = 2
 
 [sub_resource type="Curve" id="Curve_cw8ms"]
-_data = [Vector2(0, 0), 0.0, 0.8423461, 0, 1, Vector2(0.7767295, 0.65427506), 1.0996802, 1.0996802, 0, 0, Vector2(1, 1), 1.7580785, 0.0, 0, 0]
+_data = [Vector2(0, 0), 0.0, 0.93991095, 0, 1, Vector2(0.7672956, 0.7211895), 1.0996802, 1.0996802, 0, 0, Vector2(1, 1), 1.3943381, 0.0, 0, 0]
 point_count = 3
 
 [sub_resource type="CurveXYZTexture" id="CurveXYZTexture_0yo3g"]
@@ -21,7 +21,7 @@ curve_z = SubResource("Curve_cw8ms")
 
 [resource]
 shader = ExtResource("1_225yj")
-shader_parameter/temperature = 0.4350000681624999
-shader_parameter/tint = -0.34899996907749997
+shader_parameter/temperature = 0.4960000710600001
+shader_parameter/tint = -0.257999964755
 shader_parameter/curve_rgb = SubResource("CurveXYZTexture_0yo3g")
-shader_parameter/color_boost = 0.8810000418475
+shader_parameter/color_boost = 0.414000019665
