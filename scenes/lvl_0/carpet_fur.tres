@@ -6,7 +6,7 @@
 [resource]
 render_priority = 0
 shader = ExtResource("1_4d53l")
-shader_parameter/base_color = Color(0.89395744, 0.86449385, 0.7237634, 1)
+shader_parameter/base_color = Color(0.5511542, 0.51298296, 0.32201692, 1)
 shader_parameter/noise_texture = ExtResource("2_w7b7n")
 shader_parameter/noise_strength = 1.0
 shader_parameter/noise_scale = 9.46000044935
