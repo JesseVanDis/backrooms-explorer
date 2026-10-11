@@ -410,15 +410,30 @@ func _find_spawn_point() -> Vector2i:
 				return Vector2i(x, y)
 	return Vector2i(1, 1)
 
+# freeing a chunk frees every graphic and collision shape that was parented to it, so the PlacedTiles
+# (and the streaming caches) of that chunk must be forgotten as well. otherwise they keep pointing at
+# freed nodes, which crashes the next 'queue_free' on them and, when the chunk is generated again,
+# makes the stale entries block the new graphics from ever being created.
+func _forget_placed_tiles_of_chunk(chunk: Chunk) -> void:
+	for y in range(chunk.section.y, chunk.section.y + chunk.section.h):
+		for x in range(chunk.section.x, chunk.section.x + chunk.section.w):
+			var tile_index: Vector2i = Vector2i(x, y)
+			placed_tiles.erase(tile_index)
+			_graphic_tiles_cache.placed_tiles.erase(tile_index)
+			_collision_tiles_cache.placed_tiles.erase(tile_index)
+
 func _remove_chunk(chunk_index: Vector2i) -> void:
 	print("Removing chunk: " + str(chunk_index))
 	var chunk_node: Node3D = chunks[chunk_index].tiles
 	var chunk_collisions: StaticBody3D = chunks[chunk_index].static_body_3d
 	var chunk_name: String = chunk_node.name
 	var chunk_collisions_name: String = chunk_collisions.name
+	var chunk: Chunk = chunks[chunk_index]
+	_forget_placed_tiles_of_chunk(chunk)
 	_node_map.remove_child(chunk_node)
 	_node_map.remove_child(chunk_collisions)
 	chunk_node.queue_free()
+	chunk_collisions.queue_free()
 	
 	# Clean up collision shapes that were moved to the global StaticBody3D ( not tested ) 
 	get_tree().call_group("col_" + chunk_name, "queue_free")
@@ -485,7 +500,8 @@ func _handle_static_collision_shapes() -> void:
 	var remove: Callable = func(placed_tile: PlacedTile) -> void:
 		for collision_shapes: Array[CollisionShape3D] in placed_tile.collision_shapes.values():
 			for collision_shape in collision_shapes:
-				collision_shape.queue_free() # automatically removes it from the scene as well.
+				if is_instance_valid(collision_shape):
+					collision_shape.queue_free() # automatically removes it from the scene as well.
 		placed_tile.collision_shapes = {}
 		
 	_handle_tiles_in_radius(2, _collision_tiles_cache, create, remove)
@@ -506,8 +522,10 @@ func _handle_tile_graphics() -> void:
 				placed_tile.graphics[model.id] = graphic
 	
 	var remove: Callable = func(placed_tile: PlacedTile) -> void:
-		for graphic: Node3D in placed_tile.graphics.values():
-			graphic.queue_free() # gets remove from the parent automatically
+		for graphic: Variant in placed_tile.graphics.values():
+			if is_instance_valid(graphic): # already freed when its chunk was removed
+				var graphic_node: Node3D = graphic
+				graphic_node.queue_free() # gets remove from the parent automatically
 		placed_tile.graphics = {}
 	
 	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, 50)
