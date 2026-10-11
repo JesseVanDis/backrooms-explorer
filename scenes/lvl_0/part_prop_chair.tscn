@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/lvl_0/part_prop_chair.glb" id="1_chair"]
+[ext_resource type="PackedScene" path="res://scenes/lvl_0/part_prop_chair.blend" id="1_chair"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_chair"]
 size = Vector3(0.45, 0.85, 0.45)

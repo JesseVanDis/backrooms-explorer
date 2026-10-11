@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/lvl_0/part_prop_trash_bin.glb" id="1_trash_bin"]
+[ext_resource type="PackedScene" path="res://scenes/lvl_0/part_prop_trash_bin.blend" id="1_trash_bin"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_trash_bin"]
 radius = 0.18
