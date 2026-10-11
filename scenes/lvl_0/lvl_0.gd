@@ -19,6 +19,8 @@ var model_ceiling_light_blinking: Model = _load_model(preload("res://scenes/lvl_
 var model_wall_x:                 Model = _load_model(preload("res://scenes/lvl_0/part_wall_x.tscn"))
 var model_arch_i:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_i.tscn"))
 var model_arch_e:                 Model = _load_model(preload("res://scenes/lvl_0/part_arch_e.tscn"))
+var model_prop_chair:             Model = _load_model(preload("res://scenes/lvl_0/part_prop_chair.tscn"))
+var model_prop_trash_bin:         Model = _load_model(preload("res://scenes/lvl_0/part_prop_trash_bin.tscn"))
 
 @onready var _node_map: Node3D = $_viewport_container/_viewport/Map
 var _player: Player = null
@@ -345,6 +347,32 @@ func _get_wall_t_px(x: int, y: int) -> Vector2i:
 	if !wall_w: return Vector2i(x + 1, y)
 	return Vector2i(0, 0)
 
+const PROP_CHAIR_ROTATIONS: Array[float] = [0.0, PI / 2.0, PI, PI * 1.5]
+
+func _get_prop_chair_angle(tile_index: Vector2i) -> float:
+	return PROP_CHAIR_ROTATIONS[hash(tile_index) % PROP_CHAIR_ROTATIONS.size()]
+
+# bins are only ever marked by the generator when exactly one of these sides is a wall; orients
+# the bin so its open side faces away from that wall, leaving the other three sides open
+func _get_prop_trash_bin_angle(tile_index: Vector2i) -> float:
+	var wall_n: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x, tile_index.y - 1))
+	var wall_s: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x, tile_index.y + 1))
+	var wall_e: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x + 1, tile_index.y))
+	var wall_w: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x - 1, tile_index.y))
+	if wall_n: return PI
+	if wall_s: return 0.0
+	if wall_e: return -PI / 2.0
+	if wall_w: return PI / 2.0
+	push_error("trash bin at " + str(tile_index) + " has no adjacent wall")
+	return 0.0
+
+func _place_prop(pixel: MapGenerator.Pixel, tile_index: Vector2i) -> void:
+	match MapGenerator.get_prop(pixel):
+		MapGenerator.Pixel.PROP_CHAIR:
+			_instantiate_model(model_prop_chair, tile_index, _get_prop_chair_angle(tile_index))
+		MapGenerator.Pixel.PROP_TRASH_BIN:
+			_instantiate_model(model_prop_trash_bin, tile_index, _get_prop_trash_bin_angle(tile_index))
+
 func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 	var pixel: MapGenerator.Pixel = section.get_pixel(x, y)
 	var tile_index: Vector2i = Vector2i(x, y)
@@ -354,6 +382,8 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 	if (((pixel & MapGenerator.TILE_MASK) != MapGenerator.Pixel.TILE_CEILING_LIGHT) && 
 		((pixel & MapGenerator.TILE_MASK) != MapGenerator.Pixel.TILE_CEILING_LIGHT_BLINKING)):
 		_instantiate_model(model_ceiling, tile_index, 0)
+	
+	_place_prop(pixel, tile_index)
 	
 	match pixel & MapGenerator.TILE_MASK:
 		MapGenerator.Pixel.TILE_EMPTY:

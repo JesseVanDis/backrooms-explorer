@@ -149,7 +149,7 @@ do not duplicate them here.
 | `wallpaper_dark_touch.gdshader` (hand-feel) | shader | missing |
 | `carpet_wet_shallow.gdshader`           | shader   | missing |
 | `wallpaper_peel_red.gdshader` (gradual Red Room approach: peeling wallpaper, carpet/colour shift) | shader | missing |
-| Scattered prop pool (chair, trash bin)  | model    | missing |
+| Scattered prop pool (`part_prop_chair.tscn`, `part_prop_trash_bin.tscn`) | model | done |
 | Holes Game Over overlay + button        | UI       | missing |
 | Red Room restart text prompt            | UI       | missing |
 
@@ -200,7 +200,8 @@ Planned, not yet recorded:
       to turn back before it is too late. Red Rooms do not appear at all before the Manila room has
       been visited once; after that they can appear, trigger the "SHIT!" voice line on full entry,
       and have no walkable exit, only the `P`-to-restart prompt.
-- [ ] Scattered props (chairs, trash bins) appear at low density and are pushable.
+- [x] Scattered props (chairs, trash bins) appear at low density, deterministically marked by the
+      map generator on safe walkable tiles, and are static (not pushable).
 - [ ] `tools/static_check.sh` passes.
 - [ ] `scenes/lvl_0/tests/test_map_gen.sh` produces a `result.png` with no obvious artefacts.
 

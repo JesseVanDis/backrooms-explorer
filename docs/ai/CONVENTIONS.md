@@ -11,6 +11,7 @@ Copied here only as a reminder. The authority is [../../AGENTS.md](../../AGENTS.
 
 - Use `const` wherever possible (split functions if that is what it takes).
 - Type hint **everything**, including `bool` and `float`.
+- Add or update a reasoning comment directly above every function you add or change.
 - Never modify third party assets or `addons/`.
 - Ask permission before changing an existing `.md` file.
 - No abbreviations in names. The only allowed one is `dt`.
@@ -75,6 +76,19 @@ authored in Blender. Examples in use: `_viewport_container`, `_viewport`, `_Hand
 ---
 
 ## 4. Code patterns in use
+
+### Changed functions explain why
+
+Whenever a function is added or changed, place a comment directly above it explaining why the
+function exists or why the change is necessary. Keep the comment focused on reasoning and context;
+do not merely translate the function name or implementation into prose. Update an existing comment
+when its reasoning is no longer accurate.
+
+```gdscript
+# Keeps prop placement stable when a chunk is regenerated from overlapping world coordinates.
+func _get_prop_chair_angle(tile_index: Vector2i) -> float:
+	return PROP_CHAIR_ROTATIONS[hash(tile_index) % PROP_CHAIR_ROTATIONS.size()]
+```
 
 ### Null checks always report
 

@@ -118,11 +118,22 @@ above.** This project adds a one-off NPC on top of that canon room:
    menus"/"No HUD") has been corrected: Level 0 now needs two small, deliberately different UI
    elements (click vs. key-press), not a full menu system.
 
-### Scattered clutter
+### Scattered clutter `[interpretation: set dressing, not mentioned on the wiki]`
 
- - Low-density scattered props (chairs, trash bins, and similar office debris) placed per-chunk
-   during tile instantiation, collision-light (`RigidBody3D` + `PhysicsSounds`, matching the
-   frontrooms' moving boxes) so they are pushable, not static dressing.
+ - Two prop types implemented so far: a chair and a trash bin. Placement is decided by the map
+   generator itself, not by `Lvl_0` at render time: the last pass of every biome chain in
+   `map_generator.gd` reserves a byte on the 64-bit pixel (`PROP_MASK`) and marks eligible,
+   sparsely-spaced `TILE_EMPTY` floor tiles with `PROP_CHAIR` or `PROP_TRASH_BIN` once all walls
+   and arches have settled. This keeps placement deterministic and stable across chunk regeneration.
+ - Chairs favour open floor tiles and get a coordinate-derived cardinal rotation. Trash bins only
+   spawn on tiles with exactly one adjacent wall and are oriented so their open side faces away
+   from it.
+ - Both props are **static**: plain `MeshInstance3D` + `CollisionShape3D` scenes
+   (`part_prop_chair.tscn`, `part_prop_trash_bin.tscn`) with no `RigidBody3D`/`PhysicsSounds` - they
+   block the player but cannot be pushed, moved, or interacted with. They reuse the existing
+   chunk-streamed graphics/static-collision lifetime, same as floor and wall tiles.
+ - See [map_generation.md](../../../docs/ai/systems/map_generation.md) for the pixel contract and
+   prop pass.
 
 ## MoSCoW
 
@@ -161,7 +172,7 @@ above.** This project adds a one-off NPC on top of that canon room:
 |----------------------------------|--------------|------|
 | **Map**                          | -            | -    |
 | - Biome: Red rooms               | 0%           | Canon infinite looping corridors, no true exit; gradual peeling-wallpaper/carpet/colour approach; gated behind a Manila room visit `[interpretation]`; `P`-to-restart prompt |
-| - Scattered props (chairs, trash bins) | 0%     | Low density, per-chunk, pushable `RigidBody3D` |
+| - Scattered props (chairs, trash bins) | 100%   | Static, map-generator-marked, low density; see "Scattered clutter" above |
 
 
 ### Could 

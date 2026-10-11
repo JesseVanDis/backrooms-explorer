@@ -98,6 +98,7 @@ Relevant constants of `scenes/lvl_0/map_generator.gd`:
 | `WALL_MASK`              | `0x00000000FF00`   | Bits 8-15 - non-zero means "blocks movement" (wall or arch).   |
 | `TILE_MASK`              | `0x000000FFFF00`   | Bits 8-23 - the whole tile kind, including `WALL_MASK`.        |
 | `FLAG_MASK`              | `0xFFFFFF000000`   | Bits 24+ - the per-tile flags. **Unused** in the current code. |
+| `PROP_MASK`              | `0xFF000000000000` | Bits 48-55 - one scattered-clutter value per tile (`PROP_CHAIR` = `0x01...`, `PROP_TRASH_BIN` = `0x02...`). Plain values, not bit flags, because a tile carries at most one prop. See section 4.9. |
 | `NUM_PASSES_IN_GEN_BIOMES` | `1`              | How many leading passes belong to biome selection.             |
 
 ### World position -> tile -> chunk
@@ -369,6 +370,39 @@ There is **no global seed**. `Context.random()` builds a fresh `RandomNumberGene
 a deterministic function of the global tile coordinate, which is what makes chunks seamless and the
 generator reproducible across runs. The flip side is that the world is always the same world.
 
+### 4.9 Prop pass
+
+Runs as the **last pass of every biome chain** (`_gen_biome_mess` pass 13, `_gen_biome_rooms` 12,
+`_gen_biome_arches` 12, `_gen_biome_pillars` 11), each of which just calls the shared
+`_gen_props(ctx)`. Because it is the final case of the chain, every wall/arch it looks at is already
+settled, and it reads the previous pass through `ctx.get_at_offset`, which clamps at the section
+edge - the same way the structural passes rely on the generation margin for their neighbourhood
+checks. **Keep it the last case** when adding passes to a biome: `PreviousPass.with_tile` rebuilds a
+pixel from biome + tile only, so a later structural pass would wipe the prop value again.
+
+Placement is grid based, not scan-order based: the generator divides the plane into
+`PROP_CHAIR_GRID_SIZE` / `PROP_TRASH_BIN_GRID_SIZE` (both `6`) tile cells, and for each cell derives,
+purely from that cell's own global coordinates (via `hash()`, no mutable RNG state):
+
+- whether the cell rolls a prop at all (`PROP_CHAIR_CHANCE` / `PROP_TRASH_BIN_CHANCE`, both `0.2`);
+- one candidate tile inside the cell;
+- a priority score used to resolve conflicts between nearby cells.
+
+A candidate only survives if its tile is exactly `TILE_EMPTY` (that alone means walkable and free),
+it is outside `PROP_SPAWN_EXCLUSION_RADIUS` = `12` tiles around the origin, its four neighbours are
+in the same biome (so the walls it sees are final), **and** no valid candidate in a neighbouring
+cell (3x3 neighbourhood) closer than the grid size has a higher priority score - this keeps minimum
+spacing between same-type props deterministic and local, with no dependency on scan order, so two
+overlapping sections (or the same section regenerated) always agree pixel for pixel. A rival
+candidate in a *different* biome is counted by its dice roll alone (its walls may not be final
+yet), which gives both sides the same verdict and keeps the spacing intact at biome borders.
+Chairs require `PROP_CHAIR_MIN_OPEN_NEIGHBORS` (`3`) non-wall orthogonal neighbours (open floor, not
+a tight corner); trash bins require exactly one orthogonally adjacent `TILE_WALL`.
+
+A tile can only ever carry one prop: `_gen_props` returns the bin first if it wins, otherwise the
+chair, and the value is written with `with_prop(pixel, prop)` onto the existing `TILE_EMPTY` pixel
+(biome preserved) - see `PROP_MASK` in section 3 and `Lvl_0._place_prop()` in section 5.
+
 ## 5. Tile to model mapping
 
 Loaded once in `lvl_0.gd` via `_load_model(preload(...))`, which splits each `part_*.tscn` into a
@@ -385,6 +419,8 @@ Loaded once in `lvl_0.gd` via `_load_model(preload(...))`, which splits each `pa
 | `TILE_ARCH`                           | `part_arch_i.tscn`                             | Via `_place_wall(model_arch_i, null, model_arch_e, tile_index)`.         |
 | `part_arch_i_mirror.tscn`             | **never instantiated**                         | The file exists in `scenes/lvl_0/` but no script references it; mirroring is done by rotating `part_arch_i` by PI. |
 | `part_arch_e.tscn`                    | loaded as `model_arch_e`, **never placed**     | It is passed into `_place_wall` as `_wall_model_e`, which is unused (the underscore prefix marks it so). |
+| `PROP_CHAIR` bit set                  | `part_prop_chair.tscn`                         | Via `_place_prop(pixel, tile_index)`, called from `_add_tile` right after floor/ceiling, before the `TILE_MASK` match - see below. |
+| `PROP_TRASH_BIN` bit set              | `part_prop_trash_bin.tscn`                     | Same call site as the chair; static-only, no `RigidBody3D`/`PhysicsSounds`.|
 
 Arch rotation (`_place_wall`), applied with `graphic.rotate_y(angle)`:
 
@@ -416,6 +452,21 @@ it talks about a script `generate_level.gd` and a part `part_1x1_wall` with "onl
 the positive Y, located at exactly [0,0,0]". Neither of those names exists in the project any more
 (the script is `map_generator.gd`, the part is `part_wall_x.tscn`). Treat the suffix table above as
 the authoritative convention.
+
+### Prop orientation convention
+
+`_place_prop()` picks the `angle` passed to `_instantiate_model` per prop type:
+
+| Prop         | `angle` source                                                                 |
+|--------------|---------------------------------------------------------------------------------|
+| `PROP_CHAIR` | `_get_prop_chair_angle(tile_index)` - one of `{0, PI/2, PI, PI*1.5}` picked by `hash(tile_index)`, purely cosmetic variety. |
+| `PROP_TRASH_BIN` | `_get_prop_trash_bin_angle(tile_index)` - looks at the same four neighbours the generator already required exactly one of to be a `TILE_WALL`, and rotates the bin so its open side faces away from it. |
+
+Caveat shared with every other model on a tile: `PlacedTile` stores a single `angle` for the whole
+tile (section 6), so instantiating a prop on a tile overwrites the `angle` the floor/ceiling/light
+model on that same tile renders and collides with. This is harmless here because those models are
+visually symmetric under 90-degree rotation, but it means a future prop type that is *not*
+rotationally simple would need `PlacedTile`/`_instantiate_model` reworked to carry a per-model angle.
 
 ## 6. Streaming and pooling
 
@@ -589,7 +640,7 @@ Public state (no accessors; read directly):
 | `chunks_in_progress` / `chunks_in_progress_mutex` | pending generations, guarded                 |
 | `chunks_in_results` / `chunks_in_results_mutex`   | finished `Section`s, guarded                 |
 | `chunk_threads`                             | `Dictionary` - `Vector2i` -> `Thread`              |
-| `model_floor`, `model_ceiling`, `model_ceiling_light`, `model_ceiling_light_blinking`, `model_wall_x`, `model_arch_i`, `model_arch_e` | `Model` |
+| `model_floor`, `model_ceiling`, `model_ceiling_light`, `model_ceiling_light_blinking`, `model_wall_x`, `model_arch_i`, `model_arch_e`, `model_prop_chair`, `model_prop_trash_bin` | `Model` |
 | `last_model_id`                             | `int`, incremented by `_load_model`                |
 
 Helper classes: `Lvl_0.Model`, `Lvl_0.Chunk`, `Lvl_0.PlacedTile`, `Lvl_0.ModelModefier`,

@@ -42,6 +42,8 @@ godot --path . --export-release "Windows Desktop" ./build/debug/windows/backgroo
 # Rules
 - Use `const` as much as possible. ( so make separate functions if needed )
 - Use type hinting even for basic variables look booleans and floats.
+- Whenever you add or change a function, add or update a comment directly above it that explains
+  why the function or change is needed, rather than only restating what the code does.
 - do **NOT** change any third party assets / libraries.
 - Always ask for permission when you change something in any .md file.
 - When changing the parsing tools, only invoke `tools/parse.sh` to verify the changes.

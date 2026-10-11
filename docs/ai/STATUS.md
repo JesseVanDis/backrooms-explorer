@@ -32,7 +32,7 @@ Legend: `done` · `partial` · `stub` · `missing`
 | Scene                | State   | Reality check                                                    |
 |----------------------|---------|-------------------------------------------------------------------|
 | `frontroom_0`        | partial | Walkable, boxes pushable, voice recorded, fall to `lvl_0` works   |
-| `lvl_0`              | partial | Infinite walkable lobby; **no exit, no biomes, no events**        |
+| `lvl_0`              | partial | Infinite walkable lobby with static chair/trash-bin clutter; **no exit, no biomes, no events** |
 | `menu_intro`         | stub    | Black screen + title label                                        |
 | `menu_loading`       | stub    | Near-identical copy of `menu_intro`                               |
 | `menu_ui`            | partial | Subtitle label only                                               |
@@ -72,6 +72,7 @@ These are real, verified, and will bite an unsuspecting contributor.
 | 12 | `HANDS_APPEAR_DURATION` is declared but never read                                                                    | `assets/scripts/player.gd`       |
 | 13 | `part_arch_i_mirror.tscn` and `part_arch_e.tscn` are never placed by the generator                                    | `scenes/lvl_0/`                  |
 | 14 | `scenes/lvl_0/docs/TECHNICAL.md` is stale - it names `generate_level.gd` and `part_1x1_wall`, neither of which exists | `scenes/lvl_0/docs/` |
+| 15 | `PlacedTile` stores one `angle` for every model on a tile, so a chair/trash-bin prop overwrites the angle its tile's floor/ceiling model renders with (harmless today since those are rotationally symmetric, but blocks a future non-symmetric prop without a rework) | `scenes/lvl_0/lvl_0.gd` |
 
 ## 5. Suggested next steps
 
