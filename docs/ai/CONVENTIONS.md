@@ -86,8 +86,8 @@ when its reasoning is no longer accurate.
 
 ```gdscript
 # Keeps prop placement stable when a chunk is regenerated from overlapping world coordinates.
-func _get_prop_chair_angle(tile_index: Vector2i) -> float:
-	return PROP_CHAIR_ROTATIONS[hash(tile_index) % PROP_CHAIR_ROTATIONS.size()]
+func _get_prop_angle(tile_index: Vector2i) -> float:
+	return _get_prop_random(tile_index, PROP_SALT_ANGLE) * TAU
 ```
 
 ### Null checks always report

@@ -455,18 +455,26 @@ the authoritative convention.
 
 ### Prop orientation convention
 
-`_place_prop()` picks the `angle` passed to `_instantiate_model` per prop type:
+`_place_prop()` hands every prop (chair and trash bin alike) to `_instantiate_prop_model()`, which
+stores a per-model pose on the tile's `ModelModefier` (which owns everything that changes how the
+models of one tile are rendered/collided; it is created for the tile when it has none yet):
 
-| Prop         | `angle` source                                                                 |
-|--------------|---------------------------------------------------------------------------------|
-| `PROP_CHAIR` | `_get_prop_chair_angle(tile_index)` - one of `{0, PI/2, PI, PI*1.5}` picked by `hash(tile_index)`, purely cosmetic variety. |
-| `PROP_TRASH_BIN` | `_get_prop_trash_bin_angle(tile_index)` - looks at the same four neighbours the generator already required exactly one of to be a `TILE_WALL`, and rotates the bin so its open side faces away from it. |
+| Value | Source |
+|-------|--------|
+| angle (`ModelModefier.model_angles`) | `_get_prop_angle(tile_index)` - any angle in `[0, TAU)`, so props are not aligned with walls. |
+| offset (`ModelModefier.model_offsets`) | `_get_prop_wanted_offset(tile_index)` - a point uniformly distributed in a disc of `PROP_MAX_OFFSET_RADIUS` (`0.8` m) around the tile center. |
 
-Caveat shared with every other model on a tile: `PlacedTile` stores a single `angle` for the whole
-tile (section 6), so instantiating a prop on a tile overwrites the `angle` the floor/ceiling/light
-model on that same tile renders and collides with. This is harmless here because those models are
-visually symmetric under 90-degree rotation, but it means a future prop type that is *not*
-rotationally simple would need `PlacedTile`/`_instantiate_model` reworked to carry a per-model angle.
+Both come from a coordinate hash (`_get_prop_random`, with a salt per value), never from a shared
+RNG, so a regenerated chunk puts every prop at the same pose. The offset can leave the prop's own
+tile, so `_get_prop_offset()` checks the prop's footprint (`PROP_FOOTPRINT_HALF_EXTENT` = `0.25` m
+square) against walls/arches and halves the offset (up to `PROP_OFFSET_SHRINK_STEPS` times, then
+zero) until it no longer clips one. A neighbour chunk that is not loaded yet reads as `INVALID`,
+which counts as a wall, so the offset may be smaller than wanted right at a chunk border.
+
+The tile-wide `PlacedTile.angle` is no longer touched by props; the graphics and collision creation
+use `_get_model_angle()` / `_get_model_offset()`, which read the `ModelModefier` and fall back to the
+tile angle / no offset for every other model. A later `_instantiate_model` call with a null modefier
+replaces the tile's modefier, so props must be placed after the floor/ceiling (as `_add_tile` does).
 
 ## 6. Streaming and pooling
 

@@ -72,7 +72,7 @@ These are real, verified, and will bite an unsuspecting contributor.
 | 12 | `HANDS_APPEAR_DURATION` is declared but never read                                                                    | `assets/scripts/player.gd`       |
 | 13 | `part_arch_i_mirror.tscn` and `part_arch_e.tscn` are never placed by the generator                                    | `scenes/lvl_0/`                  |
 | 14 | `scenes/lvl_0/docs/TECHNICAL.md` is stale - it names `generate_level.gd` and `part_1x1_wall`, neither of which exists | `scenes/lvl_0/docs/` |
-| 15 | `PlacedTile` stores one `angle` for every model on a tile, so a chair/trash-bin prop overwrites the angle its tile's floor/ceiling model renders with (harmless today since those are rotationally symmetric, but blocks a future non-symmetric prop without a rework) | `scenes/lvl_0/lvl_0.gd` |
+| 15 | `PlacedTile` still stores one tile-wide `angle` for floor/ceiling/wall models; props now carry their own per-model angle and offset (`ModelModefier.model_angles`/`model_offsets`), so they no longer overwrite it | `scenes/lvl_0/lvl_0.gd` |
 
 ## 5. Suggested next steps
 

@@ -27,8 +27,15 @@ var _player: Player = null
 
 var _did_hit_floor: bool = false
 
+# everything that changes how the models of ONE tile are rendered / collided compared to their
+# unmodified scene belongs here (mesh removal, y offsets, per-model placement), not on PlacedTile.
 class ModelModefier:
 	var remove_meshes_with_postfix: Array[String] = []
+	# per-model placement, for models that sit freely inside their tile (chairs, trash bins) instead of
+	# using the tile-wide 'PlacedTile.angle' that the floor, ceiling and walls share.
+	# models without an entry keep the tile angle and stay centered on the tile.
+	var model_angles: Dictionary = {}   # int(model_id), float
+	var model_offsets: Dictionary = {}  # int(model_id), Vector3
 	var yoffset_n: float = 0
 	var yoffset_s: float = 0
 	var yoffset_w: float = 0
@@ -318,13 +325,16 @@ func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
 	print("converting pixels to models for chunk[" + str(chunk_index) + "]... done")
 	return chunk
 
-func _instantiate_model(model: Model, tile_index: Vector2i, angle: float, model_modefier: ModelModefier = null) -> void:
-	var placed_tile: PlacedTile
+# shared by '_instantiate_model' and '_instantiate_prop_model' so both register on the same PlacedTile
+func _get_or_create_placed_tile(tile_index: Vector2i) -> PlacedTile:
 	if placed_tiles.has(tile_index):
-		placed_tile = placed_tiles[tile_index]
-	else:
-		placed_tile = PlacedTile.new()
-		placed_tiles[tile_index] = placed_tile
+		return placed_tiles[tile_index]
+	var placed_tile: PlacedTile = PlacedTile.new()
+	placed_tiles[tile_index] = placed_tile
+	return placed_tile
+
+func _instantiate_model(model: Model, tile_index: Vector2i, angle: float, model_modefier: ModelModefier = null) -> void:
+	var placed_tile: PlacedTile = _get_or_create_placed_tile(tile_index)
 	
 	placed_tile.models[model.id] = model
 	placed_tile.model_modefier = model_modefier
@@ -347,31 +357,72 @@ func _get_wall_t_px(x: int, y: int) -> Vector2i:
 	if !wall_w: return Vector2i(x + 1, y)
 	return Vector2i(0, 0)
 
-const PROP_CHAIR_ROTATIONS: Array[float] = [0.0, PI / 2.0, PI, PI * 1.5]
+const PROP_MAX_OFFSET_RADIUS: float = 0.8 # how far (in meters) a prop may sit from the center of its tile
+const PROP_FOOTPRINT_HALF_EXTENT: float = 0.25 # square that covers both the chair and the trash bin
+const PROP_OFFSET_SHRINK_STEPS: int = 4
+const PROP_SALT_ANGLE: String = "prop_angle"
+const PROP_SALT_OFFSET_ANGLE: String = "prop_offset_angle"
+const PROP_SALT_OFFSET_DISTANCE: String = "prop_offset_distance"
 
-func _get_prop_chair_angle(tile_index: Vector2i) -> float:
-	return PROP_CHAIR_ROTATIONS[hash(tile_index) % PROP_CHAIR_ROTATIONS.size()]
+# derived from the tile coordinate (and a salt) instead of a shared RNG, so a regenerated chunk puts
+# every prop at exactly the same pose again
+func _get_prop_random(tile_index: Vector2i, salt: String) -> float:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = hash([salt, tile_index.x, tile_index.y])
+	return rng.randf()
 
-# bins are only ever marked by the generator when exactly one of these sides is a wall; orients
-# the bin so its open side faces away from that wall, leaving the other three sides open
-func _get_prop_trash_bin_angle(tile_index: Vector2i) -> float:
-	var wall_n: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x, tile_index.y - 1))
-	var wall_s: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x, tile_index.y + 1))
-	var wall_e: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x + 1, tile_index.y))
-	var wall_w: bool = MapGenerator.is_wall(_get_pixel_at(tile_index.x - 1, tile_index.y))
-	if wall_n: return PI
-	if wall_s: return 0.0
-	if wall_e: return -PI / 2.0
-	if wall_w: return PI / 2.0
-	push_error("trash bin at " + str(tile_index) + " has no adjacent wall")
-	return 0.0
+# any angle (not only cardinal ones) so props do not look aligned to the walls
+func _get_prop_angle(tile_index: Vector2i) -> float:
+	return _get_prop_random(tile_index, PROP_SALT_ANGLE) * TAU
+
+# square-root of the random distance makes the offsets uniform over the disc instead of bunching up
+# in the middle of the tile
+func _get_prop_wanted_offset(tile_index: Vector2i) -> Vector3:
+	var direction: float = _get_prop_random(tile_index, PROP_SALT_OFFSET_ANGLE) * TAU
+	var distance: float = PROP_MAX_OFFSET_RADIUS * sqrt(_get_prop_random(tile_index, PROP_SALT_OFFSET_DISTANCE))
+	return Vector3(cos(direction) * distance, 0.0, sin(direction) * distance)
+
+# the offset can leave the prop's own tile, so the prop must not end up inside a wall or arch.
+# an unloaded neighbour chunk reads as INVALID, which counts as a wall to stay on the safe side
+func _is_prop_footprint_clear(tile_index: Vector2i, offset: Vector3) -> bool:
+	for corner_x: float in [-PROP_FOOTPRINT_HALF_EXTENT, PROP_FOOTPRINT_HALF_EXTENT]:
+		for corner_z: float in [-PROP_FOOTPRINT_HALF_EXTENT, PROP_FOOTPRINT_HALF_EXTENT]:
+			var world_x: float = float(tile_index.x) * TILE_SIZE + offset.x + corner_x
+			var world_z: float = float(tile_index.y) * TILE_SIZE + offset.z + corner_z
+			var corner_tile: Vector2i = Vector2i(roundi(world_x / TILE_SIZE), roundi(world_z / TILE_SIZE))
+			if MapGenerator.is_wall(_get_pixel_at(corner_tile.x, corner_tile.y)):
+				return false
+	return true
+
+# keeps the random offset as long as possible but pulls it back toward the tile center (halving it)
+# until the prop no longer clips a wall; the tile itself is always free, so zero is the last resort
+func _get_prop_offset(tile_index: Vector2i) -> Vector3:
+	var offset: Vector3 = _get_prop_wanted_offset(tile_index)
+	for step in range(PROP_OFFSET_SHRINK_STEPS):
+		if _is_prop_footprint_clear(tile_index, offset):
+			return offset
+		offset *= 0.5
+	return Vector3.ZERO
+
+# props need their own angle and offset per model, because the PlacedTile angle is shared with the
+# floor and ceiling of the same tile and must not be changed by a prop. that placement is stored on
+# the tile's ModelModefier (created here when the tile has none yet). a later '_instantiate_model'
+# call on the same tile with a null modefier would replace it, so props must be placed last.
+func _instantiate_prop_model(model: Model, tile_index: Vector2i) -> void:
+	var placed_tile: PlacedTile = _get_or_create_placed_tile(tile_index)
+	if placed_tile.model_modefier == null:
+		placed_tile.model_modefier = ModelModefier.new()
+	placed_tile.models[model.id] = model
+	placed_tile.model_modefier.model_angles[model.id] = _get_prop_angle(tile_index)
+	placed_tile.model_modefier.model_offsets[model.id] = _get_prop_offset(tile_index)
+	placed_tile.tile_index = tile_index
 
 func _place_prop(pixel: MapGenerator.Pixel, tile_index: Vector2i) -> void:
 	match MapGenerator.get_prop(pixel):
 		MapGenerator.Pixel.PROP_CHAIR:
-			_instantiate_model(model_prop_chair, tile_index, _get_prop_chair_angle(tile_index))
+			_instantiate_prop_model(model_prop_chair, tile_index)
 		MapGenerator.Pixel.PROP_TRASH_BIN:
-			_instantiate_model(model_prop_trash_bin, tile_index, _get_prop_trash_bin_angle(tile_index))
+			_instantiate_prop_model(model_prop_trash_bin, tile_index)
 
 func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 	var pixel: MapGenerator.Pixel = section.get_pixel(x, y)
@@ -479,6 +530,20 @@ func _handle_model_modefier(graphic: Node3D, model_modefier: ModelModefier) -> v
 		if child is Node3D:
 			_handle_model_modefier_of_node(child as Node3D, model_modefier)
 
+# lets props use their own angle (stored in the ModelModefier) while every other model keeps using
+# the shared tile angle
+func _get_model_angle(placed_tile: PlacedTile, model: Model) -> float:
+	if placed_tile.model_modefier && placed_tile.model_modefier.model_angles.has(model.id):
+		return placed_tile.model_modefier.model_angles[model.id]
+	return placed_tile.angle
+
+# lets props sit away from the tile center (offset stored in the ModelModefier) while every other
+# model stays centered
+func _get_model_offset(placed_tile: PlacedTile, model: Model) -> Vector3:
+	if placed_tile.model_modefier && placed_tile.model_modefier.model_offsets.has(model.id):
+		return placed_tile.model_modefier.model_offsets[model.id]
+	return Vector3.ZERO
+
 var _collision_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 func _handle_static_collision_shapes() -> void:
 	var create: Callable = func(placed_tile: PlacedTile, chunk: Chunk) -> void:
@@ -490,8 +555,8 @@ func _handle_static_collision_shapes() -> void:
 					var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
 					if !_handle_model_modefier_should_remove_node(collision, placed_tile.model_modefier):
 						var collision_shape: CollisionShape3D = collision.duplicate()
-						collision_shape.transform.origin += tile_pos
-						collision_shape.rotate_y(placed_tile.angle)
+						collision_shape.transform.origin += tile_pos + _get_model_offset(placed_tile, model)
+						collision_shape.rotate_y(_get_model_angle(placed_tile, model))
 						chunk.static_body_3d.add_child(collision_shape)
 						added_shapes.append(collision_shape)
 						_handle_model_modefier_of_node(collision_shape, placed_tile.model_modefier)
@@ -514,8 +579,8 @@ func _handle_tile_graphics() -> void:
 				var tile_pos: Vector3 = Vector3(float(placed_tile.tile_index.x) * TILE_SIZE, 0.0, float(placed_tile.tile_index.y) * TILE_SIZE)
 				# push_warning("adding: " + str(model.id))
 				var graphic: Node3D = model.graphic.duplicate()
-				graphic.transform.origin = tile_pos
-				graphic.rotate_y(placed_tile.angle)
+				graphic.transform.origin = tile_pos + _get_model_offset(placed_tile, model)
+				graphic.rotate_y(_get_model_angle(placed_tile, model))
 				if placed_tile.model_modefier:
 					_handle_model_modefier(graphic, placed_tile.model_modefier)
 				chunk.tiles.add_child(graphic)

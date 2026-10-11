@@ -20,6 +20,7 @@ description of `map_generator.gd`/`part_wall_x.tscn`.)
    `part_prop_chair.tscn` / `part_prop_trash_bin.tscn` - both plain `MeshInstance3D` +
    `CollisionShape3D` scenes with no `RigidBody3D`, so they are static and not pushable.
  - See [map_generation.md](../../../docs/ai/systems/map_generation.md) sections 3, 4.9 and 5 for
-   the full pixel contract, eligibility rules, and orientation convention.
+   the full pixel contract, eligibility rules, and the random angle/offset convention (props get a
+   hash-derived free angle and an offset of up to 0.8 m, kept clear of walls).
  
 

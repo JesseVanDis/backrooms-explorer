@@ -125,9 +125,9 @@ above.** This project adds a one-off NPC on top of that canon room:
    `map_generator.gd` reserves a byte on the 64-bit pixel (`PROP_MASK`) and marks eligible,
    sparsely-spaced `TILE_EMPTY` floor tiles with `PROP_CHAIR` or `PROP_TRASH_BIN` once all walls
    and arches have settled. This keeps placement deterministic and stable across chunk regeneration.
- - Chairs favour open floor tiles and get a coordinate-derived cardinal rotation. Trash bins only
-   spawn on tiles with exactly one adjacent wall and are oriented so their open side faces away
-   from it.
+ - Chairs favour open floor tiles. Trash bins only spawn on tiles with exactly one adjacent wall.
+   Both get a coordinate-derived random angle (not aligned with the walls) and are shifted up to
+   0.8 m away from the tile center, pulled back where that would push them into a wall.
  - Both props are **static**: plain `MeshInstance3D` + `CollisionShape3D` scenes
    (`part_prop_chair.tscn`, `part_prop_trash_bin.tscn`) with no `RigidBody3D`/`PhysicsSounds` - they
    block the player but cannot be pushed, moved, or interacted with. They reuse the existing
