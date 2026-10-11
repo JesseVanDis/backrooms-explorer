@@ -1,3 +1,7 @@
+## [AI-DOC] Applies exported reverb settings to the 'RaytracedReverb' audio bus effect and restores the defaults when leaving the tree
+## spec: docs/ai/systems/audio.md
+## status: partial
+
 extends Node
 
 class_name SoundController

@@ -1,3 +1,7 @@
+## [AI-DOC] In-game UI CanvasLayer that resolves the surrounding SubViewport and forwards subtitle setup, play and stop calls to the subtitles label
+## spec: docs/ai/systems/ui_subtitles.md
+## status: partial
+
 extends CanvasLayer
 class_name IngameUI
 

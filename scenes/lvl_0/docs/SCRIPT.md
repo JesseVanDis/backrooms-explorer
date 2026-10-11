@@ -14,12 +14,12 @@
 | **Speak: MC**                             | the carpet is NOT tasty! UUEEEGHH `[still spitting]` Why is this carpet so salty?! |
 | **Speak: MC**                             | actually...                                                                        |
 | **Speak: MC**                             | `[1 more spit]` WHAT IS THIS DOING UNDER MY HOUSE???                               |
-| **Speak: MC**                             | `[yells]` JANE!!??                                                                 |
+| **Speak: MC**                             | `[yells]` JEN!!??                                                                  |
 | **Speak: MC**                             | `[Even louder]` JAAAAANEEEEE!!??                                                   |
 | Yelling of MC echo's trough the level     |                                                                                    |
 | **Speak: MC**                             | `[1 more spit again]`                                                              |
-| Game lets player roams around for 30 secs |                                       |
-| **Speak: MC**                             | `[Scream super loud]` JAAAAAAAAAAAANEEEEE!!??                                         |
+| Game lets player roams around for 30 secs |                                                                                    |
+| **Speak: MC**                             | `[Scream super loud]` JAAAAAAAAAAAANEEEEE!!??                                      |
 | Yelling of MC echo's trough the level     |                                                                                    |
 | **Speak: MC**                             | `[After few seconds]` What is this place !                                         |
 

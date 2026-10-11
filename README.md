@@ -39,6 +39,8 @@ Things to keep in mind when working on this game.
 
 ## Contributing
 This is a collaborative project. If you're interested in contributing, feel free to dive into the code, models or sound, and join the effort!
+
+Start at the documentation index: **[docs/ai/README.md](docs/ai/README.md)**. It explains how the project is wired together ([architecture](docs/ai/ARCHITECTURE.md)), how to write code that fits in ([conventions](docs/ai/CONVENTIONS.md)), and - importantly - [what actually works today](docs/ai/STATUS.md) as opposed to what is on the roadmap below.
 Please keep your contribution true to the [Backrooms Wiki](https://backrooms-wiki.wikidot.com). 
 The roadmap is below. But if you want to make any other level not listed in the roadmap, feel free to do so!
 
@@ -53,7 +55,7 @@ It depends on the following:
 
  - If you use 3rd party assets, please make sure they are licensed for commercial use. And note the author of the assets in 'CREDITS.md'
 
-For more please see the [TECHNICAL.md](TECHNICAL.md)
+For more please see the [TECHNICAL.md](TECHNICAL.md), and the per-system specifications in [docs/ai/systems/](docs/ai/systems/).
 
 ## Artwork
 Please choose any editor to your liking. Prefer free software, as other contributors can then also open the save file and edit it if needed. The saves go into the 'assets' folder
@@ -66,6 +68,9 @@ Please choose any editor to your liking. Prefer free software, as other contribu
 
 
 ## Roadmap
+
+This is the **plan**. For the current implementation state, including known issues and the
+suggested next steps, see [docs/ai/STATUS.md](docs/ai/STATUS.md).
 
 ### V0.0.1
 | Subject                    | progress (%) |

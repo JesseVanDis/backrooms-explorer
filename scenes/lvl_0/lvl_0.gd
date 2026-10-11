@@ -1,3 +1,8 @@
+## [AI-DOC] Level 0 root that streams generated map chunks around the player, placing and removing tile graphics and collision shapes
+## spec: scenes/lvl_0/docs/SPEC.md
+## status: partial
+## notes: also plays the landing wieldable animation when the falling player first hits the floor
+
 class_name Lvl_0
 extends Node
 

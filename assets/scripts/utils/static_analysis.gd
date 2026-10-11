@@ -1,3 +1,8 @@
+## [AI-DOC] Headless SceneTree script that prints every configured GDScript warning project setting and then quits
+## spec: docs/ai/systems/tooling.md
+## status: implemented
+## notes: used by tools/static_check.sh to read the project's warning configuration
+
 extends SceneTree
 
 func _init() -> void:

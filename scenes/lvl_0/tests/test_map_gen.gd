@@ -1,3 +1,7 @@
+## [AI-DOC] Headless test script that runs the map generator and saves a 256x256 map preview image next to itself
+## spec: docs/ai/systems/map_generation.md
+## status: implemented
+
 extends SceneTree
 
 func _init() -> void:

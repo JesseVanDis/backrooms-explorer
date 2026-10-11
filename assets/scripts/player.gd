@@ -1,3 +1,8 @@
+## [AI-DOC] First-person CharacterBody3D controller handling walking, jumping, head bob, footstep and voice audio, and wieldable/camera limits
+## spec: docs/ai/systems/player.md
+## status: partial
+## notes: delegates wieldable animation state to PlayerWield and subtitles to IngameUI
+
 extends CharacterBody3D
 class_name Player
 

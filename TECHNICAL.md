@@ -1,5 +1,9 @@
 
 # Technical
+
+> For the runtime architecture, per-system specifications and the current implementation status,
+> see the documentation index in [docs/ai/README.md](docs/ai/README.md).
+
 ### The Stack
 - **Engine**: Godot
 - **Language**: GDScript
@@ -7,8 +11,12 @@
 ### Layout
  - The godot scenes (levels) are located in the 'scenes' folder. There are folders for each level, and the always start with `lvl_`.
    - It is possible that some levels will not have a number as postfix. such as level FUN
- - In the 'docs' folder of each godot scene (level) you can find the TECHNICAL.md of its level, with technical details about the scene. 
-   - if not please make it. No need to put more than 2 sentences on it unless it gets complicated 
+ - In the 'docs' folder of each godot scene (level) you can find the documentation of that level:
+   - `SPEC.md` - what the level is: canon summary, entrances, exits, hazards, acceptance criteria. Start from [docs/ai/templates/LEVEL_SPEC_TEMPLATE.md](docs/ai/templates/LEVEL_SPEC_TEMPLATE.md).
+   - `DESIGN.md` - MoSCoW feature list with progress percentages.
+   - `TECHNICAL.md` - technical details about the scene. If it is missing, please make it. No need to put more than 2 sentences on it unless it gets complicated.
+   - `SCRIPT.md` - the narration / dialogue, the source of truth for the voice lines.
+   - All levels are indexed in [docs/ai/levels/README.md](docs/ai/levels/README.md).
  - The level with have its own script 'lvl_X.gd' for the global handling of the level. basically some kind of main entry point.
  - Prefer the PRY over the DRY principle, ( Please Repeat Yourself ) for level specific stuff. This is to avoid breaking a random level by changing something central.
  - In blender, if a node starts with an '_', it means godot is using this node. It marks as a warning that when you change the name or path, godot will no longer be able to find it in some of its logic.   

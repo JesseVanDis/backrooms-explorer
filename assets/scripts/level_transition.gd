@@ -1,3 +1,7 @@
+## [AI-DOC] Threaded level loader that preloads scenes, optionally initializes them asynchronously and swaps the current scene behind a fade screen
+## spec: docs/ai/systems/level_flow.md
+## status: partial
+
 class_name LevelTransition
 
 var _path_to_preload_now: String = ""

@@ -1,3 +1,7 @@
+## [AI-DOC] Static math helpers for hash-based pseudo random values, 1D/2D value and fractal noise, and XZ-plane distance and normals
+## spec: docs/ai/systems/utils.md
+## status: implemented
+
 extends Node
 
 class_name UtilsMath

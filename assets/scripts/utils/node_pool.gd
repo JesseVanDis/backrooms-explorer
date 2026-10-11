@@ -1,3 +1,7 @@
+## [AI-DOC] Object pool that pre-allocates duplicates of reference Node3D templates and recycles them through an off-tree archive node
+## spec: docs/ai/systems/utils.md
+## status: implemented
+
 extends Node
 
 #class_name MapGenerator

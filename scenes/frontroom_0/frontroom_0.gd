@@ -1,3 +1,7 @@
+## [AI-DOC] Frontroom intro scene that shows the intro overlay, lets the player push nearby boxes, thickens black fog while falling and transitions to level 0
+## spec: scenes/frontroom_0/docs/SPEC.md
+## status: partial
+
 extends Node
 
 

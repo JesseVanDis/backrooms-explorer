@@ -1,3 +1,7 @@
+## [AI-DOC] RigidBody3D that fades a walking sound while it walks on a flat side and plays a bonk sound on impact
+## spec: docs/ai/systems/audio.md
+## status: implemented
+
 extends RigidBody3D
 class_name PhysicsSounds
 

@@ -1,3 +1,7 @@
+## [AI-DOC] Label that parses SRT subtitle files and shows the line matching the current playback position of the voice audio player
+## spec: docs/ai/systems/ui_subtitles.md
+## status: implemented
+
 extends Label
 class_name PlayerSubtitles
 

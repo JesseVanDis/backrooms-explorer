@@ -1,3 +1,8 @@
+## [AI-DOC] Procedural backrooms map generator that builds tile sections through multiple passes of bitmask pixels describing biomes, walls, arches and lights
+## spec: docs/ai/systems/map_generation.md
+## status: partial
+## notes: generate_map returns a Section for the level, generate_map_image renders a section for debugging
+
 extends Node
 
 class_name MapGenerator

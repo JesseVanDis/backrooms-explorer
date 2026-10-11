@@ -1,3 +1,8 @@
+## [AI-DOC] State machine that equips and dequips the player's wieldables by playing animation sections and firing time-based animation actions
+## spec: docs/ai/systems/player.md
+## status: partial
+## notes: WieldableData exposes per-wieldable look-freedom and movement-speed limits read by the player
+
 class_name PlayerWield
 extends Node
 

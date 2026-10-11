@@ -1,3 +1,7 @@
+## [AI-DOC] Static helpers for entire screens. One of which that tween the alpha of a screen scene's CanvasLayer children to fade overlay screens in and out
+## spec: docs/ai/systems/level_flow.md
+## status: partial
+
 extends Node
 
 class_name UtilsScreen

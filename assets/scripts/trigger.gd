@@ -1,3 +1,7 @@
+## [AI-DOC] Area3D that fires once when its target enters, leaves or is looked at, playing a sound or queueing player voice lines
+## spec: docs/ai/systems/interaction.md
+## status: implemented
+
 extends Area3D
 class_name Trigger
 

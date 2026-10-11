@@ -1,3 +1,7 @@
+## [AI-DOC] Ceiling lamp part that switches between on, off and randomly blinking by toggling emission, light and casing visibility with a flicker sound
+## spec: scenes/lvl_0/docs/TECHNICAL.md
+## status: implemented
+
 extends Node3D
 
 enum LightMode {

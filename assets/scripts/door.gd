@@ -1,3 +1,7 @@
+## [AI-DOC] Door mesh that swings open and closed with sounds based on the player's distance and which side of the door the player stands on
+## spec: docs/ai/systems/interaction.md
+## status: implemented
+
 extends MeshInstance3D
 
 enum DoorState {

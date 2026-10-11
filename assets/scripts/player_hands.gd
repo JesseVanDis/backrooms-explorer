@@ -1,3 +1,7 @@
+## [AI-DOC] Drives the first-person hand mesh fade by feeding an animated helper node's height into the hand shader's opacity parameter
+## spec: docs/ai/systems/player.md
+## status: implemented
+
 extends Node3D
 class_name PlayerHands
 

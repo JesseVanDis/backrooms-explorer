@@ -1,3 +1,7 @@
+## [AI-DOC] Static scene tree lookup helpers that recursively find a mesh, animation player, camera or hands node, and locate the player
+## spec: docs/ai/systems/utils.md
+## status: implemented
+
 extends Node
 
 class_name UtilsNode
