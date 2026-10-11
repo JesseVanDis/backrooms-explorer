@@ -8,25 +8,18 @@
 		{
 			"name":"Scene",
 			"nodes":[
+				0,
 				1
 			]
 		}
 	],
 	"nodes":[
 		{
-			"mesh":0,
-			"name":"chair",
-			"translation":[
-				0,
-				150.66708374023438,
-				0
-			]
+			"name":"Scene"
 		},
 		{
-			"children":[
-				0
-			],
-			"name":"old_chair_grp"
+			"mesh":0,
+			"name":"chair"
 		}
 	],
 	"materials":[
@@ -82,17 +75,17 @@
 	],
 	"images":[
 		{
-			"mimeType":"image/jpg",
+			"mimeType":"image/jpeg",
 			"name":"old_chair_Normal",
 			"uri":"specific_textures/old_chair_Normal.jpg"
 		},
 		{
-			"mimeType":"image/jpg",
+			"mimeType":"image/jpeg",
 			"name":"old_chair_AO-old_chair_Roughness-old_chair_Metallic",
 			"uri":"specific_textures/old_chair_AO-old_chair_Roughness-old_chair_Metallic.jpg"
 		},
 		{
-			"mimeType":"image/jpg",
+			"mimeType":"image/jpeg",
 			"name":"old_chair_bcolor",
 			"uri":"specific_textures/old_chair_bcolor.jpg"
 		}
@@ -103,14 +96,14 @@
 			"componentType":5126,
 			"count":5316,
 			"max":[
-				27.788053512573242,
-				-46.51620864868164,
-				30.719242095947266
+				0.3177109956741333,
+				1.1678098440170288,
+				0.2854260802268982
 			],
 			"min":[
-				-27.852447509765625,
-				-149.04891967773438,
-				-25.013883590698242
+				-0.3169699013233185,
+				-0.0017589330673217773,
+				-0.3503115177154541
 			],
 			"type":"VEC3"
 		},

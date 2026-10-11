@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://b2rwre7wvgvrv"]
+
+[ext_resource type="PackedScene" uid="uid://b7c1nw1b5q4fm" path="res://assets/models/stool_1.gltf" id="1_dgc0u"]
+
+[node name="stool_1" unique_id=2113148609 instance=ExtResource("1_dgc0u")]

@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://bhruj3rkt26ap"]
+
+[ext_resource type="PackedScene" uid="uid://dpoqpx5dt7yws" path="res://assets/models/chair_2.gltf" id="1_d3xag"]
+
+[node name="chair_2" unique_id=1581001540 instance=ExtResource("1_d3xag")]

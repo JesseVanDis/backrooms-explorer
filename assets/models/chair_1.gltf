@@ -8,7 +8,8 @@
 		{
 			"name":"Scene",
 			"nodes":[
-				1
+				1,
+				2
 			]
 		}
 	],
@@ -27,6 +28,9 @@
 				0
 			],
 			"name":"chair_grp"
+		},
+		{
+			"name":"Scene"
 		}
 	],
 	"materials":[
@@ -79,17 +83,17 @@
 	],
 	"images":[
 		{
-			"mimeType":"image/jpg",
+			"mimeType":"image/jpeg",
 			"name":"chair_Normal",
 			"uri":"specific_textures/chair_Normal.jpg"
 		},
 		{
-			"mimeType":"image/jpg",
+			"mimeType":"image/jpeg",
 			"name":"chair_bcolor",
 			"uri":"specific_textures/chair_bcolor.jpg"
 		},
 		{
-			"mimeType":"image/jpg",
+			"mimeType":"image/jpeg",
 			"name":"chair_Metallic-chair_Roughness",
 			"uri":"specific_textures/chair_Metallic-chair_Roughness.jpg"
 		}
@@ -98,35 +102,35 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":2354,
+			"count":3644,
 			"max":[
-				20.131267547607422,
-				27.14141845703125,
-				22.36372947692871
+				0.37882375717163086,
+				-26.06855583190918,
+				0.4456275701522827
 			],
 			"min":[
-				-20.131267547607422,
-				-27.14141845703125,
-				-22.36372184753418
+				-0.41728270053863525,
+				-27.141881942749023,
+				-0.4387630224227905
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":2354,
+			"count":3644,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":2354,
+			"count":3644,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5126,
-			"count":2354,
+			"count":3644,
 			"type":"VEC2"
 		},
 		{
@@ -139,32 +143,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":28248,
+			"byteLength":43728,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":28248,
-			"byteOffset":28248,
+			"byteLength":43728,
+			"byteOffset":43728,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":18832,
-			"byteOffset":56496,
+			"byteLength":29152,
+			"byteOffset":87456,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":18832,
-			"byteOffset":75328,
+			"byteLength":29152,
+			"byteOffset":116608,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":13752,
-			"byteOffset":94160,
+			"byteOffset":145760,
 			"target":34963
 		}
 	],
@@ -176,7 +180,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":107912,
+			"byteLength":159512,
 			"uri":"chair_1.bin"
 		}
 	]
