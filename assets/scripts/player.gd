@@ -236,8 +236,9 @@ func _process(_real_delta: float) -> void:
 
 # Drives player movement, physics collisions, gravity simulation, and camera/audio state updates during each physics step.
 func _physics_process(real_delta: float) -> void:
+	var is_fast_mode: bool = _is_fast_mode()
 	var delta: float = real_delta
-	if _cheat_fast_mode:
+	if is_fast_mode:
 		delta = 0.1
 		
 	if not control_enabled:
@@ -270,10 +271,10 @@ func _physics_process(real_delta: float) -> void:
 	if direction:
 		velocity.x = direction.x * _current_speed(Vector2(direction.x, direction.z))
 		velocity.z = direction.z * _current_speed(Vector2(direction.x, direction.z))
-		if _cheat_fast_mode:
+		if is_fast_mode:
 			velocity *= 10.0
 	else:
-		if _cheat_fast_mode:
+		if is_fast_mode:
 			velocity.x = 0.0
 			velocity.z = 0.0
 		else:
@@ -452,6 +453,11 @@ func _handle_hands_aim(dt: float) -> void:
 func set_cheat_disable_gravity(enabled: bool) -> void:
 	_cheat_gravity_disabled = enabled
 
+# Checks whether fast mode is currently enabled either via persistent cheat flag or holding the Shift key.
+func _is_fast_mode() -> bool:
+	return _cheat_fast_mode or Input.is_key_pressed(KEY_SHIFT)
+
+# Enables or disables fast movement cheat mode for faster level traversal and testing.
 func set_cheat_fast_mode(enabled: bool) -> void:
 	_cheat_fast_mode = enabled
 
