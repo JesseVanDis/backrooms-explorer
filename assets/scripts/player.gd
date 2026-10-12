@@ -88,6 +88,7 @@ var _is_moving: bool = false
 # cheats
 var _cheat_gravity_disabled: bool = false
 var _cheat_fast_mode: bool = false
+var _cheat_vars: Dictionary = {}
 
 var forward_2d: Vector2:
 	get(): return UtilsMath.xz_normal(-transform.basis.z)
@@ -454,7 +455,18 @@ func set_cheat_disable_gravity(enabled: bool) -> void:
 func set_cheat_fast_mode(enabled: bool) -> void:
 	_cheat_fast_mode = enabled
 
-
+# Enables or disables collision detection masks for testing, debugging, and unrestricted exploration while preserving original mask values for restoration.
+func set_cheat_collisions_disabled(enabled: bool) -> void:
+	if enabled:
+		if not _cheat_vars.has("cheat_collisions_disabled"):
+			_cheat_vars["cheat_collisions_disabled"] = {"collision_mask": collision_mask}
+		collision_mask = 0
+	else:
+		if _cheat_vars.has("cheat_collisions_disabled"):
+			var original_values: Dictionary = _cheat_vars["cheat_collisions_disabled"]
+			if original_values.has("collision_mask"):
+				collision_mask = original_values["collision_mask"]
+			_cheat_vars.erase("cheat_collisions_disabled")
 	
 	
 func _find_ingame_ui() -> IngameUI:
