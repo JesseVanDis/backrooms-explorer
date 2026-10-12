@@ -84,7 +84,10 @@ var active_wieldable: String:
 var _camera_default_position: Vector3 = Vector3.ZERO
 var _bob_phase: float = 0.0
 var _is_moving: bool = false
+
+# cheats
 var _cheat_gravity_disabled: bool = false
+var _cheat_fast_mode: bool = false
 
 var forward_2d: Vector2:
 	get(): return UtilsMath.xz_normal(-transform.basis.z)
@@ -223,11 +226,19 @@ func apply_footstep_start_sound(sound: AudioStream) -> void:
 func apply_jump_sounds(sounds: Array[AudioStream]) -> void:
 	_jump_sounds = sounds
 	
-func _process(_delta: float) -> void:
+func _process(_real_delta: float) -> void:
+	#var delta: float = real_delta
+	#if _cheat_fast_mode:
+		#delta = 0.1
+
 	pass
 
 # Drives player movement, physics collisions, gravity simulation, and camera/audio state updates during each physics step.
-func _physics_process(delta: float) -> void:
+func _physics_process(real_delta: float) -> void:
+	var delta: float = real_delta
+	if _cheat_fast_mode:
+		delta = 0.1
+		
 	if not control_enabled:
 		velocity.x = move_toward(velocity.x, 0, max_speed)
 		velocity.z = move_toward(velocity.z, 0, max_speed)
@@ -258,9 +269,15 @@ func _physics_process(delta: float) -> void:
 	if direction:
 		velocity.x = direction.x * _current_speed(Vector2(direction.x, direction.z))
 		velocity.z = direction.z * _current_speed(Vector2(direction.x, direction.z))
+		if _cheat_fast_mode:
+			velocity *= 10.0
 	else:
-		velocity.x = move_toward(velocity.x, 0, max_speed)
-		velocity.z = move_toward(velocity.z, 0, max_speed)
+		if _cheat_fast_mode:
+			velocity.x = 0.0
+			velocity.z = 0.0
+		else:
+			velocity.x = move_toward(velocity.x, 0, max_speed)
+			velocity.z = move_toward(velocity.z, 0, max_speed)
 	
 	move_and_slide()
 	
@@ -433,8 +450,13 @@ func _handle_hands_aim(dt: float) -> void:
 # Allows development tools, cheats, and testing routines to toggle gravity simulation off or on for free movement and debugging.
 func set_cheat_disable_gravity(enabled: bool) -> void:
 	_cheat_gravity_disabled = enabled
-	
 
+func set_cheat_fast_mode(enabled: bool) -> void:
+	_cheat_fast_mode = enabled
+
+
+	
+	
 func _find_ingame_ui() -> IngameUI:
 	var current: Node = self
 	while current != null:
