@@ -53,12 +53,12 @@ func _process(_delta: float) -> bool:
 				print("Initial scene loaded. Waiting for player to hit ground and stand up again")
 				_state = 2
 				
-	if _state == 2:
+	elif _state == 2:
 		if _player.active_wieldable == "lvl_0_landing":
 			print("Player hit ground and it playing the standing-up animation")
 			_state = 3
 			
-	if _state == 3:
+	elif _state == 3:
 		if _player.active_wieldable != "lvl_0_landing":
 			_player.set_cheat_collisions_disabled(true)
 			print("Player stood up again. Test now begins")
@@ -66,21 +66,37 @@ func _process(_delta: float) -> bool:
 			_lvl._player.global_position.x = 4000
 			_state = 4
 			
-	if _state == 4:
+	elif _state == 4:
+		if _lvl.get_num_chunks_in_progress() > 0:
+			print("Chunks loaded. Waiting couple of frame for just some stuff to happen in the next couple of frames")
+			_state = 5
+
+	elif _state == 5:
+		if _frame_count_since_state_change > 200:
+			print("Waiting done")
+			_state = 6
+
+	elif _state == 6:
 		if _frame_count_since_state_change > 5:
 			if !_lvl.chunks.has(Vector2i(0, 0)):
-				print("Chunk [0,0] got indeed removed. now teleporting back")
+				print("Chunk [0,0] got indeed removed. now teleporting back, and wait for chunks to load again")
 				_lvl._player.global_position.x = 0
-				_state = 5
+				_state = 7
 				
 		if _frame_count_since_state_change > 500:
 			push_error("Chunk [0,0] did not get removed")
 			quit(1)
 				
-	if _state == 5:
+	elif _state == 7:
+		if _lvl.get_num_chunks_in_progress() > 0:
+			print("Chunks loaded")
+			_state = 8
+			
+	elif _state == 8:
 		if _lvl.chunks.has(Vector2i(0, 0)):
 			print("Chunk [0,0] got regenerated again.")
 			print("TEST: PASS")
+			#_state = 8
 			quit(0)
 			
 	

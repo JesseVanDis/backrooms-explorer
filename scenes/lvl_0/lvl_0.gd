@@ -251,6 +251,13 @@ var chunks_in_progress_mutex := Mutex.new()
 var chunks_in_results: Dictionary = {} # Vector2i(chunk index) -> MapGenerator.Section
 var chunks_in_results_mutex := Mutex.new()
 
+# Returns the number of background chunk generation tasks currently running.
+func get_num_chunks_in_progress() -> int:
+	chunks_in_progress_mutex.lock()
+	var count: int = chunks_in_progress.size()
+	chunks_in_progress_mutex.unlock()
+	return count
+
 func _generate_chunk(chunk_index: Vector2i) -> MapGenerator.Section:
 	print("Creating chunk: " + str(chunk_index))
 	var x0: int = chunk_index.x * CHUNK_SIZE
