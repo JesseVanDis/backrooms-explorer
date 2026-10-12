@@ -272,14 +272,28 @@ func _start_chunk_generation(chunk_index: Vector2i) -> void:
 	chunk_threads[chunk_index] = thread
 	thread.start(_generate_chunk_thread.bind(chunk_index))
 	
+# Ensures all background generation worker threads are properly joined and cleaned up before the
+# level node leaves the scene tree to prevent thread leaks and use-after-free crashes.
+func _exit_tree() -> void:
+	for chunk_index: Vector2i in chunk_threads.keys():
+		var thread: Thread = chunk_threads[chunk_index]
+		if thread.is_started():
+			thread.wait_to_finish()
+	chunk_threads.clear()
+
+# Retrieves an existing chunk or initiates asynchronous/synchronous chunk generation, cleaning up
+# background thread tracking upon generation completion so that unloaded chunks can be regenerated
+# when the player returns.
 func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
 	if chunks.has(chunk_index):
 		var cached_chunk: Chunk = chunks[chunk_index]
-		if _node_map:
+		if _node_map != null:
 			if cached_chunk.static_body_3d.get_parent() != _node_map:
 				_node_map.add_child(cached_chunk.static_body_3d)
 			if cached_chunk.tiles.get_parent() != _node_map:
 				_node_map.add_child(cached_chunk.tiles)
+		else:
+			push_error("_get_or_create_chunk: _node_map is null")
 		return cached_chunk
 		
 	var x0: int = chunk_index.x * CHUNK_SIZE
@@ -288,7 +302,7 @@ func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
 	var result: MapGenerator.Section = null
 	if async:
 		chunks_in_progress_mutex.lock()
-		var already_generating := chunks_in_progress.has(chunk_index)
+		var already_generating: bool = chunks_in_progress.has(chunk_index)
 		if !already_generating:
 			chunks_in_progress[chunk_index] = true
 			chunks_in_progress_mutex.unlock()
@@ -303,11 +317,33 @@ func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
 				result = chunks_in_results[chunk_index]
 				chunks_in_results.erase(chunk_index)
 			chunks_in_results_mutex.unlock()
+			
+			if result != null:
+				chunks_in_progress_mutex.lock()
+				chunks_in_progress.erase(chunk_index)
+				chunks_in_progress_mutex.unlock()
+				if chunk_threads.has(chunk_index):
+					var thread: Thread = chunk_threads[chunk_index]
+					thread.wait_to_finish()
+					chunk_threads.erase(chunk_index)
 		
 		if result == null:
 			return null
 	else:
-		result = _generate_chunk(chunk_index)
+		if chunk_threads.has(chunk_index):
+			chunks_in_progress_mutex.lock()
+			chunks_in_progress.erase(chunk_index)
+			chunks_in_progress_mutex.unlock()
+			var thread: Thread = chunk_threads[chunk_index]
+			thread.wait_to_finish()
+			chunk_threads.erase(chunk_index)
+			chunks_in_results_mutex.lock()
+			if chunks_in_results.has(chunk_index):
+				result = chunks_in_results[chunk_index]
+				chunks_in_results.erase(chunk_index)
+			chunks_in_results_mutex.unlock()
+		if result == null:
+			result = _generate_chunk(chunk_index)
 	
 	var chunk: Chunk = Chunk.new()
 	chunk.section = result
@@ -315,9 +351,11 @@ func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
 	chunk.global_pos = Vector2(x0, y0)
 	chunk.static_body_3d = StaticBody3D.new()
 	chunk.tiles = Node3D.new()
-	if _node_map:
+	if _node_map != null:
 		_node_map.add_child(chunk.static_body_3d)
 		_node_map.add_child(chunk.tiles)
+	else:
+		push_error("_get_or_create_chunk: _node_map is null")
 	chunk.static_body_3d.name = "Chunk_static_body_%d_%d" % [chunk_index.x, chunk_index.y]
 	chunk.tiles.name = "Chunk_%d_%d" % [chunk_index.x, chunk_index.y]
 	chunks[chunk_index] = chunk
@@ -477,6 +515,8 @@ func _forget_placed_tiles_of_chunk(chunk: Chunk) -> void:
 			_graphic_tiles_cache.placed_tiles.erase(tile_index)
 			_collision_tiles_cache.placed_tiles.erase(tile_index)
 
+# Frees all placed tiles, graphics, and collision shapes of an out-of-range chunk and removes it from
+# the loaded chunks registry so that memory is freed and the chunk can be re-streamed when approached.
 func _remove_chunk(chunk_index: Vector2i) -> void:
 	print("Removing chunk: " + str(chunk_index))
 	var chunk_node: Node3D = chunks[chunk_index].tiles
@@ -485,14 +525,21 @@ func _remove_chunk(chunk_index: Vector2i) -> void:
 	var chunk_collisions_name: String = chunk_collisions.name
 	var chunk: Chunk = chunks[chunk_index]
 	_forget_placed_tiles_of_chunk(chunk)
-	_node_map.remove_child(chunk_node)
-	_node_map.remove_child(chunk_collisions)
+	if _node_map != null:
+		_node_map.remove_child(chunk_node)
+		_node_map.remove_child(chunk_collisions)
+	else:
+		push_error("_remove_chunk: _node_map is null")
 	chunk_node.queue_free()
 	chunk_collisions.queue_free()
 	
 	# Clean up collision shapes that were moved to the global StaticBody3D ( not tested ) 
-	get_tree().call_group("col_" + chunk_name, "queue_free")
-	get_tree().call_group("col_" + chunk_collisions_name, "queue_free")
+	var tree: SceneTree = get_tree()
+	if tree != null:
+		tree.call_group("col_" + chunk_name, "queue_free")
+		tree.call_group("col_" + chunk_collisions_name, "queue_free")
+	else:
+		push_error("_remove_chunk: get_tree() is null")
 	chunks.erase(chunk_index)
 
 class HandleTilesCache:
@@ -678,8 +725,11 @@ func _handle_world_generation() -> void:
 				if (dist - CHUNK_SIZE/2.0) < GENERATION_THRESHOLD:
 					_get_or_create_chunk(chunk_index, true)
 
+# Resolves the chunk index owning a given tile coordinate using floor division so that all tiles
+# within a chunk (including negative coordinate regions and the upper half of chunks) map to the
+# correct chunk rather than rounding into neighboring chunks.
 func _get_chunk_index(tile_index: Vector2i) -> Vector2i:
-	return Vector2i(int(roundf(float(tile_index.x) / float(CHUNK_SIZE))), int(roundf(float(tile_index.y) / float(CHUNK_SIZE))))
+	return Vector2i(int(floorf(float(tile_index.x) / float(CHUNK_SIZE))), int(floorf(float(tile_index.y) / float(CHUNK_SIZE))))
 
 func _get_collision_shapes(resource: PackedScene) -> Array[CollisionShape3D]:
 	var shapes: Array[CollisionShape3D] = []

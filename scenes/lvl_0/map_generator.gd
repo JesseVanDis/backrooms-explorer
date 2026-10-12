@@ -72,7 +72,7 @@ enum WallFace {
 	FE_N         = 0x10,
 	FW_N         = 0x20,
 	FE_S         = 0x40,
-	FW_S         = 0x80,	
+	FW_S         = 0x80,
 }
 
 const all_wall_faces: Array[WallFace] = [WallFace.FN_E, WallFace.FS_E, WallFace.FN_W, WallFace.FS_W, WallFace.FE_N, WallFace.FW_N, WallFace.FE_S, WallFace.FW_S]
@@ -83,7 +83,7 @@ const all_props: Array[Pixel] = [
 	Pixel.PROP_STOOL_1,
 	Pixel.PROP_BIN_1
 ]
-	
+
 class PropChances:
 	var total_spawn_chance: float = 0.002
 	var weights: Dictionary = {} # {Pixel, float}
