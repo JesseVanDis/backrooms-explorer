@@ -13,6 +13,11 @@ var _start_time: float = 0.0
 
 # Verifies that chunk [0, 0] unloads when the player moves far away and successfully regenerates when returning
 func _initialize() -> void:
+	Engine.physics_ticks_per_second = 60
+	Engine.max_fps = 0
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	Engine.time_scale = 4.0
+	
 	print("Starting chunk regeneration test...")
 	var lvl_scene: PackedScene = load("res://scenes/lvl_0/lvl_0.tscn")
 	if lvl_scene == null:
