@@ -11,6 +11,7 @@ const CHUNK_SIZE: int = 128
 const GENERATION_THRESHOLD: float = CHUNK_SIZE
 const REMOVAL_THRESHOLD: float = 200.0
 const VIEW_DISTANCE: int = 60
+const MAX_TILES_TO_ADD_PER_FRAME: int = 20
 
 var model_floor:                  Model = _load_model(preload("res://scenes/lvl_0/part_1x1_floor.tscn"))
 var model_ceiling:                Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling.tscn"))
@@ -651,7 +652,7 @@ func _handle_tile_graphics() -> void:
 				graphic_node.queue_free() # gets remove from the parent automatically
 		placed_tile.graphics = {}
 	
-	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, 50)
+	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, MAX_TILES_TO_ADD_PER_FRAME)
 
 func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_cb: Callable, remove_cb: Callable, max_tiles_to_handle: int = 0) -> void:
 	var player_pos_3d: Vector3 = _player.transform.origin
