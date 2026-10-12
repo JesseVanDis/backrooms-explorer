@@ -84,6 +84,7 @@ var active_wieldable: String:
 var _camera_default_position: Vector3 = Vector3.ZERO
 var _bob_phase: float = 0.0
 var _is_moving: bool = false
+var _cheat_gravity_disabled: bool = false
 
 var forward_2d: Vector2:
 	get(): return UtilsMath.xz_normal(-transform.basis.z)
@@ -225,11 +226,12 @@ func apply_jump_sounds(sounds: Array[AudioStream]) -> void:
 func _process(_delta: float) -> void:
 	pass
 
+# Drives player movement, physics collisions, gravity simulation, and camera/audio state updates during each physics step.
 func _physics_process(delta: float) -> void:
 	if not control_enabled:
 		velocity.x = move_toward(velocity.x, 0, max_speed)
 		velocity.z = move_toward(velocity.z, 0, max_speed)
-		if not is_on_floor():
+		if not is_on_floor() and not _cheat_gravity_disabled:
 			velocity += get_gravity() * delta
 		move_and_slide()
 		return
@@ -238,7 +240,7 @@ func _physics_process(delta: float) -> void:
 	
 	var was_in_air: bool = not is_on_floor()
 	# Add the gravity.
-	if not is_on_floor():
+	if not is_on_floor() and not _cheat_gravity_disabled:
 		velocity += get_gravity() * delta
 		if max_fall_speed > 0.0:
 			velocity.y = max(velocity.y, -max_fall_speed)
@@ -427,6 +429,11 @@ func _handle_hands_aim(dt: float) -> void:
 		target_yaw = atan2(-local_direction.x, -local_direction.z)
 	
 	_node_hands_yaw.rotation.y = lerp_angle(_node_hands_yaw.rotation.y, target_yaw, minf(1.0, dt * 30.0))
+
+# Allows development tools, cheats, and testing routines to toggle gravity simulation off or on for free movement and debugging.
+func set_cheat_disable_gravity(enabled: bool) -> void:
+	_cheat_gravity_disabled = enabled
+	
 
 func _find_ingame_ui() -> IngameUI:
 	var current: Node = self
