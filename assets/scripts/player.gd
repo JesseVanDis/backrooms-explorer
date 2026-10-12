@@ -237,6 +237,7 @@ func _process(_real_delta: float) -> void:
 # Drives player movement, physics collisions, gravity simulation, and camera/audio state updates during each physics step.
 func _physics_process(real_delta: float) -> void:
 	var is_fast_mode: bool = _is_fast_mode()
+	var is_gravity_disabled: bool = _is_gravity_disabled()
 	var delta: float = real_delta
 	if is_fast_mode:
 		delta = 0.1
@@ -244,7 +245,7 @@ func _physics_process(real_delta: float) -> void:
 	if not control_enabled:
 		velocity.x = move_toward(velocity.x, 0, max_speed)
 		velocity.z = move_toward(velocity.z, 0, max_speed)
-		if not is_on_floor() and not _cheat_gravity_disabled:
+		if not is_on_floor() and not is_gravity_disabled:
 			velocity += get_gravity() * delta
 		move_and_slide()
 		return
@@ -253,7 +254,7 @@ func _physics_process(real_delta: float) -> void:
 	
 	var was_in_air: bool = not is_on_floor()
 	# Add the gravity.
-	if not is_on_floor() and not _cheat_gravity_disabled:
+	if not is_on_floor() and not is_gravity_disabled:
 		velocity += get_gravity() * delta
 		if max_fall_speed > 0.0:
 			velocity.y = max(velocity.y, -max_fall_speed)
@@ -452,6 +453,10 @@ func _handle_hands_aim(dt: float) -> void:
 # Allows development tools, cheats, and testing routines to toggle gravity simulation off or on for free movement and debugging.
 func set_cheat_disable_gravity(enabled: bool) -> void:
 	_cheat_gravity_disabled = enabled
+
+# Checks whether anti-gravity cheat mode is currently active either via persistent cheat flag or holding the Shift key.
+func _is_gravity_disabled() -> bool:
+	return _cheat_gravity_disabled or Input.is_key_pressed(KEY_SHIFT)
 
 # Checks whether fast mode is currently enabled either via persistent cheat flag or holding the Shift key.
 func _is_fast_mode() -> bool:

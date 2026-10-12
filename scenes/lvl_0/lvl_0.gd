@@ -652,56 +652,70 @@ func _handle_tile_graphics() -> void:
 				graphic_node.queue_free() # gets remove from the parent automatically
 		placed_tile.graphics = {}
 	
-	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, MAX_TILES_TO_ADD_PER_FRAME)
+	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, MAX_TILES_TO_ADD_PER_FRAME) 
 
+static var _radius_offsets_cache: Dictionary = {}
+
+# Caches and returns concentric grid offsets sorted by ascending distance from center, eliminating per-frame trigonometric calculations and array sorting.
+func _get_radius_offsets(radius: int) -> Array[Vector2i]:
+	if _radius_offsets_cache.has(radius):
+		var cached_offsets: Array[Vector2i] = _radius_offsets_cache[radius]
+		return cached_offsets
+	
+	var offsets: Array[Vector2i] = []
+	var radius_squared: int = radius * radius
+	for dy: int in range(-radius, radius + 1):
+		for dx: int in range(-radius, radius + 1):
+			var distance_squared: int = dx * dx + dy * dy
+			if distance_squared < radius_squared:
+				offsets.append(Vector2i(dx, dy))
+	
+	var sort_by_distance: Callable = func(a: Vector2i, b: Vector2i) -> bool:
+		return (a.x * a.x + a.y * a.y) < (b.x * b.x + b.y * b.y)
+	offsets.sort_custom(sort_by_distance)
+	
+	_radius_offsets_cache[radius] = offsets
+	return offsets
+
+# Streams tile graphics and physics collision shapes around the player by instantiating newly visible tiles and freeing out-of-range tiles.
 func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_cb: Callable, remove_cb: Callable, max_tiles_to_handle: int = 0) -> void:
-	var player_pos_3d: Vector3 = _player.transform.origin
-	var player_pos: Vector2 = Vector2(player_pos_3d.x, player_pos_3d.z)
-	var tile_index_of_player: Vector2i = Vector2i(int(player_pos.x), int(player_pos.y))
-	#print("player tile index: " + str(tile_index_of_player))
-	
-	var x0: int = tile_index_of_player.x - radius
-	var x1: int = tile_index_of_player.x + radius
-	var y0: int = tile_index_of_player.y - radius
-	var y1: int = tile_index_of_player.y + radius
-	
-	var tiles_visible: Array[Vector2i] = []
-	var tiles_no_longer_visible: Dictionary = cache.last_tiles_where_needed.duplicate()
-	
-	for y in range(y0, y1):
-		for x in range(x0, x1):
-			var dist: float = (Vector2(x, y) - player_pos).length()
-			if int(roundf(dist)) < radius:
-				var tile_index: Vector2i = Vector2i(x, y)
-				tiles_visible.append(tile_index)
-				tiles_no_longer_visible.erase(tile_index)
-	
-	# iterate from player outwards
-	var sort_by_distance: Callable = func(a: Vector2i, b: Vector2i) -> float: return a.distance_squared_to(Vector2i(player_pos)) < b.distance_squared_to(Vector2i(player_pos))
-	tiles_visible.sort_custom(sort_by_distance)
+	if _player == null:
+		push_error("_handle_tiles_in_radius: _player is null")
+		return
 
-	# remove out-of-range tile first
-	for tile_index: Vector2i in tiles_no_longer_visible.keys():
+	var player_pos_3d: Vector3 = _player.transform.origin
+	var tile_index_of_player: Vector2i = Vector2i(int(player_pos_3d.x), int(player_pos_3d.z))
+	var radius_squared: int = radius * radius
+	
+	var tiles_to_remove: Array[Vector2i] = []
+	for tile_index: Vector2i in cache.placed_tiles.keys():
+		if not cache.placed_tiles[tile_index]:
+			continue
+		var dx: int = tile_index.x - tile_index_of_player.x
+		var dy: int = tile_index.y - tile_index_of_player.y
+		if (dx * dx + dy * dy) >= radius_squared:
+			tiles_to_remove.append(tile_index)
+	
+	for tile_index: Vector2i in tiles_to_remove:
 		if placed_tiles.has(tile_index):
 			var placed_tile: PlacedTile = placed_tiles[tile_index]
 			remove_cb.call(placed_tile)
-			cache.placed_tiles[tile_index] = false
+		cache.placed_tiles.erase(tile_index)
 	
+	var offsets: Array[Vector2i] = _get_radius_offsets(radius)
 	var num_tiles_handled: int = 0
-	cache.last_tiles_where_needed.clear()
-	for tile_index: Vector2i in tiles_visible:
-		cache.last_tiles_where_needed[tile_index] = true
-		if placed_tiles.has(tile_index):
-			var placed_tile: PlacedTile = placed_tiles[tile_index]
-			var chunk_index: Vector2i = _get_chunk_index(tile_index)
-			if chunks.has(chunk_index):
-				if (!cache.placed_tiles.has(tile_index)) || cache.placed_tiles[tile_index] == false:
+	for offset: Vector2i in offsets:
+		var tile_index: Vector2i = tile_index_of_player + offset
+		if not cache.placed_tiles.has(tile_index):
+			if placed_tiles.has(tile_index):
+				var chunk_index: Vector2i = _get_chunk_index(tile_index)
+				if chunks.has(chunk_index):
 					var chunk: Chunk = chunks[chunk_index]
-					#var tile_pos: Vector3 = Vector3(float(tile_index.x) * TILE_SIZE, 0.0, float(tile_index.y) * TILE_SIZE)
+					var placed_tile: PlacedTile = placed_tiles[tile_index]
 					create_cb.call(placed_tile, chunk)
-					num_tiles_handled = num_tiles_handled + 1
 					cache.placed_tiles[tile_index] = true
-					if max_tiles_to_handle > 0 && num_tiles_handled > max_tiles_to_handle:
+					num_tiles_handled += 1
+					if max_tiles_to_handle > 0 and num_tiles_handled >= max_tiles_to_handle:
 						break
 
 
