@@ -15,7 +15,7 @@ const MAX_TILES_TO_ADD_PER_FRAME: int = 20
 const VISIBILITY_PATTERN_PATH: String = "res://scenes/lvl_0/tiles_visible_pattern.png"
 const VISIBILITY_THRESHOLD: float = 100.0 / 255.0
 
-var _visibility_pattern_image: Image = null
+var _visibility_pattern_data: PackedByteArray = PackedByteArray()
 var _visibility_pattern_width: int = 0
 var _visibility_pattern_height: int = 0
 var _visibility_pattern_center_x: float = 0.0
@@ -108,6 +108,7 @@ func initialized() -> bool:
 func _ready() -> void:
 	_player = $_viewport_container/_viewport/Player
 	_load_visibility_pattern()
+	_update_visibility_transform()
 	
 	_player.add_wieldable("lvl_0_landing", false, true,  {
 							"max_look_freedom_degrees_v": 10.0, 
@@ -137,7 +138,7 @@ func _process(_delta: float) -> void:
 	_handle_player_landing()
 	_handle_world_generation()
 	_handle_tile_graphics()
-	# _handle_tile_visibility()
+	_handle_tile_visibility()
 	_handle_static_collision_shapes()
 
 func _handle_player_landing() -> void:
@@ -617,25 +618,34 @@ func _get_model_offset(placed_tile: PlacedTile, model: Model) -> Vector3:
 		return placed_tile.model_modefier.model_offsets[model.id]
 	return Vector3.ZERO
 
-# Loads the visibility pattern image from disk and caches its dimensions and center coordinates so that per-tile visibility queries can be performed efficiently without reloading textures each frame.
+# Loads the visibility pattern image from disk and converts its visibility threshold data into a flat PackedByteArray buffer so that per-tile visibility queries avoid get_pixel and Color allocation overhead each frame while minimizing memory footprint.
 func _load_visibility_pattern() -> void:
+	var image: Image = null
 	if ResourceLoader.exists(VISIBILITY_PATTERN_PATH):
 		var texture: Texture2D = load(VISIBILITY_PATTERN_PATH) as Texture2D
 		if texture != null:
-			_visibility_pattern_image = texture.get_image()
+			image = texture.get_image()
 		else:
 			push_error("_load_visibility_pattern: loaded texture is null for " + VISIBILITY_PATTERN_PATH)
-	if _visibility_pattern_image == null:
+	if image == null:
 		if FileAccess.file_exists(VISIBILITY_PATTERN_PATH):
-			_visibility_pattern_image = Image.load_from_file(VISIBILITY_PATTERN_PATH)
-	if _visibility_pattern_image == null:
+			image = Image.load_from_file(VISIBILITY_PATTERN_PATH)
+	if image == null:
 		push_error("_load_visibility_pattern: Failed to load visibility pattern image from " + VISIBILITY_PATTERN_PATH)
 		return
 
-	_visibility_pattern_width = _visibility_pattern_image.get_width()
-	_visibility_pattern_height = _visibility_pattern_image.get_height()
+	_visibility_pattern_width = image.get_width()
+	_visibility_pattern_height = image.get_height()
 	_visibility_pattern_center_x = float(_visibility_pattern_width - 1) * 0.5
 	_visibility_pattern_center_y = float(_visibility_pattern_height - 1) * 0.5
+
+	var total_pixels: int = _visibility_pattern_width * _visibility_pattern_height
+	_visibility_pattern_data.resize(total_pixels)
+	for y: int in range(_visibility_pattern_height):
+		for x: int in range(_visibility_pattern_width):
+			var pixel_color: Color = image.get_pixel(x, y)
+			var is_visible_byte: int = 1 if (pixel_color.r > VISIBILITY_THRESHOLD) else 0
+			_visibility_pattern_data[y * _visibility_pattern_width + x] = is_visible_byte
 
 # Calculates and caches the player's 2D position, forward direction, and perpendicular right vector once per frame to avoid redundant trigonometric and matrix operations when evaluating visibility across candidate tiles.
 func _update_visibility_transform() -> void:
@@ -652,13 +662,16 @@ func _update_visibility_transform() -> void:
 	var player_position_3d: Vector3 = _player.global_position
 	_cached_player_position = Vector2(player_position_3d.x, player_position_3d.z)
 
-# Determines whether a tile is visible by projecting its world position into the player's local reference frame, rotating and centering it on the visibility mask image, and testing if the red channel exceeds the threshold (100/255) to cull unseen tiles and lights outside the player's field of view.
+# Determines whether a tile is visible by projecting its world position into the player's local reference frame, rotating and centering it on the visibility mask image, and querying the cached PackedByteArray to cull unseen tiles outside the player's field of view with minimal lookup overhead and memory footprint.
 func _is_tile_visible(tile_index: Vector2i) -> bool:
-	if _visibility_pattern_image == null:
+	if _visibility_pattern_data.is_empty():
 		_load_visibility_pattern()
-		if _visibility_pattern_image == null:
-			push_error("_is_tile_visible: visibility pattern image is null")
+		if _visibility_pattern_data.is_empty():
+			push_error("_is_tile_visible: visibility pattern data is empty")
 			return true
+
+	if _cached_forward_direction.is_zero_approx():
+		_update_visibility_transform()
 
 	var world_offset: Vector2 = Vector2(float(tile_index.x) - _cached_player_position.x, float(tile_index.y) - _cached_player_position.y)
 	var distance_forward: float = world_offset.dot(_cached_forward_direction)
@@ -670,8 +683,8 @@ func _is_tile_visible(tile_index: Vector2i) -> bool:
 	if pixel_x < 0 or pixel_x >= _visibility_pattern_width or pixel_y < 0 or pixel_y >= _visibility_pattern_height:
 		return false
 
-	var pixel_color: Color = _visibility_pattern_image.get_pixel(pixel_x, pixel_y)
-	return pixel_color.r > VISIBILITY_THRESHOLD
+	var buffer_index: int = pixel_y * _visibility_pattern_width + pixel_x
+	return _visibility_pattern_data[buffer_index] != 0
 
 var _collision_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 
@@ -735,7 +748,7 @@ func _handle_tile_visibility() -> void:
 		if not placed_tiles.has(tile_index):
 			continue
 		var placed_tile: PlacedTile = placed_tiles[tile_index]
-		var is_visible: bool = true#_is_tile_visible(tile_index)
+		var is_visible: bool = _is_tile_visible(tile_index)
 		for graphic: Variant in placed_tile.graphics.values():
 			if is_instance_valid(graphic):
 				var graphic_node: Node3D = graphic
