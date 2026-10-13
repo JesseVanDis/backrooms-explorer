@@ -1,4 +1,4 @@
-## [AI-DOC] Level 0 root that streams generated map chunks around the player, placing and removing tile graphics and collision shapes filtered by a player-centered visibility pattern
+## [AI-DOC] Level 0 root that streams generated map chunks around the player, placing and removing tile graphics and collision shapes while toggling tile visibility based on a player-centered mask
 ## spec: scenes/lvl_0/docs/SPEC.md
 ## status: partial
 ## notes: also plays the landing wieldable animation when the falling player first hits the floor
@@ -137,6 +137,7 @@ func _process(_delta: float) -> void:
 	_handle_player_landing()
 	_handle_world_generation()
 	_handle_tile_graphics()
+	# _handle_tile_visibility()
 	_handle_static_collision_shapes()
 
 func _handle_player_landing() -> void:
@@ -703,9 +704,8 @@ func _handle_static_collision_shapes() -> void:
 
 var _graphic_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 
-# Creates and removes tile visual representations around the player based on the directional visibility mask to keep light and geometry counts within performance limits while maintaining continuous rendering in the player's view cone.
+# Creates and removes tile visual representations within the view distance around the player so that nearby tiles exist in the scene tree without reallocating nodes when the player rotates.
 func _handle_tile_graphics() -> void:
-	_update_visibility_transform()
 	var create: Callable = func(placed_tile: PlacedTile, chunk: Chunk) -> void:
 		for model: Model in placed_tile.models.values():
 			if ! placed_tile.graphics.has(model.id):
@@ -726,7 +726,21 @@ func _handle_tile_graphics() -> void:
 				graphic_node.queue_free() # gets remove from the parent automatically
 		placed_tile.graphics = {}
 	
-	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, MAX_TILES_TO_ADD_PER_FRAME, _is_tile_visible) 
+	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, MAX_TILES_TO_ADD_PER_FRAME)
+
+# Toggles visibility of instantiated tile graphics based on the player-centered visibility pattern to eliminate unnecessary light and geometry rendering without incurring node instantiation or deletion overhead every frame.
+func _handle_tile_visibility() -> void:
+	_update_visibility_transform()
+	for tile_index: Vector2i in _graphic_tiles_cache.placed_tiles.keys():
+		if not placed_tiles.has(tile_index):
+			continue
+		var placed_tile: PlacedTile = placed_tiles[tile_index]
+		var is_visible: bool = true#_is_tile_visible(tile_index)
+		for graphic: Variant in placed_tile.graphics.values():
+			if is_instance_valid(graphic):
+				var graphic_node: Node3D = graphic
+				if graphic_node.visible != is_visible:
+					graphic_node.visible = is_visible
 
 static var _radius_offsets_cache: Dictionary = {}
 
@@ -760,8 +774,8 @@ func _get_radius_offsets(radius: int) -> Array[Vector2i]:
 	_radius_offsets_cache[radius] = offsets
 	return offsets
 
-# Streams tile graphics and physics collision shapes around the player by instantiating newly visible tiles and freeing out-of-range or culled tiles, with an optional visibility filter callback used to cull non-visible graphics based on directional sightlines.
-func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callback: Callable, remove_callback: Callable, max_tiles_to_handle: int = 0, filter_callback: Callable = Callable()) -> void:
+# Streams tile graphics and physics collision shapes around the player by instantiating newly entered tiles and freeing out-of-range tiles.
+func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callback: Callable, remove_callback: Callable, max_tiles_to_handle: int = 0) -> void:
 	if _player == null:
 		push_error("_handle_tiles_in_radius: _player is null")
 		return
@@ -777,8 +791,6 @@ func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callba
 		var distance_x: int = tile_index.x - tile_index_of_player.x
 		var distance_y: int = tile_index.y - tile_index_of_player.y
 		var should_remove: bool = (distance_x * distance_x + distance_y * distance_y) >= radius_squared
-		if not should_remove and filter_callback.is_valid():
-			should_remove = not filter_callback.call(tile_index)
 		if should_remove:
 			tiles_to_remove.append(tile_index)
 	
@@ -792,8 +804,6 @@ func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callba
 	var num_tiles_handled: int = 0
 	for offset: Vector2i in offsets:
 		var tile_index: Vector2i = tile_index_of_player + offset
-		if filter_callback.is_valid() and not filter_callback.call(tile_index):
-			continue
 		if not cache.placed_tiles.has(tile_index):
 			if placed_tiles.has(tile_index):
 				var chunk_index: Vector2i = _get_chunk_index(tile_index)
