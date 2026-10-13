@@ -24,6 +24,7 @@ var _visibility_pattern_center_y: float = 0.0
 var _cached_forward_direction: Vector2 = Vector2.ZERO
 var _cached_right_direction: Vector2 = Vector2.ZERO
 var _cached_player_position: Vector2 = Vector2.ZERO
+var _cached_hfov_rad: float = deg_to_rad(30)
 
 var model_floor:                  Model = _load_model(preload("res://scenes/lvl_0/part_1x1_floor.tscn"))
 var model_ceiling:                Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling.tscn"))
@@ -663,28 +664,47 @@ func _update_visibility_transform() -> void:
 	_cached_player_position = Vector2(player_position_3d.x, player_position_3d.z)
 
 # Determines whether a tile is visible by projecting its world position into the player's local reference frame, rotating and centering it on the visibility mask image, and querying the cached PackedByteArray to cull unseen tiles outside the player's field of view with minimal lookup overhead and memory footprint.
-func _is_tile_visible(tile_index: Vector2i) -> bool:
-	if _visibility_pattern_data.is_empty():
-		_load_visibility_pattern()
-		if _visibility_pattern_data.is_empty():
-			push_error("_is_tile_visible: visibility pattern data is empty")
-			return true
-
-	if _cached_forward_direction.is_zero_approx():
-		_update_visibility_transform()
-
-	var world_offset: Vector2 = Vector2(float(tile_index.x) - _cached_player_position.x, float(tile_index.y) - _cached_player_position.y)
-	var distance_forward: float = world_offset.dot(_cached_forward_direction)
-	var distance_right: float = world_offset.dot(_cached_right_direction)
-
-	var pixel_x: int = roundi(_visibility_pattern_center_x + distance_right)
-	var pixel_y: int = roundi(_visibility_pattern_center_y - distance_forward)
-
-	if pixel_x < 0 or pixel_x >= _visibility_pattern_width or pixel_y < 0 or pixel_y >= _visibility_pattern_height:
+func _is_tile_visible(tile_index: Vector2i, tile_index_of_player: Vector2i) -> bool:
+	
+	var forward_width: float = 5
+	var angle_dot: float = 0.8
+	var close_radius: int = 10
+	var fov_radius: float = 30
+	
+	var distance_x: int = tile_index.x - tile_index_of_player.x
+	var distance_y: int = tile_index.y - tile_index_of_player.y
+	var within_radius: bool = (distance_x * distance_x + distance_y * distance_y) < (close_radius*close_radius)
+	if within_radius:
+		return true
+	
+	#var tile_dir: Vector2 = ((tile_index - tile_index_of_player) as Vector2).normalized()
+	var tile_diff: Vector2 = (tile_index - tile_index_of_player)
+	if tile_diff.dot(_cached_forward_direction) < 0:
 		return false
+	
+	# closest acis aligned distance
+	var tile_dir: Vector2 = tile_diff.normalized()	
+	var tile_dist_sq: float = tile_diff.length_squared()
+	var d: float = tile_dir.dot(_cached_forward_direction)
+	if d > angle_dot && tile_dist_sq < (fov_radius*fov_radius):
+		return true
+	
+	var dir_aligned_x: Vector2 = Vector2(0.0, signf(_cached_forward_direction.y))
+	var dir_aligned_y: Vector2 = Vector2(signf(_cached_forward_direction.x), 0.0)
+	
+	var tile_indexf: Vector2 = Vector2(tile_index)
+	var tx: float = tile_diff.dot(dir_aligned_x)
+	var ty: float = tile_diff.dot(dir_aligned_y)
 
-	var buffer_index: int = pixel_y * _visibility_pattern_width + pixel_x
-	return _visibility_pattern_data[buffer_index] != 0
+	var cx: Vector2 = Vector2(tile_index_of_player) + dir_aligned_x * tx
+	var cy: Vector2 = Vector2(tile_index_of_player) + dir_aligned_y * ty
+	
+	var dx: float = cx.distance_squared_to(tile_indexf)
+	var dy: float = cy.distance_squared_to(tile_indexf)
+	if dx < (forward_width * forward_width) || dy < (forward_width * forward_width):
+		return true
+	
+	return false
 
 var _collision_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 
@@ -745,11 +765,14 @@ func _handle_tile_graphics() -> void:
 # Toggles visibility of instantiated tile graphics based on the player-centered visibility pattern to eliminate unnecessary light and geometry rendering without incurring node instantiation or deletion overhead every frame.
 func _handle_tile_visibility() -> void:
 	_update_visibility_transform()
+	var player_pos_3d: Vector3 = _player.transform.origin
+	var tile_index_of_player: Vector2i = Vector2i(int(player_pos_3d.x), int(player_pos_3d.z))
+
 	for tile_index: Vector2i in _graphic_tiles_cache.placed_tiles.keys():
 		if not placed_tiles.has(tile_index):
 			continue
 		var placed_tile: PlacedTile = placed_tiles[tile_index]
-		var is_visible: bool = _is_tile_visible(tile_index)
+		var is_visible: bool = _is_tile_visible(tile_index, tile_index_of_player)
 		for graphic: Variant in placed_tile.graphics.values():
 			if is_instance_valid(graphic):
 				var graphic_node: Node3D = graphic
@@ -833,7 +856,7 @@ func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callba
 	# First pass: prioritize adding tiles that are visible from the player-centered visibility mask, sorted by distance from player
 	for offset: Vector2i in offsets:
 		var tile_index: Vector2i = tile_index_of_player + offset
-		if not cache.placed_tiles.has(tile_index) and _is_tile_visible(tile_index):
+		if not cache.placed_tiles.has(tile_index) and _is_tile_visible(tile_index, tile_index_of_player):
 			if _try_create_tile_in_cache(tile_index, cache, create_callback):
 				num_tiles_handled += 1
 				if max_tiles_to_handle > 0 and num_tiles_handled >= max_tiles_to_handle:
