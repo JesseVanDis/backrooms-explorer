@@ -1,4 +1,4 @@
-## [AI-DOC] First-person CharacterBody3D controller handling walking, jumping, head bob, footstep and voice audio, and wieldable/camera limits
+## [AI-DOC] First-person CharacterBody3D controller handling walking, jumping, head bob, footstep and voice audio, wieldable/camera limits, and debug freecam
 ## spec: docs/ai/systems/player.md
 ## status: partial
 ## notes: delegates wieldable animation state to PlayerWield and subtitles to IngameUI
@@ -7,6 +7,9 @@ extends CharacterBody3D
 class_name Player
 
 const JUMP_VELOCITY: float = 3.5
+const FREECAM_FLY_SPEED: float = 10.0
+const FREECAM_FAST_SPEED_MULTIPLIER: float = 3.0
+const FREECAM_MOUSE_SENSITIVITY: float = 0.003
 var FOOTSTEP_INTERVAL: SpeedScale = SpeedScale.new(0.8, 0.36)
 var BOB_VERTICAL_AMPLITUDE: SpeedScale = SpeedScale.new(0.02, 0.08)
 var BOB_HORIZONTAL_AMPLITUDE: SpeedScale = SpeedScale.new(0.005, 0.02)
@@ -90,6 +93,12 @@ var _cheat_gravity_disabled: bool = false
 var _cheat_fast_mode: bool = false
 var _cheat_vars: Dictionary = {}
 
+# Debug freecam
+var _debug_cam: Camera3D = null
+var _is_debug_cam_active: bool = false
+var _debug_cam_yaw: float = 0.0
+var _debug_cam_pitch: float = 0.0
+
 var forward_2d: Vector2:
 	get(): return UtilsMath.xz_normal(-transform.basis.z)
 
@@ -121,8 +130,12 @@ func _ready() -> void:
 	add_wieldable("wield_push",    true,  false, {"max_movement_speed_to_target": 0.15})
 
 	_ensure_sound_controller()
-	_ingame_ui.setup(_audio_player_voice)
+	if _ingame_ui != null:
+		_ingame_ui.setup(_audio_player_voice)
+	else:
+		push_error("_ingame_ui is null")
 	_audio_player_voice.finished.connect(_on_voice_finished)
+	_setup_debug_camera()
 
 
 func replace_voice(sequence: Array[AudioStream]) -> void:
@@ -227,15 +240,17 @@ func apply_footstep_start_sound(sound: AudioStream) -> void:
 func apply_jump_sounds(sounds: Array[AudioStream]) -> void:
 	_jump_sounds = sounds
 	
-func _process(_real_delta: float) -> void:
-	#var delta: float = real_delta
-	#if _cheat_fast_mode:
-		#delta = 0.1
-
-	pass
+# Updates free-flight debug camera movement when freecam mode is active.
+func _process(real_delta: float) -> void:
+	if _is_debug_cam_active:
+		_process_freecam_movement(real_delta)
 
 # Drives player movement, physics collisions, gravity simulation, and camera/audio state updates during each physics step.
 func _physics_process(real_delta: float) -> void:
+	if _is_debug_cam_active:
+		velocity = Vector3.ZERO
+		return
+
 	var is_fast_mode: bool = _is_fast_mode()
 	var is_gravity_disabled: bool = _is_gravity_disabled()
 	var delta: float = real_delta
@@ -364,11 +379,32 @@ func _handle_camera_limits(dt: float) -> void:
 			self.rotation.y = (self.rotation.y * (1.0 - adjustement_step)) + (target_y * adjustement_step)
 
 
+# Handles user input for mouse capture, freecam toggling, camera look, and movement controls.
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		var key_event: InputEventKey = event as InputEventKey
+		if key_event == null:
+			push_error("key_event is null")
+			return
+		if key_event.pressed and not key_event.echo:
+			if key_event.physical_keycode == KEY_C or key_event.keycode == KEY_C:
+				_toggle_debug_cam()
+				return
+
 	if event is InputEventMouseButton:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	elif event.is_action_pressed("ui_cancel"):
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+	if _is_debug_cam_active:
+		if event is InputEventMouseMotion and (Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED or DisplayServer.get_name() == "headless"):
+			var mouse_motion: InputEventMouseMotion = event as InputEventMouseMotion
+			if mouse_motion == null:
+				push_error("mouse_motion is null")
+				return
+			_handle_freecam_look(mouse_motion)
+		return
+
 	if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		var event_mouse_motion: InputEventMouseMotion = event as InputEventMouseMotion
 		if event_mouse_motion:
@@ -480,6 +516,7 @@ func set_cheat_collisions_disabled(enabled: bool) -> void:
 			_cheat_vars.erase("cheat_collisions_disabled")
 	
 	
+# Traverses up the scene tree to locate the IngameUI layer for forwarding voice subtitles and UI state.
 func _find_ingame_ui() -> IngameUI:
 	var current: Node = self
 	while current != null:
@@ -491,3 +528,80 @@ func _find_ingame_ui() -> IngameUI:
 		current = current.get_parent()
 	push_error("IngameUI not found!")
 	return null
+
+# Creates and attaches an auxiliary top-level Camera3D to the player node for free-flight debugging.
+func _setup_debug_camera() -> void:
+	_debug_cam = Camera3D.new()
+	_debug_cam.name = "DebugCamera"
+	_debug_cam.top_level = true
+	add_child(_debug_cam)
+
+# Rotates the debug camera based on mouse motion while clamping pitch to prevent gimbal inversion.
+func _handle_freecam_look(mouse_motion: InputEventMouseMotion) -> void:
+	if _debug_cam == null:
+		push_error("_debug_camera is null in _handle_freecam_look")
+		return
+
+	_debug_cam_yaw -= mouse_motion.relative.x * FREECAM_MOUSE_SENSITIVITY
+	_debug_cam_pitch = clampf(
+		_debug_cam_pitch - mouse_motion.relative.y * FREECAM_MOUSE_SENSITIVITY,
+		deg_to_rad(-89.9),
+		deg_to_rad(89.9)
+	)
+	_debug_cam.global_rotation = Vector3(_debug_cam_pitch, _debug_cam_yaw, 0.0)
+
+# Translates the debug camera in 3D space according to directional keyboard inputs and speed modifiers.
+func _process_freecam_movement(delta: float) -> void:
+	if _debug_cam == null:
+		push_error("_debug_camera is null in _process_freecam_movement")
+		return
+
+	var movement_vector: Vector3 = Vector3.ZERO
+	if Input.is_key_pressed(KEY_W):
+		movement_vector -= _debug_cam.global_transform.basis.z
+	if Input.is_key_pressed(KEY_S):
+		movement_vector += _debug_cam.global_transform.basis.z
+	if Input.is_key_pressed(KEY_A):
+		movement_vector -= _debug_cam.global_transform.basis.x
+	if Input.is_key_pressed(KEY_D):
+		movement_vector += _debug_cam.global_transform.basis.x
+	if Input.is_key_pressed(KEY_E) or Input.is_key_pressed(KEY_SPACE):
+		movement_vector += Vector3.UP
+	if Input.is_key_pressed(KEY_Q) or Input.is_key_pressed(KEY_CTRL):
+		movement_vector += Vector3.DOWN
+
+	var fly_speed: float = FREECAM_FLY_SPEED
+	if Input.is_key_pressed(KEY_SHIFT):
+		fly_speed *= FREECAM_FAST_SPEED_MULTIPLIER
+
+	if movement_vector.length_squared() > 0.0001:
+		_debug_cam.global_position += movement_vector.normalized() * fly_speed * delta
+
+# Toggles between normal player control and free-flight debug camera mode for level inspection.
+func _toggle_debug_cam() -> void:
+	set_freecam(!_is_debug_cam_active)
+
+# Activates or deactivates free-flight debug camera mode and manages active camera switching.
+func set_freecam(enabled: bool) -> void:
+	_is_debug_cam_active = enabled
+	if _is_debug_cam_active:
+		if _debug_cam == null:
+			push_error("_debug_cam is null when activating freecam")
+			return
+		if _node_camera == null:
+			push_error("_node_camera is null when activating freecam")
+			return
+		_debug_cam.global_transform = _node_camera.global_transform
+		var camera_rotation: Vector3 = _node_camera.global_rotation
+		_debug_cam_yaw = camera_rotation.y
+		_debug_cam_pitch = camera_rotation.x
+		_debug_cam.global_rotation = Vector3(_debug_cam_pitch, _debug_cam_yaw, 0.0)
+		_debug_cam.make_current()
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	else:
+		if _debug_cam != null:
+			_debug_cam.current = false
+		if _node_camera == null:
+			push_error("_node_camera is null when deactivating freecam")
+			return
+		_node_camera.make_current()
