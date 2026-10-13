@@ -1,4 +1,4 @@
-## [AI-DOC] Level 0 root that streams generated map chunks around the player, placing and removing tile graphics and collision shapes
+## [AI-DOC] Level 0 root that streams generated map chunks around the player, placing and removing tile graphics and collision shapes filtered by a player-centered visibility pattern
 ## spec: scenes/lvl_0/docs/SPEC.md
 ## status: partial
 ## notes: also plays the landing wieldable animation when the falling player first hits the floor
@@ -12,6 +12,18 @@ const GENERATION_THRESHOLD: float = CHUNK_SIZE
 const REMOVAL_THRESHOLD: float = 200.0
 const VIEW_DISTANCE: int = 60
 const MAX_TILES_TO_ADD_PER_FRAME: int = 20
+const VISIBILITY_PATTERN_PATH: String = "res://scenes/lvl_0/tiles_visible_pattern.png"
+const VISIBILITY_THRESHOLD: float = 100.0 / 255.0
+
+var _visibility_pattern_image: Image = null
+var _pattern_width: int = 0
+var _pattern_height: int = 0
+var _pattern_center_x: float = 0.0
+var _pattern_center_y: float = 0.0
+
+var _cached_forward_direction: Vector2 = Vector2.ZERO
+var _cached_right_direction: Vector2 = Vector2.ZERO
+var _cached_player_position: Vector2 = Vector2.ZERO
 
 var model_floor:                  Model = _load_model(preload("res://scenes/lvl_0/part_1x1_floor.tscn"))
 var model_ceiling:                Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling.tscn"))
@@ -95,6 +107,7 @@ func initialized() -> bool:
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	_player = $_viewport_container/_viewport/Player
+	_load_visibility_pattern()
 	
 	_player.add_wieldable("lvl_0_landing", false, true,  {
 							"max_look_freedom_degrees_v": 10.0, 
@@ -603,7 +616,65 @@ func _get_model_offset(placed_tile: PlacedTile, model: Model) -> Vector3:
 		return placed_tile.model_modefier.model_offsets[model.id]
 	return Vector3.ZERO
 
+# Loads the visibility pattern image from disk and caches its dimensions and center coordinates so that per-tile visibility queries can be performed efficiently without reloading textures each frame.
+func _load_visibility_pattern() -> void:
+	if ResourceLoader.exists(VISIBILITY_PATTERN_PATH):
+		var texture: Texture2D = load(VISIBILITY_PATTERN_PATH) as Texture2D
+		if texture != null:
+			_visibility_pattern_image = texture.get_image()
+		else:
+			push_error("_load_visibility_pattern: loaded texture is null for " + VISIBILITY_PATTERN_PATH)
+	if _visibility_pattern_image == null:
+		if FileAccess.file_exists(VISIBILITY_PATTERN_PATH):
+			_visibility_pattern_image = Image.load_from_file(VISIBILITY_PATTERN_PATH)
+	if _visibility_pattern_image == null:
+		push_error("_load_visibility_pattern: Failed to load visibility pattern image from " + VISIBILITY_PATTERN_PATH)
+		return
+
+	_pattern_width = _visibility_pattern_image.get_width()
+	_pattern_height = _visibility_pattern_image.get_height()
+	_pattern_center_x = float(_pattern_width - 1) * 0.5
+	_pattern_center_y = float(_pattern_height - 1) * 0.5
+
+# Calculates and caches the player's 2D position, forward direction, and perpendicular right vector once per frame to avoid redundant trigonometric and matrix operations when evaluating visibility across candidate tiles.
+func _update_visibility_transform() -> void:
+	if _player == null:
+		push_error("_update_visibility_transform: _player is null")
+		return
+
+	var forward_3d: Vector3 = -_player.global_transform.basis.z
+	var forward_direction: Vector2 = Vector2(forward_3d.x, forward_3d.z).normalized()
+	if forward_direction.is_zero_approx():
+		forward_direction = Vector2(0.0, -1.0)
+	_cached_forward_direction = forward_direction
+	_cached_right_direction = Vector2(-forward_direction.y, forward_direction.x)
+	var player_position_3d: Vector3 = _player.global_position
+	_cached_player_position = Vector2(player_position_3d.x, player_position_3d.z)
+
+# Determines whether a tile is visible by projecting its world position into the player's local reference frame, rotating and centering it on the visibility mask image, and testing if the red channel exceeds the threshold (100/255) to cull unseen tiles and lights outside the player's field of view.
+func _is_tile_visible(tile_index: Vector2i) -> bool:
+	if _visibility_pattern_image == null:
+		_load_visibility_pattern()
+		if _visibility_pattern_image == null:
+			push_error("_is_tile_visible: visibility pattern image is null")
+			return true
+
+	var world_offset: Vector2 = Vector2(float(tile_index.x) - _cached_player_position.x, float(tile_index.y) - _cached_player_position.y)
+	var distance_forward: float = world_offset.dot(_cached_forward_direction)
+	var distance_right: float = world_offset.dot(_cached_right_direction)
+
+	var pixel_x: int = roundi(_pattern_center_x + distance_right)
+	var pixel_y: int = roundi(_pattern_center_y - distance_forward)
+
+	if pixel_x < 0 or pixel_x >= _pattern_width or pixel_y < 0 or pixel_y >= _pattern_height:
+		return false
+
+	var pixel_color: Color = _visibility_pattern_image.get_pixel(pixel_x, pixel_y)
+	return pixel_color.r > VISIBILITY_THRESHOLD
+
 var _collision_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
+
+# Creates and removes static collision shapes in immediate proximity to the player so physics interaction functions correctly without incurring collision overhead for distant tiles.
 func _handle_static_collision_shapes() -> void:
 	var create: Callable = func(placed_tile: PlacedTile, chunk: Chunk) -> void:
 		for model: Model in placed_tile.models.values():
@@ -631,7 +702,10 @@ func _handle_static_collision_shapes() -> void:
 	_handle_tiles_in_radius(2, _collision_tiles_cache, create, remove)
 
 var _graphic_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
+
+# Creates and removes tile visual representations around the player based on the directional visibility mask to keep light and geometry counts within performance limits while maintaining continuous rendering in the player's view cone.
 func _handle_tile_graphics() -> void:
+	_update_visibility_transform()
 	var create: Callable = func(placed_tile: PlacedTile, chunk: Chunk) -> void:
 		for model: Model in placed_tile.models.values():
 			if ! placed_tile.graphics.has(model.id):
@@ -652,7 +726,7 @@ func _handle_tile_graphics() -> void:
 				graphic_node.queue_free() # gets remove from the parent automatically
 		placed_tile.graphics = {}
 	
-	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, MAX_TILES_TO_ADD_PER_FRAME) 
+	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, MAX_TILES_TO_ADD_PER_FRAME, _is_tile_visible) 
 
 static var _radius_offsets_cache: Dictionary = {}
 
@@ -667,8 +741,17 @@ func _get_radius_offsets(radius: int) -> Array[Vector2i]:
 	for dy: int in range(-radius, radius + 1):
 		for dx: int in range(-radius, radius + 1):
 			var distance_squared: int = dx * dx + dy * dy
-			if distance_squared < radius_squared:
+			var add: bool = true
+			if distance_squared >= radius_squared:
+				add = false
+			#if (abs(dx) > 20 && abs(dy) > 20):
+				#add = false
+			# exclude tiles that are not commoonly seen anyway, such as far away diagonal tiles
+	
+			if add:
 				offsets.append(Vector2i(dx, dy))
+	
+	
 	
 	var sort_by_distance: Callable = func(a: Vector2i, b: Vector2i) -> bool:
 		return (a.x * a.x + a.y * a.y) < (b.x * b.x + b.y * b.y)
@@ -677,8 +760,8 @@ func _get_radius_offsets(radius: int) -> Array[Vector2i]:
 	_radius_offsets_cache[radius] = offsets
 	return offsets
 
-# Streams tile graphics and physics collision shapes around the player by instantiating newly visible tiles and freeing out-of-range tiles.
-func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_cb: Callable, remove_cb: Callable, max_tiles_to_handle: int = 0) -> void:
+# Streams tile graphics and physics collision shapes around the player by instantiating newly visible tiles and freeing out-of-range or culled tiles, with an optional visibility filter callback used to cull non-visible graphics based on directional sightlines.
+func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callback: Callable, remove_callback: Callable, max_tiles_to_handle: int = 0, filter_callback: Callable = Callable()) -> void:
 	if _player == null:
 		push_error("_handle_tiles_in_radius: _player is null")
 		return
@@ -691,28 +774,33 @@ func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_cb: Ca
 	for tile_index: Vector2i in cache.placed_tiles.keys():
 		if not cache.placed_tiles[tile_index]:
 			continue
-		var dx: int = tile_index.x - tile_index_of_player.x
-		var dy: int = tile_index.y - tile_index_of_player.y
-		if (dx * dx + dy * dy) >= radius_squared:
+		var distance_x: int = tile_index.x - tile_index_of_player.x
+		var distance_y: int = tile_index.y - tile_index_of_player.y
+		var should_remove: bool = (distance_x * distance_x + distance_y * distance_y) >= radius_squared
+		if not should_remove and filter_callback.is_valid():
+			should_remove = not filter_callback.call(tile_index)
+		if should_remove:
 			tiles_to_remove.append(tile_index)
 	
 	for tile_index: Vector2i in tiles_to_remove:
 		if placed_tiles.has(tile_index):
 			var placed_tile: PlacedTile = placed_tiles[tile_index]
-			remove_cb.call(placed_tile)
+			remove_callback.call(placed_tile)
 		cache.placed_tiles.erase(tile_index)
 	
 	var offsets: Array[Vector2i] = _get_radius_offsets(radius)
 	var num_tiles_handled: int = 0
 	for offset: Vector2i in offsets:
 		var tile_index: Vector2i = tile_index_of_player + offset
+		if filter_callback.is_valid() and not filter_callback.call(tile_index):
+			continue
 		if not cache.placed_tiles.has(tile_index):
 			if placed_tiles.has(tile_index):
 				var chunk_index: Vector2i = _get_chunk_index(tile_index)
 				if chunks.has(chunk_index):
 					var chunk: Chunk = chunks[chunk_index]
 					var placed_tile: PlacedTile = placed_tiles[tile_index]
-					create_cb.call(placed_tile, chunk)
+					create_callback.call(placed_tile, chunk)
 					cache.placed_tiles[tile_index] = true
 					num_tiles_handled += 1
 					if max_tiles_to_handle > 0 and num_tiles_handled >= max_tiles_to_handle:
