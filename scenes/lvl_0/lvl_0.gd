@@ -1,4 +1,4 @@
-## [AI-DOC] Level 0 root that streams generated map chunks around the player, placing and removing tile graphics and collision shapes while toggling tile visibility based on a player-centered mask
+## [AI-DOC] Level 0 root that streams generated map chunks around the player, placing and removing tile graphics and collision shapes while prioritizing visible tiles and toggling tile visibility based on a player-centered mask
 ## spec: scenes/lvl_0/docs/SPEC.md
 ## status: partial
 ## notes: also plays the landing wieldable animation when the falling player first hits the floor
@@ -10,7 +10,7 @@ const TILE_SIZE: float = 1.0
 const CHUNK_SIZE: int = 128
 const GENERATION_THRESHOLD: float = CHUNK_SIZE
 const REMOVAL_THRESHOLD: float = 200.0
-const VIEW_DISTANCE: int = 60
+const VIEW_DISTANCE: int = 160
 const MAX_TILES_TO_ADD_PER_FRAME: int = 20
 const VISIBILITY_PATTERN_PATH: String = "res://scenes/lvl_0/tiles_visible_pattern.png"
 const VISIBILITY_THRESHOLD: float = 100.0 / 255.0
@@ -717,8 +717,9 @@ func _handle_static_collision_shapes() -> void:
 
 var _graphic_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 
-# Creates and removes tile visual representations within the view distance around the player so that nearby tiles exist in the scene tree without reallocating nodes when the player rotates.
+# Creates and removes tile visual representations within the view distance around the player, updating the player visibility reference frame so that visible tiles are prioritized during instantiation.
 func _handle_tile_graphics() -> void:
+	_update_visibility_transform()
 	var create: Callable = func(placed_tile: PlacedTile, chunk: Chunk) -> void:
 		for model: Model in placed_tile.models.values():
 			if ! placed_tile.graphics.has(model.id):
@@ -787,7 +788,20 @@ func _get_radius_offsets(radius: int) -> Array[Vector2i]:
 	_radius_offsets_cache[radius] = offsets
 	return offsets
 
-# Streams tile graphics and physics collision shapes around the player by instantiating newly entered tiles and freeing out-of-range tiles.
+# Instantiates and registers a tile's graphics or collision nodes within its parent chunk if the tile definition exists and the chunk is loaded, returning true if the tile was newly placed into cache.
+func _try_create_tile_in_cache(tile_index: Vector2i, cache: HandleTilesCache, create_callback: Callable) -> bool:
+	if not cache.placed_tiles.has(tile_index):
+		if placed_tiles.has(tile_index):
+			var chunk_index: Vector2i = _get_chunk_index(tile_index)
+			if chunks.has(chunk_index):
+				var chunk: Chunk = chunks[chunk_index]
+				var placed_tile: PlacedTile = placed_tiles[tile_index]
+				create_callback.call(placed_tile, chunk)
+				cache.placed_tiles[tile_index] = true
+				return true
+	return false
+
+# Streams tile graphics and physics collision shapes around the player by instantiating newly entered tiles and freeing out-of-range tiles, prioritizing visible tiles according to the visibility mask sorted by distance from the player so that field-of-view geometry loads first.
 func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callback: Callable, remove_callback: Callable, max_tiles_to_handle: int = 0) -> void:
 	if _player == null:
 		push_error("_handle_tiles_in_radius: _player is null")
@@ -815,19 +829,25 @@ func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callba
 	
 	var offsets: Array[Vector2i] = _get_radius_offsets(radius)
 	var num_tiles_handled: int = 0
+
+	# First pass: prioritize adding tiles that are visible from the player-centered visibility mask, sorted by distance from player
 	for offset: Vector2i in offsets:
 		var tile_index: Vector2i = tile_index_of_player + offset
-		if not cache.placed_tiles.has(tile_index):
-			if placed_tiles.has(tile_index):
-				var chunk_index: Vector2i = _get_chunk_index(tile_index)
-				if chunks.has(chunk_index):
-					var chunk: Chunk = chunks[chunk_index]
-					var placed_tile: PlacedTile = placed_tiles[tile_index]
-					create_callback.call(placed_tile, chunk)
-					cache.placed_tiles[tile_index] = true
+		if not cache.placed_tiles.has(tile_index) and _is_tile_visible(tile_index):
+			if _try_create_tile_in_cache(tile_index, cache, create_callback):
+				num_tiles_handled += 1
+				if max_tiles_to_handle > 0 and num_tiles_handled >= max_tiles_to_handle:
+					return
+
+	# Second pass: add remaining non-visible tiles in the radius, sorted by distance from player
+	if max_tiles_to_handle <= 0 or num_tiles_handled < max_tiles_to_handle:
+		for offset: Vector2i in offsets:
+			var tile_index: Vector2i = tile_index_of_player + offset
+			if not cache.placed_tiles.has(tile_index):
+				if _try_create_tile_in_cache(tile_index, cache, create_callback):
 					num_tiles_handled += 1
 					if max_tiles_to_handle > 0 and num_tiles_handled >= max_tiles_to_handle:
-						break
+						return
 
 
 func _handle_world_generation() -> void:
