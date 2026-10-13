@@ -16,10 +16,10 @@ const VISIBILITY_PATTERN_PATH: String = "res://scenes/lvl_0/tiles_visible_patter
 const VISIBILITY_THRESHOLD: float = 100.0 / 255.0
 
 var _visibility_pattern_image: Image = null
-var _pattern_width: int = 0
-var _pattern_height: int = 0
-var _pattern_center_x: float = 0.0
-var _pattern_center_y: float = 0.0
+var _visibility_pattern_width: int = 0
+var _visibility_pattern_height: int = 0
+var _visibility_pattern_center_x: float = 0.0
+var _visibility_pattern_center_y: float = 0.0
 
 var _cached_forward_direction: Vector2 = Vector2.ZERO
 var _cached_right_direction: Vector2 = Vector2.ZERO
@@ -631,10 +631,10 @@ func _load_visibility_pattern() -> void:
 		push_error("_load_visibility_pattern: Failed to load visibility pattern image from " + VISIBILITY_PATTERN_PATH)
 		return
 
-	_pattern_width = _visibility_pattern_image.get_width()
-	_pattern_height = _visibility_pattern_image.get_height()
-	_pattern_center_x = float(_pattern_width - 1) * 0.5
-	_pattern_center_y = float(_pattern_height - 1) * 0.5
+	_visibility_pattern_width = _visibility_pattern_image.get_width()
+	_visibility_pattern_height = _visibility_pattern_image.get_height()
+	_visibility_pattern_center_x = float(_visibility_pattern_width - 1) * 0.5
+	_visibility_pattern_center_y = float(_visibility_pattern_height - 1) * 0.5
 
 # Calculates and caches the player's 2D position, forward direction, and perpendicular right vector once per frame to avoid redundant trigonometric and matrix operations when evaluating visibility across candidate tiles.
 func _update_visibility_transform() -> void:
@@ -663,10 +663,10 @@ func _is_tile_visible(tile_index: Vector2i) -> bool:
 	var distance_forward: float = world_offset.dot(_cached_forward_direction)
 	var distance_right: float = world_offset.dot(_cached_right_direction)
 
-	var pixel_x: int = roundi(_pattern_center_x + distance_right)
-	var pixel_y: int = roundi(_pattern_center_y - distance_forward)
+	var pixel_x: int = roundi(_visibility_pattern_center_x + distance_right)
+	var pixel_y: int = roundi(_visibility_pattern_center_y - distance_forward)
 
-	if pixel_x < 0 or pixel_x >= _pattern_width or pixel_y < 0 or pixel_y >= _pattern_height:
+	if pixel_x < 0 or pixel_x >= _visibility_pattern_width or pixel_y < 0 or pixel_y >= _visibility_pattern_height:
 		return false
 
 	var pixel_color: Color = _visibility_pattern_image.get_pixel(pixel_x, pixel_y)
