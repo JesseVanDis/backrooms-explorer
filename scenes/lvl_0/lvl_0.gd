@@ -10,7 +10,7 @@ const TILE_SIZE: float = 1.0
 const CHUNK_SIZE: int = 128
 const GENERATION_THRESHOLD: float = CHUNK_SIZE
 const REMOVAL_THRESHOLD: float = 200.0
-const VIEW_DISTANCE: int = 160
+const VIEW_DISTANCE: int = 60
 const MAX_TILES_TO_ADD_PER_FRAME: int = 20
 const VISIBILITY_PATTERN_PATH: String = "res://scenes/lvl_0/tiles_visible_pattern.png"
 const VISIBILITY_THRESHOLD: float = 100.0 / 255.0
@@ -682,7 +682,7 @@ func _is_tile_visible(tile_index: Vector2i, tile_index_of_player: Vector2i) -> b
 	if tile_diff.dot(_cached_forward_direction) < 0:
 		return false
 	
-	# closest acis aligned distance
+	# closest axis aligned distance
 	var tile_dir: Vector2 = tile_diff.normalized()	
 	var tile_dist_sq: float = tile_diff.length_squared()
 	var d: float = tile_dir.dot(_cached_forward_direction)
@@ -693,8 +693,8 @@ func _is_tile_visible(tile_index: Vector2i, tile_index_of_player: Vector2i) -> b
 	var dir_aligned_y: Vector2 = Vector2(signf(_cached_forward_direction.x), 0.0)
 	
 	var tile_indexf: Vector2 = Vector2(tile_index)
-	var tx: float = tile_diff.dot(dir_aligned_x)
-	var ty: float = tile_diff.dot(dir_aligned_y)
+	var tx: float = max(0.0, tile_diff.dot(dir_aligned_x))
+	var ty: float = max(0.0, tile_diff.dot(dir_aligned_y))
 
 	var cx: Vector2 = Vector2(tile_index_of_player) + dir_aligned_x * tx
 	var cy: Vector2 = Vector2(tile_index_of_player) + dir_aligned_y * ty
@@ -760,7 +760,12 @@ func _handle_tile_graphics() -> void:
 				graphic_node.queue_free() # gets remove from the parent automatically
 		placed_tile.graphics = {}
 	
-	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, MAX_TILES_TO_ADD_PER_FRAME)
+	#// todo: '_handle_tile_visibility' should take priority over _handle_tiles_in_radius(VIEW_DISTANCE.. in loading tiles. right now we cant see past 'VIEW_DISTANCE' even if '_is_tile_visible' goes beyond it
+	#// probaably need to make edits in '_get_radius_offsets' and 
+	#	// var should_remove: bool = (distance_x * distance_x + distance_y * distance_y) >= radius_squared
+	#	// if should_remove:
+	#		// tiles_to_remove.append(tile_index)
+	_handle_tiles_in_radius(VIEW_DISTANCE, _graphic_tiles_cache, create, remove, MAX_TILES_TO_ADD_PER_FRAME, true)
 
 # Toggles visibility of instantiated tile graphics based on the player-centered visibility pattern to eliminate unnecessary light and geometry rendering without incurring node instantiation or deletion overhead every frame.
 func _handle_tile_visibility() -> void:
@@ -782,11 +787,14 @@ func _handle_tile_visibility() -> void:
 static var _radius_offsets_cache: Dictionary = {}
 
 # Caches and returns concentric grid offsets sorted by ascending distance from center, eliminating per-frame trigonometric calculations and array sorting.
-func _get_radius_offsets(radius: int) -> Array[Vector2i]:
+func _get_radius_offsets(radius: int, visible_tiles_only: bool = false) -> Array[Vector2i]:
 	if _radius_offsets_cache.has(radius):
 		var cached_offsets: Array[Vector2i] = _radius_offsets_cache[radius]
 		return cached_offsets
 	
+	var player_pos_3d: Vector3 = _player.transform.origin
+	var tile_index_of_player: Vector2i = Vector2i(int(player_pos_3d.x), int(player_pos_3d.z))
+
 	var offsets: Array[Vector2i] = []
 	var radius_squared: int = radius * radius
 	for dy: int in range(-radius, radius + 1):
@@ -795,14 +803,16 @@ func _get_radius_offsets(radius: int) -> Array[Vector2i]:
 			var add: bool = true
 			if distance_squared >= radius_squared:
 				add = false
+			if visible_tiles_only:
+				var tile_index: Vector2i = tile_index_of_player + Vector2i(dx, dy)
+				if !_is_tile_visible(tile_index, tile_index_of_player):
+					add = false
 			#if (abs(dx) > 20 && abs(dy) > 20):
 				#add = false
 			# exclude tiles that are not commoonly seen anyway, such as far away diagonal tiles
 	
 			if add:
 				offsets.append(Vector2i(dx, dy))
-	
-	
 	
 	var sort_by_distance: Callable = func(a: Vector2i, b: Vector2i) -> bool:
 		return (a.x * a.x + a.y * a.y) < (b.x * b.x + b.y * b.y)
@@ -825,7 +835,7 @@ func _try_create_tile_in_cache(tile_index: Vector2i, cache: HandleTilesCache, cr
 	return false
 
 # Streams tile graphics and physics collision shapes around the player by instantiating newly entered tiles and freeing out-of-range tiles, prioritizing visible tiles according to the visibility mask sorted by distance from the player so that field-of-view geometry loads first.
-func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callback: Callable, remove_callback: Callable, max_tiles_to_handle: int = 0) -> void:
+func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callback: Callable, remove_callback: Callable, max_tiles_to_handle: int = 0, tiles_visible_has_prio: bool = false) -> void:
 	if _player == null:
 		push_error("_handle_tiles_in_radius: _player is null")
 		return
@@ -841,6 +851,9 @@ func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callba
 		var distance_x: int = tile_index.x - tile_index_of_player.x
 		var distance_y: int = tile_index.y - tile_index_of_player.y
 		var should_remove: bool = (distance_x * distance_x + distance_y * distance_y) >= radius_squared
+		if tiles_visible_has_prio:
+			if _is_tile_visible(tile_index, tile_index_of_player):
+				should_remove = false
 		if should_remove:
 			tiles_to_remove.append(tile_index)
 	
@@ -852,15 +865,17 @@ func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callba
 	
 	var offsets: Array[Vector2i] = _get_radius_offsets(radius)
 	var num_tiles_handled: int = 0
-
+	
 	# First pass: prioritize adding tiles that are visible from the player-centered visibility mask, sorted by distance from player
-	for offset: Vector2i in offsets:
-		var tile_index: Vector2i = tile_index_of_player + offset
-		if not cache.placed_tiles.has(tile_index) and _is_tile_visible(tile_index, tile_index_of_player):
-			if _try_create_tile_in_cache(tile_index, cache, create_callback):
-				num_tiles_handled += 1
-				if max_tiles_to_handle > 0 and num_tiles_handled >= max_tiles_to_handle:
-					return
+	if tiles_visible_has_prio:
+		var prio_offsets: Array[Vector2i] = _get_radius_offsets(VIEW_DISTANCE, true)
+		for offset: Vector2i in prio_offsets:
+			var tile_index: Vector2i = tile_index_of_player + offset
+			if not cache.placed_tiles.has(tile_index) and _is_tile_visible(tile_index, tile_index_of_player):
+				if _try_create_tile_in_cache(tile_index, cache, create_callback):
+					num_tiles_handled += 1
+					if max_tiles_to_handle > 0 and num_tiles_handled >= max_tiles_to_handle:
+						return
 
 	# Second pass: add remaining non-visible tiles in the radius, sorted by distance from player
 	if max_tiles_to_handle <= 0 or num_tiles_handled < max_tiles_to_handle:
