@@ -11,6 +11,7 @@ const CHUNK_SIZE: int = 128
 const GENERATION_THRESHOLD: float = CHUNK_SIZE
 const REMOVAL_THRESHOLD: float = 200.0
 const VIEW_DISTANCE: int = 60
+const VIEW_DISTANCE_AA: int = 200
 const MAX_TILES_TO_ADD_PER_FRAME: int = 20
 const VISIBILITY_PATTERN_PATH: String = "res://scenes/lvl_0/tiles_visible_pattern.png"
 const VISIBILITY_THRESHOLD: float = 100.0 / 255.0
@@ -24,7 +25,6 @@ var _visibility_pattern_center_y: float = 0.0
 var _cached_forward_direction: Vector2 = Vector2.ZERO
 var _cached_right_direction: Vector2 = Vector2.ZERO
 var _cached_player_position: Vector2 = Vector2.ZERO
-var _cached_hfov_rad: float = deg_to_rad(30)
 
 var model_floor:                  Model = _load_model(preload("res://scenes/lvl_0/part_1x1_floor.tscn"))
 var model_ceiling:                Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling.tscn"))
@@ -667,9 +667,10 @@ func _update_visibility_transform() -> void:
 func _is_tile_visible(tile_index: Vector2i, tile_index_of_player: Vector2i) -> bool:
 	
 	var forward_width: float = 5
-	var angle_dot: float = 0.8
+	var angle_dot: float = 0.6
 	var close_radius: int = 10
-	var fov_radius: float = 30
+	var fov_radius: float = 60
+	var fov_tile_offset: float = -10
 	
 	var distance_x: int = tile_index.x - tile_index_of_player.x
 	var distance_y: int = tile_index.y - tile_index_of_player.y
@@ -678,21 +679,24 @@ func _is_tile_visible(tile_index: Vector2i, tile_index_of_player: Vector2i) -> b
 		return true
 	
 	#var tile_dir: Vector2 = ((tile_index - tile_index_of_player) as Vector2).normalized()
-	var tile_diff: Vector2 = (tile_index - tile_index_of_player)
+	var tile_indexf: Vector2 = Vector2(tile_index)
+	var tile_index_of_playerf: Vector2 = Vector2(tile_index_of_player)
+	var tile_diff: Vector2 = (tile_indexf - tile_index_of_playerf)
 	if tile_diff.dot(_cached_forward_direction) < 0:
 		return false
-	
+		
 	# closest axis aligned distance
-	var tile_dir: Vector2 = tile_diff.normalized()	
+	var tile_index_offsetted: Vector2 = tile_indexf - _cached_forward_direction * fov_tile_offset
+	var tile_diff_offsetted: Vector2 = (tile_index_offsetted - tile_index_of_playerf)
+	var tile_diff_dir: Vector2 = tile_diff_offsetted.normalized()
+	#var tile_dir: Vector2 = tile_diff.normalized()	
 	var tile_dist_sq: float = tile_diff.length_squared()
-	var d: float = tile_dir.dot(_cached_forward_direction)
-	if d > angle_dot && tile_dist_sq < (fov_radius*fov_radius):
+	if tile_diff_dir.dot(_cached_forward_direction) > angle_dot && tile_dist_sq < (fov_radius*fov_radius):
 		return true
 	
 	var dir_aligned_x: Vector2 = Vector2(0.0, signf(_cached_forward_direction.y))
 	var dir_aligned_y: Vector2 = Vector2(signf(_cached_forward_direction.x), 0.0)
 	
-	var tile_indexf: Vector2 = Vector2(tile_index)
 	var tx: float = max(0.0, tile_diff.dot(dir_aligned_x))
 	var ty: float = max(0.0, tile_diff.dot(dir_aligned_y))
 
@@ -868,7 +872,7 @@ func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callba
 	
 	# First pass: prioritize adding tiles that are visible from the player-centered visibility mask, sorted by distance from player
 	if tiles_visible_has_prio:
-		var prio_offsets: Array[Vector2i] = _get_radius_offsets(VIEW_DISTANCE, true)
+		var prio_offsets: Array[Vector2i] = _get_radius_offsets(VIEW_DISTANCE_AA, true)
 		for offset: Vector2i in prio_offsets:
 			var tile_index: Vector2i = tile_index_of_player + offset
 			if not cache.placed_tiles.has(tile_index) and _is_tile_visible(tile_index, tile_index_of_player):

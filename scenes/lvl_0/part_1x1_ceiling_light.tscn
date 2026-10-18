@@ -20,6 +20,7 @@ light_bake_mode = 1
 shadow_enabled = true
 shadow_blur = 5.347
 distance_fade_enabled = true
+distance_fade_begin = 400.0
 distance_fade_shadow = 20.0
 omni_range = 6.0
 

@@ -6,7 +6,7 @@
 [resource]
 render_priority = 0
 shader = ExtResource("1_q8swi")
-shader_parameter/base_color = Color(0.55, 0.5066417, 0.31350002, 1)
+shader_parameter/base_color = Color(0.38039216, 0.32941177, 0.1882353, 1)
 shader_parameter/noise_texture = ExtResource("2_uvfj5")
 shader_parameter/noise_strength = 0.2000000095
 shader_parameter/noise_scale = 9.4610004493975

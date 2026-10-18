@@ -1,19 +1,16 @@
 shader_type spatial;
 
-uniform vec4 base_color : source_color = vec4(1.0);
+uniform vec3 base_color : source_color = vec3(0.38, 0.33, 0.19);
+uniform float color_fade: hint_range(-2.0, 8.0) = 0.6;
+uniform highp vec3 skew = vec3(3.0, 0.4, -1.73);
+uniform float height: hint_range(0.001, 1.0) = 0.03;
+uniform float min_height: hint_range(-1.0, 1.0) = 0.3;
 
-uniform sampler2D noise_texture : source_color;
-
-uniform float noise_strength : hint_range(0.0, 1.0) = 1.0;
-uniform float noise_scale : hint_range(0.0, 1000.0) = 1.0;
-
-//uniform float carpet_bump : hint_range(0.0, 5.0) = 1.0;
-//uniform float bump_size : hint_range(0.001, 0.1) = 0.01;
-
-varying float local_height;
+varying float height_perc;
 
 void vertex() {
-    local_height = VERTEX.y;
+    height_perc = VERTEX.y;
+	VERTEX.y = VERTEX.y * height;
 }
 
 float hash21(vec2 p) {
@@ -30,49 +27,35 @@ float pseudo_random_2d(highp vec2 p)
 	return fract(sin(dot(p, vec2(h1x, h1y))) * h2);
 }
 
+float curve(float x, float k)
+{
+	return ((1.0/-(x+k)) * k + 1.0) * (k+1.0);
+}
+
 void fragment() {
-
-	// Scaled UV coordinates.
-	highp vec2 cells = UV * vec2(1000.0, 1000.0);
-	highp vec2 cell_id = floor(cells);
-
-	float rand = pseudo_random_2d(cell_id);
 	
-	float h = clamp(-0.2 + (local_height * 70.0), 0.0, 1.0);
-	vec3 color = base_color.xyz * (vec3(mix(0.5, 1.0, h)));// * rand;
+	highp vec2 cells = UV * vec2(1000.0, 1000.0);
+	cells += skew.xy * curve(height_perc, skew.z);
+	highp vec2 cell_id = floor(cells);
+	highp vec2 cell_uv = cells - cell_id;
+	
 
-	//// Center height.
-	//float h = texture(noise_texture, uv).r;
-//
-	//// Sample neighboring pixels.
-	//float h_x1 = texture(noise_texture, uv + vec2(bump_size, 0.0)).r;
-	//float h_x2 = texture(noise_texture, uv - vec2(bump_size, 0.0)).r;
-//
-	//float h_y1 = texture(noise_texture, uv + vec2(0.0, bump_size)).r;
-	//float h_y2 = texture(noise_texture, uv - vec2(0.0, bump_size)).r;
-//
-	//// Height gradients.
-	//float dx = h_x1 - h_x2;
-	//float dy = h_y1 - h_y2;
-//
-	//// Construct a tangent-space normal from the height map.
-	//vec3 carpet_normal = normalize(
-		//vec3(
-			//-dx * carpet_bump,
-			//-dy * carpet_bump,
-			//1.0
-		//)
-	//);
-//
-	//NORMAL_MAP = carpet_normal * 0.5 + 0.5;
-//
-	//// Your original color.
-	//float noise_mask = h;
-//
-	//vec3 final_color = base_color.rgb;
-	//final_color *= 1.0 - (noise_mask * noise_strength);
-//
+	float cell_total_height = mix(min_height, 1.0, pseudo_random_2d(cell_id));
+	float distance_from_top = cell_total_height - height_perc;
+	float top_cutoff = min(1.0, curve(distance_from_top * 0.6, 0.05));
+
+	vec2 cell_normal = (cell_uv * 2.0) - 1.0;
+	float cell_dist_sq_from_center_2d = dot(cell_normal, cell_normal);
+	
+	float alpha = height_perc;
+	if (cell_dist_sq_from_center_2d > top_cutoff * 1.6)
+	{
+		alpha = 1.0;
+	}
+	
+	vec3 color = base_color * (vec3(mix(1.0, 1.0 + color_fade, height_perc)));// * rand;
 	ALBEDO = color;
-	ALPHA = rand;
-	ALPHA_SCISSOR_THRESHOLD = h;
+	//ALBEDO = vec3(0.0, 0.0, top_cutoff);
+	ALPHA = cell_total_height;
+	ALPHA_SCISSOR_THRESHOLD = alpha;
 }
