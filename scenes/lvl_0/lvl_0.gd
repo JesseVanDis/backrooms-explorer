@@ -25,6 +25,8 @@ var _visibility_pattern_center_y: float = 0.0
 var _cached_forward_direction: Vector2 = Vector2.ZERO
 var _cached_right_direction: Vector2 = Vector2.ZERO
 var _cached_player_position: Vector2 = Vector2.ZERO
+var _cached_forward_angle_rounded: int = 0
+var _cached_forward_direction_rounded: Vector2 = Vector2.ZERO
 
 var model_floor:                  Model = _load_model(preload("res://scenes/lvl_0/part_1x1_floor.tscn"))
 var model_ceiling:                Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling.tscn"))
@@ -138,6 +140,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	_handle_player_landing()
 	_handle_world_generation()
+	_update_visibility_transform()
 	_handle_tile_graphics()
 	_handle_tile_visibility()
 	_handle_static_collision_shapes()
@@ -662,16 +665,23 @@ func _update_visibility_transform() -> void:
 	_cached_right_direction = Vector2(-forward_direction.y, forward_direction.x)
 	var player_position_3d: Vector3 = _player.global_position
 	_cached_player_position = Vector2(player_position_3d.x, player_position_3d.z)
+	if _cached_forward_direction.length_squared() > 0.001:
+		var precision: int = 15
+		var angle: int = int(fposmod(rad_to_deg(atan2(_cached_forward_direction.y, _cached_forward_direction.x)), 360.0))
+		angle = int(float(angle) / float(precision))
+		angle = angle * precision
+		_cached_forward_angle_rounded = angle
+		_cached_forward_direction_rounded = Vector2(cos(deg_to_rad(float(_cached_forward_angle_rounded))), sin(deg_to_rad(float(_cached_forward_angle_rounded))))
+
 
 # Determines whether a tile is visible by projecting its world position into the player's local reference frame, rotating and centering it on the visibility mask image, and querying the cached PackedByteArray to cull unseen tiles outside the player's field of view with minimal lookup overhead and memory footprint.
 func _is_tile_visible(tile_index: Vector2i, tile_index_of_player: Vector2i) -> bool:
-	
 	var forward_width: float = 5
 	var angle_dot: float = 0.6
 	var close_radius: int = 10
 	var fov_radius: float = 60
 	var fov_tile_offset: float = -10
-	
+
 	var distance_x: int = tile_index.x - tile_index_of_player.x
 	var distance_y: int = tile_index.y - tile_index_of_player.y
 	var within_radius: bool = (distance_x * distance_x + distance_y * distance_y) < (close_radius*close_radius)
@@ -742,8 +752,8 @@ func _handle_static_collision_shapes() -> void:
 var _graphic_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 
 # Creates and removes tile visual representations within the view distance around the player, updating the player visibility reference frame so that visible tiles are prioritized during instantiation.
+# Todo: merge tiles for fewer draw calls. Actually maybe not, tests show that it doesnt seem to matter....
 func _handle_tile_graphics() -> void:
-	_update_visibility_transform()
 	var create: Callable = func(placed_tile: PlacedTile, chunk: Chunk) -> void:
 		for model: Model in placed_tile.models.values():
 			if ! placed_tile.graphics.has(model.id):
@@ -791,9 +801,10 @@ func _handle_tile_visibility() -> void:
 static var _radius_offsets_cache: Dictionary = {}
 
 # Caches and returns concentric grid offsets sorted by ascending distance from center, eliminating per-frame trigonometric calculations and array sorting.
-func _get_radius_offsets(radius: int, visible_tiles_only: bool = false) -> Array[Vector2i]:
-	if _radius_offsets_cache.has(radius):
-		var cached_offsets: Array[Vector2i] = _radius_offsets_cache[radius]
+func _get_radius_offsets(radius: int, player_yaw_rounded: int = 0, visible_tiles_only: bool = false) -> Array[Vector2i]:
+	var key: Vector2i = Vector2i(radius, player_yaw_rounded)
+	if _radius_offsets_cache.has(key):
+		var cached_offsets: Array[Vector2i] = _radius_offsets_cache[key]
 		return cached_offsets
 	
 	var player_pos_3d: Vector3 = _player.transform.origin
@@ -822,7 +833,7 @@ func _get_radius_offsets(radius: int, visible_tiles_only: bool = false) -> Array
 		return (a.x * a.x + a.y * a.y) < (b.x * b.x + b.y * b.y)
 	offsets.sort_custom(sort_by_distance)
 	
-	_radius_offsets_cache[radius] = offsets
+	_radius_offsets_cache[key] = offsets
 	return offsets
 
 # Instantiates and registers a tile's graphics or collision nodes within its parent chunk if the tile definition exists and the chunk is loaded, returning true if the tile was newly placed into cache.
@@ -872,7 +883,7 @@ func _handle_tiles_in_radius(radius: int, cache: HandleTilesCache, create_callba
 	
 	# First pass: prioritize adding tiles that are visible from the player-centered visibility mask, sorted by distance from player
 	if tiles_visible_has_prio:
-		var prio_offsets: Array[Vector2i] = _get_radius_offsets(VIEW_DISTANCE_AA, true)
+		var prio_offsets: Array[Vector2i] = _get_radius_offsets(VIEW_DISTANCE_AA, _cached_forward_angle_rounded, true)
 		for offset: Vector2i in prio_offsets:
 			var tile_index: Vector2i = tile_index_of_player + offset
 			if not cache.placed_tiles.has(tile_index) and _is_tile_visible(tile_index, tile_index_of_player):

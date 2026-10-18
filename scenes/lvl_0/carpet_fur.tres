@@ -8,5 +8,5 @@ shader = ExtResource("1_4d53l")
 shader_parameter/base_color = Color(0.38, 0.33, 0.19, 1)
 shader_parameter/color_fade = 0.6
 shader_parameter/skew = Vector3(3, 0.4, -1.73)
-shader_parameter/height = 0.03
+shader_parameter/height = 0.08000000380000001
 shader_parameter/min_height = 0.3

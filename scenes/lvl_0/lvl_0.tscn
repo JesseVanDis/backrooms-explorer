@@ -33,20 +33,19 @@ sky_material = SubResource("ProceduralSkyMaterial_rj2d8")
 
 [sub_resource type="Environment" id="Environment_j6thp"]
 background_mode = 1
-background_color = Color(0.446777, 0.44677705, 0.44677705, 1)
 sky = SubResource("Sky_8uaq6")
-ambient_light_color = Color(0.6255971, 0.6255971, 0.6255971, 1)
+sdfgi_enabled = true
 sdfgi_use_occlusion = true
 sdfgi_read_sky_light = false
 sdfgi_bounce_feedback = 0.2
 sdfgi_min_cell_size = 0.15
 sdfgi_y_scale = 0
 sdfgi_energy = 0.3
+fog_enabled = true
 fog_mode = 1
-fog_light_color = Color(0.28764337, 0.24979874, 0, 1)
+fog_light_color = Color(0.15734443, 0.13415202, 4.813075e-08, 1)
 fog_density = 1.0
-fog_depth_begin = 40.0
-fog_depth_end = 60.0
+fog_depth_end = 190.0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_khlrb"]
 size = Vector3(0.6553345, 0.62701416, 0.8041992)

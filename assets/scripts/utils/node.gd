@@ -67,3 +67,113 @@ static func find_hands_recursive(root_node: Node) -> PlayerHands:
 			return result
 			
 	return null
+	
+# UNTESTED!!
+static func merge_meshes(nodes: Array[Node3D]) -> Node3D:
+	var root := Node3D.new()
+	var output := MeshInstance3D.new()
+	var mesh := ArrayMesh.new()
+
+	# Use the first input as the coordinate-space reference.
+	var reference := nodes[0].global_transform if not nodes.is_empty() else Transform3D.IDENTITY
+	root.global_transform = reference
+
+	# One surface per source mesh surface/material.
+	var surfaces: Dictionary = {}
+
+	for source in nodes:
+		if source == null:
+			continue
+
+		var instances: Array[Node] = []
+		if source is MeshInstance3D:
+			instances.append(source)
+		instances.append_array(
+			source.find_children("*", "MeshInstance3D", true, false)
+		)
+
+		for item in instances:
+			var mi := item as MeshInstance3D
+			if mi.mesh == null:
+				continue
+
+			var relative := reference.affine_inverse() * mi.global_transform
+
+			for s in range(mi.mesh.get_surface_count()):
+				var source_mesh := mi.mesh as ArrayMesh
+				if source_mesh == null:
+					continue
+				if source_mesh.surface_get_primitive_type(s) != Mesh.PRIMITIVE_TRIANGLES:
+					continue
+					
+				var source_arrays := mi.mesh.surface_get_arrays(s)
+				var src_vertices: PackedVector3Array = source_arrays[Mesh.ARRAY_VERTEX]
+				var src_normals: PackedVector3Array = source_arrays[Mesh.ARRAY_NORMAL]
+				var src_uvs: PackedVector2Array = source_arrays[Mesh.ARRAY_TEX_UV]
+				var src_indices: PackedInt32Array = source_arrays[Mesh.ARRAY_INDEX]
+
+				# Group by material resource and surface material override.
+				var material: Material = mi.get_active_material(s)
+				var key: Material = material
+
+				if not surfaces.has(key):
+					surfaces[key] = {
+						"vertices": PackedVector3Array(),
+						"normals": PackedVector3Array(),
+						"uvs": PackedVector2Array(),
+						"indices": PackedInt32Array(),
+						"material": material
+					}
+
+				var data: Dictionary = surfaces[key]
+				var verts: PackedVector3Array = data["vertices"]
+				var norms: PackedVector3Array = data["normals"]
+				var uvs: PackedVector2Array = data["uvs"]
+				var inds: PackedInt32Array = data["indices"]
+				var offset := verts.size()
+				var normal_xform := relative.basis.inverse().transposed()
+
+				for i in range(src_vertices.size()):
+					verts.append(relative * src_vertices[i])
+
+					if src_normals.size() == src_vertices.size():
+						norms.append((normal_xform * src_normals[i]).normalized())
+					else:
+						norms.append(Vector3.UP)
+
+					if src_uvs.size() == src_vertices.size():
+						uvs.append(src_uvs[i])
+					else:
+						uvs.append(Vector2.ZERO)
+
+				if src_indices.is_empty():
+					for i in range(src_vertices.size()):
+						inds.append(offset + i)
+				else:
+					for i in src_indices:
+						inds.append(offset + i)
+
+				data["vertices"] = verts
+				data["normals"] = norms
+				data["uvs"] = uvs
+				data["indices"] = inds
+				surfaces[key] = data
+
+	for material: Material in surfaces:
+		var data: Dictionary = surfaces[material]
+		var arrays: Array = []
+		arrays.resize(Mesh.ARRAY_MAX)
+		arrays[Mesh.ARRAY_VERTEX] = data["vertices"]
+		arrays[Mesh.ARRAY_NORMAL] = data["normals"]
+		arrays[Mesh.ARRAY_TEX_UV] = data["uvs"]
+		arrays[Mesh.ARRAY_INDEX] = data["indices"]
+
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+
+		var surface_idx := mesh.get_surface_count() - 1
+		if material != null:
+			mesh.surface_set_material(surface_idx, material)
+
+	output.mesh = mesh
+	root.add_child(output)
+	return root

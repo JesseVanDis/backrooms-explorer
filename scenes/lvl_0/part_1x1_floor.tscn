@@ -13,12 +13,10 @@ size = Vector3(1, 0.001, 1)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5e-06, 0)
 shape = SubResource("BoxShape3D_l1r05")
 
-[node name="base" parent="." index="1" unique_id=2028278743]
+[node name="base" parent="." index="1" unique_id=425104623]
 surface_material_override/0 = ExtResource("2_l1r05")
 
-[node name="_fur" parent="base" index="0" unique_id=886689918]
+[node name="_fur" parent="base" index="0" unique_id=620746509]
 cast_shadow = 0
 ignore_occlusion_culling = true
-gi_mode = 0
-visibility_range_end = 5.0
 surface_material_override/0 = ExtResource("3_wb00v")
