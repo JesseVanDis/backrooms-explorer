@@ -67,7 +67,40 @@ static func find_hands_recursive(root_node: Node) -> PlayerHands:
 			return result
 			
 	return null
+
+
+static func set_shader_param(node: Node, path_to_mesh_instance_3d: NodePath, uniform_name: StringName, value: Variant, make_material_unique: bool = true) -> void:
+	var mesh_instance := node.get_node_or_null(path_to_mesh_instance_3d) as MeshInstance3D
+	if mesh_instance == null:
+		push_warning("MeshInstance3D not found: " + str(path_to_mesh_instance_3d))
+		return
+
+	var material := mesh_instance.material_override as ShaderMaterial
+
+	if material == null:
+		material = mesh_instance.get_active_material(0) as ShaderMaterial
+
+	if material == null:
+		push_warning("No ShaderMaterial found on: " + str(path_to_mesh_instance_3d))
+		return
+
+	if make_material_unique:
+		material = material.duplicate() as ShaderMaterial
+		mesh_instance.material_override = material
+		
+	if material.get_shader_parameter(uniform_name) == null:
+		push_error("Shader numiform name '" + uniform_name + "' doest not exist for object '" + str(mesh_instance.name) + "'.")
 	
+	material.set_shader_parameter(uniform_name, value)
+
+
+static func print_node_children_recursive(node: Node, indent: int = 0) -> void:
+	if node == null:
+		return
+	print("\t".repeat(indent) + str(node.name))
+	for child in node.get_children():
+		print_node_children_recursive(child, indent + 1)
+
 # UNTESTED!!
 static func merge_meshes(nodes: Array[Node3D]) -> Node3D:
 	var root := Node3D.new()

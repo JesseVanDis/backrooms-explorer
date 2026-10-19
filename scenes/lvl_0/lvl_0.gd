@@ -46,6 +46,15 @@ var _player: Player = null
 
 var _did_hit_floor: bool = false
 
+class SubModelModefier:
+	var angle: float = 0
+	var offset: Vector3 = Vector3(0,0,0)
+	var shader_uniforms: Dictionary = {}  # string("path_to_mesh_instance:uniform_name", value(Variant))
+
+	func merge(_other: SubModelModefier) -> void:
+		push_error("TODO: Implement this")
+		
+
 # everything that changes how the models of ONE tile are rendered / collided compared to their
 # unmodified scene belongs here (mesh removal, y offsets, per-model placement), not on PlacedTile.
 class ModelModefier:
@@ -53,13 +62,34 @@ class ModelModefier:
 	# per-model placement, for models that sit freely inside their tile (chairs, trash bins) instead of
 	# using the tile-wide 'PlacedTile.angle' that the floor, ceiling and walls share.
 	# models without an entry keep the tile angle and stay centered on the tile.
-	var model_angles: Dictionary = {}   # int(model_id), float
-	var model_offsets: Dictionary = {}  # int(model_id), Vector3
+	var sub_model_modefiers: Dictionary = {} # int(model_id), SubModelModefier
 	var yoffset_n: float = 0
 	var yoffset_s: float = 0
 	var yoffset_w: float = 0
 	var yoffset_e: float = 0
 	var yoffset_c: float = 0
+	
+	func get_sub_modefier(model_id: int, auto_create: bool) -> SubModelModefier:
+		var retval: SubModelModefier = sub_model_modefiers.get(model_id)
+		if auto_create && retval == null:
+			retval = SubModelModefier.new()
+			sub_model_modefiers[model_id] = retval
+		return retval
+	
+	func merge(other: ModelModefier) -> void:
+		if yoffset_n == 0:	yoffset_n = yoffset_n
+		if yoffset_s == 0:	yoffset_s = yoffset_s
+		if yoffset_w == 0:	yoffset_w = yoffset_w
+		if yoffset_e == 0:	yoffset_e = yoffset_e
+		if yoffset_c == 0:	yoffset_c = yoffset_c
+		remove_meshes_with_postfix.append_array(other.remove_meshes_with_postfix)
+		for key: int in other.sub_model_modefiers:
+			var sub_modefier: SubModelModefier = sub_model_modefiers.get(key)
+			var sub_modefier_other: SubModelModefier = other.sub_model_modefiers.get(key)
+			if sub_modefier == null:
+				sub_model_modefiers[key] = sub_modefier_other
+			else:
+				sub_modefier.merge(sub_modefier_other)
 
 class Model:
 	var id: int
@@ -90,6 +120,11 @@ class PlacedTile:
 	var graphics: Dictionary # int(model_id), CollisionShape3D
 	var collision_shapes: Dictionary # int(model_id), Array[CollisionShape3D]
 	
+	func get_sub_modefier(model_id: int, auto_create: bool) -> SubModelModefier:
+		if model_modefier:
+			return model_modefier.get_sub_modefier(model_id, auto_create)
+		return null
+
 	func _init() -> void:
 		pass;
 	
@@ -405,7 +440,11 @@ func _instantiate_model(model: Model, tile_index: Vector2i, angle: float, model_
 	var placed_tile: PlacedTile = _get_or_create_placed_tile(tile_index)
 	
 	placed_tile.models[model.id] = model
-	placed_tile.model_modefier = model_modefier
+	if model_modefier:
+		if placed_tile.model_modefier:
+			placed_tile.model_modefier.merge(model_modefier)
+		else:
+			placed_tile.model_modefier = model_modefier
 	placed_tile.angle = angle
 	placed_tile.tile_index = tile_index
 
@@ -481,8 +520,10 @@ func _instantiate_prop_model(model: Model, tile_index: Vector2i) -> void:
 	if placed_tile.model_modefier == null:
 		placed_tile.model_modefier = ModelModefier.new()
 	placed_tile.models[model.id] = model
-	placed_tile.model_modefier.model_angles[model.id] = _get_prop_angle(tile_index)
-	placed_tile.model_modefier.model_offsets[model.id] = _get_prop_offset(tile_index)
+	# sub_model_modefiers: SubModelModefier
+	var sub_model_modefier: SubModelModefier = placed_tile.model_modefier.get_sub_modefier(model.id, true)
+	sub_model_modefier.angle = _get_prop_angle(tile_index)
+	sub_model_modefier.offset = _get_prop_offset(tile_index)
 	placed_tile.tile_index = tile_index
 
 func _place_prop(pixel: MapGenerator.Pixel, tile_index: Vector2i) -> void:
@@ -498,7 +539,12 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 	var tile_index: Vector2i = Vector2i(x, y)
 	
 	# ALWAYS add a floor and ceiling
-	_instantiate_model(model_floor, tile_index, 0)
+	var floor_model_modefier: ModelModefier = null
+	if tile_index.length_squared() < (10*10):
+		floor_model_modefier = ModelModefier.new()
+		floor_model_modefier.get_sub_modefier(model_floor.id, true).shader_uniforms["base/_fur:height"] = UtilsMath.remap_clamp(tile_index.length(), 4, 8, 0.03, 0.08)
+	_instantiate_model(model_floor, tile_index, 0, floor_model_modefier)
+	
 	if (((pixel & MapGenerator.TILE_MASK) != MapGenerator.Pixel.TILE_CEILING_LIGHT) && 
 		((pixel & MapGenerator.TILE_MASK) != MapGenerator.Pixel.TILE_CEILING_LIGHT_BLINKING)):
 		_instantiate_model(model_ceiling, tile_index, 0)
@@ -611,15 +657,17 @@ func _handle_model_modefier(graphic: Node3D, model_modefier: ModelModefier) -> v
 # lets props use their own angle (stored in the ModelModefier) while every other model keeps using
 # the shared tile angle
 func _get_model_angle(placed_tile: PlacedTile, model: Model) -> float:
-	if placed_tile.model_modefier && placed_tile.model_modefier.model_angles.has(model.id):
-		return placed_tile.model_modefier.model_angles[model.id]
+	var mod: SubModelModefier = placed_tile.get_sub_modefier(model.id, false)
+	if mod:
+		return mod.angle
 	return placed_tile.angle
 
 # lets props sit away from the tile center (offset stored in the ModelModefier) while every other
 # model stays centered
 func _get_model_offset(placed_tile: PlacedTile, model: Model) -> Vector3:
-	if placed_tile.model_modefier && placed_tile.model_modefier.model_offsets.has(model.id):
-		return placed_tile.model_modefier.model_offsets[model.id]
+	var mod: SubModelModefier = placed_tile.get_sub_modefier(model.id, false)
+	if mod:
+		return mod.offset
 	return Vector3.ZERO
 
 # Loads the visibility pattern image from disk and converts its visibility threshold data into a flat PackedByteArray buffer so that per-tile visibility queries avoid get_pixel and Color allocation overhead each frame while minimizing memory footprint.
@@ -764,6 +812,13 @@ func _handle_tile_graphics() -> void:
 				graphic.rotate_y(_get_model_angle(placed_tile, model))
 				if placed_tile.model_modefier:
 					_handle_model_modefier(graphic, placed_tile.model_modefier)
+				var model_mod: SubModelModefier = placed_tile.get_sub_modefier(model.id, false)
+				if model_mod:
+					for shader_uniform_path: String in model_mod.shader_uniforms:
+						var uniform_value: Variant = model_mod.shader_uniforms[shader_uniform_path]
+						var parts: PackedStringArray = shader_uniform_path.split(":")
+						UtilsNode.set_shader_param(graphic, parts[0], parts[1], uniform_value, true)
+				
 				chunk.tiles.add_child(graphic)
 				placed_tile.graphics[model.id] = graphic
 	

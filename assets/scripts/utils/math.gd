@@ -7,6 +7,12 @@ extends Node
 class_name UtilsMath
 
 
+static func mix(a: float, b: float, weight: float) -> float:
+	return a * (1.0 - weight) + b * weight
+
+static func remap_clamp(value: float, in_min: float, in_max: float, out_min: float, out_max: float) -> float:
+	var v: float = remap(value, in_min, in_max, out_min, out_max)
+	return clampf(v, out_min, out_max)
 
 static func fraction(x: float) -> float:
 	return x - floorf(x)
