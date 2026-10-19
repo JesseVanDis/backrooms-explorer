@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://bcj4r6twwtwmc"]
+
+[ext_resource type="PackedScene" uid="uid://d1blfyihmt6u3" path="res://scenes/lvl_0/saves/part_1x1_floor_hole.blend" id="1_rwreu"]
+[ext_resource type="Material" uid="uid://dpkyn41qpdxao" path="res://scenes/lvl_0/carpet.tres" id="2_i1rrd"]
+[ext_resource type="Material" uid="uid://cou46wwobdsl4" path="res://scenes/lvl_0/carpet_fur.tres" id="3_vswqv"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_i1rrd"]
+size = Vector3(1, 0.001, 1)
+
+[node name="part_1x1_floor_hole" unique_id=2104077698 instance=ExtResource("1_rwreu")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="0" unique_id=1347680302]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5e-06, 0)
+shape = SubResource("BoxShape3D_i1rrd")
+
+[node name="base" parent="." index="1" unique_id=1935875772]
+surface_material_override/0 = ExtResource("2_i1rrd")
+
+[node name="_fur" parent="base" index="0" unique_id=312964606]
+surface_material_override/0 = ExtResource("3_vswqv")
