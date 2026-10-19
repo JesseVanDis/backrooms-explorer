@@ -21,11 +21,13 @@ enum Pixel {
 	BIOME_ROOMS                  = 0x00000000000002,
 	BIOME_ARCHES                 = 0x00000000000003,
 	BIOME_PILLARS                = 0x00000000000004,
+	BIOME_HOLES                  = 0x00000000000005,
 	TILE_WALL                    = 0x00000000000100,
 	TILE_ARCH                    = 0x00000000000200,
 	TILE_EMPTY                   = 0x00000000010000,
 	TILE_CEILING_LIGHT           = 0x00000000020000,
 	TILE_CEILING_LIGHT_BLINKING  = 0x00000000030000,
+	FLAG_FLOOR_HOLE              = 0x00200000000000,
 	FLAG_WALL_SKIRT_FN_E         = 0x00000001000000, # skirt FacingNorth, on eastern 'lobe'
 	FLAG_WALL_SKIRT_FS_E         = 0x00000002000000,
 	FLAG_WALL_SKIRT_FN_W         = 0x00000004000000,
@@ -100,7 +102,11 @@ func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 	
 	match pass_index:
 		0:
+			if Vector2(ctx.x_flt, ctx.y_flt).length_squared() < (50*50):
+				return Pixel.BIOME_ROOMS
 			var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
+			if noise < 0.2:
+				return Pixel.BIOME_HOLES
 			if noise < 0.4:
 				return Pixel.BIOME_ROOMS
 			if noise < 0.44:
@@ -195,6 +201,8 @@ func _gen(pass_index: int, ctx: Context) -> Pixel:
 				retval = _gen_biome_arches(biome_pass_index, ctx)
 			Pixel.BIOME_PILLARS:
 				retval = _gen_biome_pillars(biome_pass_index, ctx)
+			Pixel.BIOME_HOLES:
+				retval = _gen_biome_holes(biome_pass_index, ctx)
 	
 	# force empty area at spawn point
 	if Vector2(ctx.y, ctx.x).distance_to(Vector2(0,0)) < 10 && retval != Pixel.INVALID && pp.wall_c:
@@ -267,14 +275,15 @@ func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
 		
 	return Pixel.INVALID
 
+const NUM_PASSES_BIOME_ROOMS = 13
+const BIOME_ROOMS_CELL_SIZE = 7
 func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	
-	const grid_cell_size = 7
-	var grid_x := floori(ctx.x_flt / grid_cell_size)
-	var grid_y := floori(ctx.y_flt / grid_cell_size)
-	var grid_local_x := (ctx.x - (grid_x * grid_cell_size))
-	var grid_local_y := (ctx.y - (grid_y * grid_cell_size))
+	var grid_x := floori(ctx.x_flt / BIOME_ROOMS_CELL_SIZE)
+	var grid_y := floori(ctx.y_flt / BIOME_ROOMS_CELL_SIZE)
+	var grid_local_x := (ctx.x - (grid_x * BIOME_ROOMS_CELL_SIZE))
+	var grid_local_y := (ctx.y - (grid_y * BIOME_ROOMS_CELL_SIZE))
 
 	var noise_upscale: float = 0.4
 	
@@ -342,7 +351,9 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 			var prop_chances := PropChances.new()
 			return _gen_props(ctx, prop_chances)
 			
-
+		13: 
+			assert(pass_index == NUM_PASSES_BIOME_ROOMS) # please update 'NUM_PASSES_BIOME_ROOMS'
+	
 	return Pixel.INVALID
 
 func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
@@ -510,6 +521,23 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 		
 		# no props here!
 		
+	return Pixel.INVALID
+
+
+func _gen_biome_holes(pass_index: int, ctx: Context) -> Pixel:
+	var pp: PreviousPass = ctx.previous_pass
+	
+	var local_pass: int = (pass_index - NUM_PASSES_BIOME_ROOMS)
+	if local_pass < 0:
+		return _gen_biome_rooms(pass_index, ctx)
+	
+	match local_pass:
+		0:
+			if pp.wall_c || (pp.pixel_c & FLAG_MASK) != 0:
+				return pp.no_change()
+			else:
+				return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE)
+
 	return Pixel.INVALID
 
 func _ceiling_light(ctx: Context, misplacement_chance: float, interval_range: int, offset: int) -> bool:
@@ -1244,22 +1272,13 @@ func generate_map_image(width: int, height: int, margin: int = 8) -> Image:
 					Pixel.FLAG_WALL_LINE_FE_S, Pixel.FLAG_WALL_LINE_FW_S
 				]
 				
-				## N_E
-				#if has_flag(pixel, Pixel.FLAG_WALL_SKIRT_FN_E) && has_flag(pixel, Pixel.FLAG_WALL_LINE_FN_E):
-					#for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 1, color_with_line_and_skirt)
-				#if has_flag(pixel, Pixel.FLAG_WALL_SKIRT_FN_E) && !has_flag(pixel, Pixel.FLAG_WALL_LINE_FN_E):
-					#for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 1, color_with_skirt)
-				#if !has_flag(pixel, Pixel.FLAG_WALL_SKIRT_FN_E) && has_flag(pixel, Pixel.FLAG_WALL_LINE_FN_E):
-					#for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 1, color_with_line)
-				#
-				
 				var flags_n_e: Array[String]
 				var flags_s_e: Array[String]
 				var flags_n_w: Array[String]
 				var flags_s_w: Array[String]
 				var flags_e_n: Array[String]
-				var flags_e_s: Array[String]
 				var flags_w_n: Array[String]
+				var flags_e_s: Array[String]
 				var flags_w_s: Array[String]
 
 				for flag: Pixel in flags_to_check: 
@@ -1286,28 +1305,6 @@ func generate_map_image(width: int, height: int, margin: int = 8) -> Image:
 				for dy in range(3,6): _set_wall_edge_pixel(image, flags_w_s, x * 6 + 1, y * 6 + dy) #W_S
 				
 				
-					#
-				#for flag: Pixel in flags_to_check:
-					#if has_flag(pixel, flag):
-						#var flag_name: String = Pixel.keys()[Pixel.values().find(flag)]
-						#var suffix: String = flag_name.right(3)
-						#
-						#var edge_color: Color = color_with_line_and_skirt
-						#if !flag_name.contains("SKIRT"):
-							#edge_color = color_with_line
-						#if !flag_name.contains("LINE"):
-							#edge_color = color_with_skirt
-						#
-						#match suffix:
-							#"N_E": for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 1, edge_color)
-							#"S_E": for dx in range(3,6): image.set_pixel(x * 6 + dx, y * 6 + 4, edge_color)
-							#"N_W": for dx in range(0,3): image.set_pixel(x * 6 + dx, y * 6 + 1, edge_color)
-							#"S_W": for dx in range(0,3): image.set_pixel(x * 6 + dx, y * 6 + 4, edge_color)
-							#"E_N": for dy in range(0,3): image.set_pixel(x * 6 + 4, y * 6 + dy, edge_color)
-							#"W_N": for dy in range(0,3): image.set_pixel(x * 6 + 1, y * 6 + dy, edge_color)
-							#"E_S": for dy in range(3,6): image.set_pixel(x * 6 + 4, y * 6 + dy, edge_color)
-							#"W_S": for dy in range(3,6): image.set_pixel(x * 6 + 1, y * 6 + dy, edge_color)
-			#
 				for dy in range(2,4):
 					for dx in range(2,4):
 						image.set_pixel(x * 6 + dx, y * 6 + dy, color)
@@ -1483,14 +1480,21 @@ class TileUtils:
 			Pixel.BIOME_ROOMS   | Pixel.TILE_EMPTY:   return Color(0.739, 0.634, 1.0, 1.0)
 			Pixel.BIOME_ARCHES  | Pixel.TILE_EMPTY:   return Color(1.0, 0.559, 0.567, 1.0)
 			Pixel.BIOME_PILLARS | Pixel.TILE_EMPTY:   return Color(0.962, 0.576, 1.0, 1.0)
+			Pixel.BIOME_HOLES   | Pixel.TILE_EMPTY:   return Color(0.336, 0.75, 1.0, 1.0)
 		
 		var tile : Pixel = pixel & TILE_MASK as Pixel
+		if MapGenerator.has_flag(pixel, Pixel.FLAG_FLOOR_HOLE):
+			if tile == Pixel.TILE_CEILING_LIGHT:						return Color(0.758, 0.0, 0.214, 1.0)
+			elif tile == Pixel.TILE_CEILING_LIGHT_BLINKING:				return Color(0.987, 0.0, 0.0, 1.0)
+			else: 														return Color(0.616, 0.0, 0.103, 1.0)
 		if tile == Pixel.TILE_CEILING_LIGHT:							return Color(0,1,1)
 		if tile == Pixel.TILE_CEILING_LIGHT_BLINKING:					return Color(0.0, 0.58, 0.614, 1.0)
 		if tile == Pixel.TILE_WALL:
 			if MapGenerator.has_flag(pixel, Pixel.FLAG_WALL_TOP_GAP):	return Color(0.393, 0.393, 0.393, 1.0)
 			return Color(0,0,0)
 		if tile == Pixel.TILE_ARCH:										return Color(0.622, 0.428, 0.0, 1.0)
+		
+		# FLAG_FLOOR_HOLE
 		
 		var h := fmod(absf(sin(float(pixel) * 12.9898) * 43758.5453), 1.0)
 		return Color.from_hsv(h, 0.7, 1.0)
