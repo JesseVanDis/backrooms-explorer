@@ -73,16 +73,26 @@ This is the **plan**. For the current implementation state, including known issu
 suggested next steps, see [docs/ai/STATUS.md](docs/ai/STATUS.md).
 
 ### V0.0.1
-| Subject                    | progress (%) |
-|----------------------------|--------------|
-| **Mechanics**              | -            |
-| - Running                  | 100%         |
-| - Jumping                  | 100%         |
-| - Moving in between levels | 30%          |
-| **Scenes**                 | -            |
-| - frontrooms               | 50%          |
-| - lvl 0                    | 15%          |
-| - lvl 1                    | 0            |
+| Subject                                                | progress (%) |
+|--------------------------------------------------------|--------------|
+| **Mechanics**                                          | -            |
+| - Running                                              | 100%         |
+| - Jumping                                              | 100%         |
+| - Moving in between levels                             | 40%          |
+| **Scenes**                                             | -            |
+| - frontrooms                                           | 50%          |
+| - lvl 0                                                | 20%          |
+| + - areas with holes in ground                         | 0%           |
+| + - dark zones, including blind-sight and water sfx    | 0%           |
+| + - Melina room                                        | 0%           |
+| + - NPC character                                      | 0%           |
+| + - Rugged phone                                       | 0%           |
+| + - - Scan objects And research points                 | 0%           |
+| + - more story / voice acting                          | 0%           |
+| + - red rooms                                          | 0%           |
+| + - some game mechanics that allow you to fast-forward | 0%           |
+| + - exit to lvl 1.                                     | 0%           |
+| - lvl 1                                                | 0            |
 
 ### V0.0.2
 | Subject                                                    | progress |
