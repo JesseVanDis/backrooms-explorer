@@ -29,6 +29,7 @@ var _cached_forward_angle_rounded: int = 0
 var _cached_forward_direction_rounded: Vector2 = Vector2.ZERO
 
 var model_floor:                  Model = _load_model(preload("res://scenes/lvl_0/part_1x1_floor.tscn"))
+var model_floor_hole:             Model = _load_model(preload("res://scenes/lvl_0/part_1x_1_floor_hole.tscn"))
 var model_ceiling:                Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling.tscn"))
 var model_ceiling_light:          Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling_light.tscn"))
 var model_ceiling_light_blinking: Model = _load_model(preload("res://scenes/lvl_0/part_1x1_ceiling_light_blinking.tscn"))
@@ -112,7 +113,7 @@ class Chunk:
 class PlacedTile:
 	# constant
 	var tile_index: Vector2i
-	var angle: float
+	# var angle: float
 	var models: Dictionary # int(model_id), Model
 	var model_modefier: ModelModefier
 
@@ -169,7 +170,15 @@ func _ready() -> void:
 		if chunk1 != null && chunk2 != null && chunk3 != null && chunk4 != null:
 			break
 		OS.delay_msec(50)
-	print("All initial chunks loaded")
+	print("Loading initial chunks... done")
+	
+	print("generating precalculation tables...")
+	_preload_radius_offsets_table()
+	print("generating precalculation tables... done")
+
+func _preload_radius_offsets_table() -> void:
+	for v in range(0, 360):
+		_get_radius_offsets(VIEW_DISTANCE_AA, get_rounded_angle(deg_to_rad(v)), true)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
@@ -186,8 +195,8 @@ func _handle_player_landing() -> void:
 			_player.active_wieldable = "lvl_0_landing"
 			_did_hit_floor = true
 
-func _place_wall_specific(model: Model, tile_index: Vector2i, angle: float, model_modefier: ModelModefier = null) -> void:
-	_instantiate_model(model, tile_index, angle, model_modefier)
+func _place_wall_specific(model: Model, tile_index: Vector2i, model_modefier: ModelModefier = null) -> void:
+	_instantiate_model(model, tile_index, model_modefier)
 
 func _place_wall(wall_model_x: Model, _wall_model_i: Model, _wall_model_e: Model, tile_index: Vector2i) -> void:
 	var pc: MapGenerator.Pixel = _get_pixel_at(tile_index.x, tile_index.y)
@@ -268,13 +277,17 @@ func _place_wall(wall_model_x: Model, _wall_model_i: Model, _wall_model_e: Model
 		#	FLAG_WALL_SKIRT_FW_S         = 0x000080000000,
 		
 	if (pc & MapGenerator.TILE_MASK) == MapGenerator.Pixel.TILE_ARCH:
-		model_modefier = ModelModefier.new()
 		if MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_ARCH_ROT_TO_E):
 			angle += PI/2.0
 		if MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_ARCH_MIRROR):
 			angle += PI
 	
-	_place_wall_specific(wall_model_x, tile_index, angle, model_modefier)
+	if angle != 0.0:
+		if model_modefier == null:
+			model_modefier = ModelModefier.new()
+		model_modefier.get_sub_modefier(wall_model_x.id, true).angle = angle
+	
+	_place_wall_specific(wall_model_x, tile_index, model_modefier)
 
 	#if  ( wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0, null)
 	#elif( wall_n &&  wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_t, tile_index, 0.0, ModelModefier.new())
@@ -436,7 +449,7 @@ func _get_or_create_placed_tile(tile_index: Vector2i) -> PlacedTile:
 	placed_tiles[tile_index] = placed_tile
 	return placed_tile
 
-func _instantiate_model(model: Model, tile_index: Vector2i, angle: float, model_modefier: ModelModefier = null) -> void:
+func _instantiate_model(model: Model, tile_index: Vector2i, model_modefier: ModelModefier = null) -> void:
 	var placed_tile: PlacedTile = _get_or_create_placed_tile(tile_index)
 	
 	placed_tile.models[model.id] = model
@@ -445,7 +458,6 @@ func _instantiate_model(model: Model, tile_index: Vector2i, angle: float, model_
 			placed_tile.model_modefier.merge(model_modefier)
 		else:
 			placed_tile.model_modefier = model_modefier
-	placed_tile.angle = angle
 	placed_tile.tile_index = tile_index
 
 func _get_wall_t_px(x: int, y: int) -> Vector2i:
@@ -538,35 +550,43 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 	var pixel: MapGenerator.Pixel = section.get_pixel(x, y)
 	var tile_index: Vector2i = Vector2i(x, y)
 	
-	# ALWAYS add a floor and ceiling
-	var floor_model_modefier: ModelModefier = null
-	if tile_index.length_squared() < (10*10):
-		floor_model_modefier = ModelModefier.new()
-		floor_model_modefier.get_sub_modefier(model_floor.id, true).shader_uniforms["base/_fur:height"] = UtilsMath.remap_clamp(tile_index.length(), 4, 8, 0.03, 0.08)
-	_instantiate_model(model_floor, tile_index, 0, floor_model_modefier)
+	# ceiling
+	var floor_model: Model = model_floor
 	
 	if (((pixel & MapGenerator.TILE_MASK) != MapGenerator.Pixel.TILE_CEILING_LIGHT) && 
 		((pixel & MapGenerator.TILE_MASK) != MapGenerator.Pixel.TILE_CEILING_LIGHT_BLINKING)):
-		_instantiate_model(model_ceiling, tile_index, 0)
+		_instantiate_model(model_ceiling, tile_index)
 	
 	_place_prop(pixel, tile_index)
 	
 	match pixel & MapGenerator.TILE_MASK:
 		MapGenerator.Pixel.TILE_EMPTY:
-			return
+			if MapGenerator.has_flag(pixel, MapGenerator.Pixel.FLAG_FLOOR_HOLE):
+				floor_model = model_floor_hole
 			
 		MapGenerator.Pixel.TILE_CEILING_LIGHT:
-			_instantiate_model(model_ceiling_light, tile_index, 0)
+			if MapGenerator.has_flag(pixel, MapGenerator.Pixel.FLAG_FLOOR_HOLE):
+				floor_model = model_floor_hole
+			_instantiate_model(model_ceiling_light, tile_index)
 			
 		MapGenerator.Pixel.TILE_CEILING_LIGHT_BLINKING:
-			_instantiate_model(model_ceiling_light_blinking, tile_index, 0)
+			if MapGenerator.has_flag(pixel, MapGenerator.Pixel.FLAG_FLOOR_HOLE):
+				floor_model = model_floor_hole
+			_instantiate_model(model_ceiling_light_blinking, tile_index)
 
 		MapGenerator.Pixel.TILE_ARCH:
 			_place_wall(model_arch_i, null, model_arch_e, tile_index)
 		
 		MapGenerator.Pixel.TILE_WALL: # gap handled in '_place_wall'
 			_place_wall(model_wall_x, null, null, tile_index)
-
+	
+	# floor	
+	var floor_model_modefier: ModelModefier = null
+	if tile_index.length_squared() < (10*10):
+		floor_model_modefier = ModelModefier.new()
+		floor_model_modefier.get_sub_modefier(floor_model.id, true).shader_uniforms["base/_fur:height"] = UtilsMath.remap_clamp(tile_index.length(), 4, 8, 0.03, 0.08)
+	_instantiate_model(floor_model, tile_index, floor_model_modefier)
+	
 #
 func _find_spawn_point() -> Vector2i:
 	var first_chunk: Chunk = _get_or_create_chunk(Vector2i(0, 0), false)
@@ -660,7 +680,7 @@ func _get_model_angle(placed_tile: PlacedTile, model: Model) -> float:
 	var mod: SubModelModefier = placed_tile.get_sub_modefier(model.id, false)
 	if mod:
 		return mod.angle
-	return placed_tile.angle
+	return 0.0
 
 # lets props sit away from the tile center (offset stored in the ModelModefier) while every other
 # model stays centered
@@ -699,6 +719,13 @@ func _load_visibility_pattern() -> void:
 			var is_visible_byte: int = 1 if (pixel_color.r > VISIBILITY_THRESHOLD) else 0
 			_visibility_pattern_data[y * _visibility_pattern_width + x] = is_visible_byte
 
+func get_rounded_angle(angle_radians: float) -> int:
+	var precision: int = 15
+	var angle: int = int(fposmod(rad_to_deg(angle_radians), 360.0))
+	angle = int(float(angle) / float(precision))
+	return angle * precision
+	
+	
 # Calculates and caches the player's 2D position, forward direction, and perpendicular right vector once per frame to avoid redundant trigonometric and matrix operations when evaluating visibility across candidate tiles.
 func _update_visibility_transform() -> void:
 	if _player == null:
@@ -714,11 +741,7 @@ func _update_visibility_transform() -> void:
 	var player_position_3d: Vector3 = _player.global_position
 	_cached_player_position = Vector2(player_position_3d.x, player_position_3d.z)
 	if _cached_forward_direction.length_squared() > 0.001:
-		var precision: int = 15
-		var angle: int = int(fposmod(rad_to_deg(atan2(_cached_forward_direction.y, _cached_forward_direction.x)), 360.0))
-		angle = int(float(angle) / float(precision))
-		angle = angle * precision
-		_cached_forward_angle_rounded = angle
+		_cached_forward_angle_rounded = get_rounded_angle(atan2(_cached_forward_direction.y, _cached_forward_direction.x))
 		_cached_forward_direction_rounded = Vector2(cos(deg_to_rad(float(_cached_forward_angle_rounded))), sin(deg_to_rad(float(_cached_forward_angle_rounded))))
 
 
