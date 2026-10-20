@@ -69,12 +69,17 @@ static func find_hands_recursive(root_node: Node) -> PlayerHands:
 	return null
 
 
-static func set_shader_param(node: Node, path_to_mesh_instance_3d: NodePath, uniform_name: StringName, value: Variant, make_material_unique: bool = true) -> void:
+static func set_shader_param(node: Node, path_to_mesh_instance_3d: NodePath, uniform_name: StringName, value: Variant, make_material_unique: bool = true, unique_material_cache: Dictionary = {}) -> void:
 	var mesh_instance := node.get_node_or_null(path_to_mesh_instance_3d) as MeshInstance3D
 	if mesh_instance == null:
 		push_warning("MeshInstance3D not found: " + str(path_to_mesh_instance_3d))
 		return
-
+	#var instance_uniform: Variant = mesh_instance.get_instance_shader_parameter(uniform_name)
+	#if instance_uniform != null:
+		#mesh_instance.set_instance_shader_parameter(uniform_name, value)
+		#return
+	#push_warning("uniform '" + uniform_name + "' in node: " + str(path_to_mesh_instance_3d) + " seems not to be a instance uniform. please use 'instance uniform' in you shader instead of just 'uniform'. Using fallback by creating an entire new material with the correct uniform value")
+	
 	var material := mesh_instance.material_override as ShaderMaterial
 
 	if material == null:
@@ -85,14 +90,18 @@ static func set_shader_param(node: Node, path_to_mesh_instance_3d: NodePath, uni
 		return
 
 	if make_material_unique:
+		var key: String = str(path_to_mesh_instance_3d) + ":" + str(uniform_name) + "=" + str(value)
+		var cached_material: ShaderMaterial = unique_material_cache.get(key)
+		if cached_material:
+			mesh_instance.material_override = cached_material
+			return
 		material = material.duplicate() as ShaderMaterial
 		mesh_instance.material_override = material
+		unique_material_cache[key] = material
 		
 	if material.get_shader_parameter(uniform_name) == null:
 		push_error("Shader numiform name '" + uniform_name + "' doest not exist for object '" + str(mesh_instance.name) + "'.")
-	
 	material.set_shader_parameter(uniform_name, value)
-
 
 static func print_node_children_recursive(node: Node, indent: int = 0) -> void:
 	if node == null:

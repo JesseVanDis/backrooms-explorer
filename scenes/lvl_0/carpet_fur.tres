@@ -10,3 +10,4 @@ shader_parameter/color_fade = 0.6
 shader_parameter/skew = Vector3(3, 0.4, -1.73)
 shader_parameter/height = 0.08000000380000001
 shader_parameter/min_height = 0.3
+shader_parameter/uv_rotation = 0.0

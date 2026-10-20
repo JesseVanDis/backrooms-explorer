@@ -2,22 +2,29 @@ shader_type spatial;
 
 uniform vec3 base_color : source_color = vec3(0.38, 0.33, 0.19);
 uniform float color_fade: hint_range(-2.0, 8.0) = 0.6;
-uniform highp vec3 skew = vec3(3.0, 0.4, -1.73);
+uniform vec3 skew = vec3(3.0, 0.4, -1.73);
 uniform float height: hint_range(0.001, 1.0) = 0.03;
 uniform float min_height: hint_range(-1.0, 1.0) = 0.3;
+uniform float uv_rotation : hint_range(-3.14159, 3.14159) = 0.0;
 
 varying float height_perc;
+varying vec2 rotated_uv;
 
 void vertex() {
-    height_perc = VERTEX.y;
+	height_perc = VERTEX.y;
 	VERTEX.y = VERTEX.y * height;
+
+	float c = cos(uv_rotation);
+	float s = sin(uv_rotation);
+	mat2 rotation = mat2(vec2(c, -s), vec2(s,  c));
+	rotated_uv = rotation * (UV - vec2(0.5)) + vec2(0.5);
 }
 
-float hash21(vec2 p) {
-    p = fract(p * vec2(123.34, 456.21));
-    p += dot(p, p + 45.32);
-    return fract(p.x * p.y);
-}
+//float hash21(vec2 p) {
+    //p = fract(p * vec2(123.34, 456.21));
+    //p += dot(p, p + 45.32);
+    //return fract(p.x * p.y);
+//}
 
 float pseudo_random_2d(highp vec2 p)
 {
@@ -34,12 +41,12 @@ float curve(float x, float k)
 
 void fragment() {
 	
-	highp vec2 cells = UV * vec2(1000.0, 1000.0);
-	cells += skew.xy * curve(height_perc, skew.z);
+	highp vec2 cells = rotated_uv * vec2(1000.0, 1000.0);
+	highp vec2 cell_offset = skew.xy * curve(height_perc, skew.z);
+	cells += cell_offset;
 	highp vec2 cell_id = floor(cells);
 	highp vec2 cell_uv = cells - cell_id;
 	
-
 	float cell_total_height = mix(min_height, 1.0, pseudo_random_2d(cell_id));
 	float distance_from_top = cell_total_height - height_perc;
 	float top_cutoff = min(1.0, curve(distance_from_top * 0.6, 0.05));

@@ -583,8 +583,20 @@ func _add_tile(section: MapGenerator.Section, x: int, y: int) -> void:
 	# floor	
 	var floor_model_modefier: ModelModefier = null
 	if tile_index.length_squared() < (10*10):
-		floor_model_modefier = ModelModefier.new()
+		if floor_model_modefier == null: floor_model_modefier = ModelModefier.new()
 		floor_model_modefier.get_sub_modefier(floor_model.id, true).shader_uniforms["base/_fur:height"] = UtilsMath.remap_clamp(tile_index.length(), 4, 8, 0.03, 0.08)
+	
+	if MapGenerator.is_empty_floor(pixel):
+		if MapGenerator.has_flag(pixel, MapGenerator.Pixel.FLAG_FLOOR_MIRROR) && MapGenerator.has_flag(pixel, MapGenerator.Pixel.FLAG_FLOOR_ROT_90):
+			if floor_model_modefier == null: floor_model_modefier = ModelModefier.new()
+			floor_model_modefier.get_sub_modefier(floor_model.id, true).angle = deg_to_rad(90)
+		if !MapGenerator.has_flag(pixel, MapGenerator.Pixel.FLAG_FLOOR_MIRROR) && !MapGenerator.has_flag(pixel, MapGenerator.Pixel.FLAG_FLOOR_ROT_90):
+			if floor_model_modefier == null: floor_model_modefier = ModelModefier.new()
+			floor_model_modefier.get_sub_modefier(floor_model.id, true).angle = deg_to_rad(270)
+		if !MapGenerator.has_flag(pixel, MapGenerator.Pixel.FLAG_FLOOR_MIRROR) && MapGenerator.has_flag(pixel, MapGenerator.Pixel.FLAG_FLOOR_ROT_90):
+			if floor_model_modefier == null: floor_model_modefier = ModelModefier.new()
+			floor_model_modefier.get_sub_modefier(floor_model.id, true).angle = deg_to_rad(180)
+	
 	_instantiate_model(floor_model, tile_index, floor_model_modefier)
 	
 #
@@ -824,6 +836,7 @@ var _graphic_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, 
 
 # Creates and removes tile visual representations within the view distance around the player, updating the player visibility reference frame so that visible tiles are prioritized during instantiation.
 # Todo: merge tiles for fewer draw calls. Actually maybe not, tests show that it doesnt seem to matter....
+var _materials_cache: Dictionary = {}
 func _handle_tile_graphics() -> void:
 	var create: Callable = func(placed_tile: PlacedTile, chunk: Chunk) -> void:
 		for model: Model in placed_tile.models.values():
@@ -840,7 +853,7 @@ func _handle_tile_graphics() -> void:
 					for shader_uniform_path: String in model_mod.shader_uniforms:
 						var uniform_value: Variant = model_mod.shader_uniforms[shader_uniform_path]
 						var parts: PackedStringArray = shader_uniform_path.split(":")
-						UtilsNode.set_shader_param(graphic, parts[0], parts[1], uniform_value, true)
+						UtilsNode.set_shader_param(graphic, parts[0], parts[1], uniform_value, true, _materials_cache)
 				
 				chunk.tiles.add_child(graphic)
 				placed_tile.graphics[model.id] = graphic

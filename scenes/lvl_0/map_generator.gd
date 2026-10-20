@@ -27,7 +27,9 @@ enum Pixel {
 	TILE_EMPTY                   = 0x00000000010000,
 	TILE_CEILING_LIGHT           = 0x00000000020000,
 	TILE_CEILING_LIGHT_BLINKING  = 0x00000000030000,
-	FLAG_FLOOR_HOLE              = 0x00200000000000,
+	FLAG_FLOOR_HOLE              = 0x00000001000000,
+	FLAG_FLOOR_ROT_90            = 0x00000002000000,
+	FLAG_FLOOR_MIRROR            = 0x00000004000000,
 	FLAG_WALL_SKIRT_FN_E         = 0x00000001000000, # skirt FacingNorth, on eastern 'lobe'
 	FLAG_WALL_SKIRT_FS_E         = 0x00000002000000,
 	FLAG_WALL_SKIRT_FN_W         = 0x00000004000000,
@@ -167,9 +169,15 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 			if ctx.x == 8 && ctx.y == 12: return Pixel.TILE_ARCH
 			if ctx.x == 8 && ctx.y == 11: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_MIRROR)
 
-			if ctx.x == 11 && ctx.y == 8: return with_flag(with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E), Pixel.FLAG_ARCH_MIRROR)
+			if ctx.x == 11 && ctx.y == 8: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E | Pixel.FLAG_ARCH_MIRROR)
 			if ctx.x == 12 && ctx.y == 8: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E)
 			
+			if ctx.x == 16 && ctx.y == 8: return with_flag(Pixel.TILE_EMPTY, Pixel.FLAG_FLOOR_HOLE)
+			if ctx.x == 17 && ctx.y == 8: return with_flag(Pixel.TILE_EMPTY, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_ROT_90)
+			if ctx.x == 16 && ctx.y == 9: return with_flag(Pixel.TILE_EMPTY, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR)
+			if ctx.x == 17 && ctx.y == 9: return with_flag(Pixel.TILE_CEILING_LIGHT, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR | Pixel.FLAG_FLOOR_ROT_90)
+			
+			# FLAG_FLOOR_HOLE
 			return Pixel.TILE_EMPTY
 		
 		1:
@@ -184,7 +192,7 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
-	#return _test(pass_index, ctx)
+	return _test(pass_index, ctx)
 	
 	var pp: PreviousPass = ctx.previous_pass
 	var retval: Pixel = Pixel.INVALID
@@ -618,6 +626,10 @@ static func has_flag(pixel: Pixel, flag: Pixel) -> bool:
 static func is_wall_arch(pixel: Pixel) -> bool:
 	var tile: Pixel = pixel & TILE_MASK as Pixel
 	return tile == Pixel.TILE_ARCH
+
+static func is_empty_floor(pixel: Pixel) -> bool:
+	var tile: Pixel = pixel & TILE_MASK as Pixel
+	return tile == Pixel.TILE_EMPTY || tile == Pixel.TILE_CEILING_LIGHT || tile == Pixel.TILE_CEILING_LIGHT
 
 # callers read the prop through this helper so the prop bits are never masked by hand
 static func get_prop(pixel: Pixel) -> Pixel:
@@ -1317,6 +1329,23 @@ func generate_map_image(width: int, height: int, margin: int = 8) -> Image:
 				if has_flag(pixel, Pixel.FLAG_WALL_LOBE_W):
 					for dy in range(2,4): for dx in range(0,2): image.set_pixel(x * 6 + dx, y * 6 + dy, color)
 			
+			if has_flag(pixel, Pixel.FLAG_FLOOR_HOLE) && is_empty_floor(pixel):
+				for dy in range(6):
+					for dx in range(6):
+						image.set_pixel(x * 6 + dx, y * 6 + dy, Color.BLACK)
+				if has_flag(pixel, Pixel.FLAG_FLOOR_ROT_90) && has_flag(pixel, Pixel.FLAG_FLOOR_MIRROR):
+					for dy in range(6): image.set_pixel(x * 6 + 5, y * 6 + dy, color)
+					for dx in range(6): image.set_pixel(x * 6 + dx, y * 6 + 5, color)
+				if has_flag(pixel, Pixel.FLAG_FLOOR_ROT_90) && !has_flag(pixel, Pixel.FLAG_FLOOR_MIRROR):
+					for dy in range(6): image.set_pixel(x * 6 + 5, y * 6 + dy, color)
+					for dx in range(6): image.set_pixel(x * 6 + dx, y * 6 + 0, color)
+				if !has_flag(pixel, Pixel.FLAG_FLOOR_ROT_90) && has_flag(pixel, Pixel.FLAG_FLOOR_MIRROR):
+					for dy in range(6): image.set_pixel(x * 6 + 0, y * 6 + dy, color)
+					for dx in range(6): image.set_pixel(x * 6 + dx, y * 6 + 5, color)
+				if !has_flag(pixel, Pixel.FLAG_FLOOR_ROT_90) && !has_flag(pixel, Pixel.FLAG_FLOOR_MIRROR):
+					for dy in range(6): image.set_pixel(x * 6 + 0, y * 6 + dy, color)
+					for dx in range(6): image.set_pixel(x * 6 + dx, y * 6 + 0, color)
+				
 			else:
 				for dy in range(6):
 					for dx in range(6):
@@ -1483,7 +1512,7 @@ class TileUtils:
 			Pixel.BIOME_HOLES   | Pixel.TILE_EMPTY:   return Color(0.336, 0.75, 1.0, 1.0)
 		
 		var tile : Pixel = pixel & TILE_MASK as Pixel
-		if MapGenerator.has_flag(pixel, Pixel.FLAG_FLOOR_HOLE):
+		if MapGenerator.is_empty_floor(pixel) && MapGenerator.has_flag(pixel, Pixel.FLAG_FLOOR_HOLE):
 			if tile == Pixel.TILE_CEILING_LIGHT:						return Color(0.758, 0.0, 0.214, 1.0)
 			elif tile == Pixel.TILE_CEILING_LIGHT_BLINKING:				return Color(0.987, 0.0, 0.0, 1.0)
 			else: 														return Color(0.616, 0.0, 0.103, 1.0)
