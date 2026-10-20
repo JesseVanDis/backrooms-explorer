@@ -107,7 +107,7 @@ func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 			if Vector2(ctx.x_flt, ctx.y_flt).length_squared() < (50*50):
 				return Pixel.BIOME_ROOMS
 			var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
-			if noise < 0.2:
+			if noise < 0.25:
 				return Pixel.BIOME_HOLES
 			if noise < 0.4:
 				return Pixel.BIOME_ROOMS
@@ -192,7 +192,7 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
-	return _test(pass_index, ctx)
+	# return _test(pass_index, ctx)
 	
 	var pp: PreviousPass = ctx.previous_pass
 	var retval: Pixel = Pixel.INVALID
@@ -541,10 +541,27 @@ func _gen_biome_holes(pass_index: int, ctx: Context) -> Pixel:
 	
 	match local_pass:
 		0:
-			if pp.wall_c || (pp.pixel_c & FLAG_MASK) != 0:
+			if !is_empty_floor(pp.pixel_c):
 				return pp.no_change()
 			else:
-				return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE)
+				var has_4_free_tiles: bool = false
+				var px00: Pixel = ctx.get_at_offset(pp.data, -(ctx.x & 1), -(ctx.y & 1))
+				var px01: Pixel = ctx.get_at_offset(pp.data, -(ctx.x & 1), (-(ctx.y & 1))+1)
+				var px10: Pixel = ctx.get_at_offset(pp.data, (-(ctx.x & 1))+1, -(ctx.y & 1))
+				var px11: Pixel = ctx.get_at_offset(pp.data, (-(ctx.x & 1))+1, (-(ctx.y & 1))+1)
+				if px00 & BIOME_MASK == Pixel.BIOME_HOLES && px01 & BIOME_MASK == Pixel.BIOME_HOLES && px10 & BIOME_MASK == Pixel.BIOME_HOLES && px11 & BIOME_MASK == Pixel.BIOME_HOLES:
+					has_4_free_tiles = is_empty_floor(px00) && is_empty_floor(px01) && is_empty_floor(px10) && is_empty_floor(px11)
+				
+				if has_4_free_tiles:
+					if (ctx.x & 1) == 0 && (ctx.y & 1) == 0:
+						return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE)
+					elif (ctx.x & 1) == 1 && (ctx.y & 1) == 0:
+						return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_ROT_90)
+					elif (ctx.x & 1) == 0 && (ctx.y & 1) == 1:
+						return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR)
+					elif (ctx.x & 1) == 1 && (ctx.y & 1) == 1:
+						return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR | Pixel.FLAG_FLOOR_ROT_90)
+				return pp.no_change()
 
 	return Pixel.INVALID
 
@@ -1522,8 +1539,6 @@ class TileUtils:
 			if MapGenerator.has_flag(pixel, Pixel.FLAG_WALL_TOP_GAP):	return Color(0.393, 0.393, 0.393, 1.0)
 			return Color(0,0,0)
 		if tile == Pixel.TILE_ARCH:										return Color(0.622, 0.428, 0.0, 1.0)
-		
-		# FLAG_FLOOR_HOLE
 		
 		var h := fmod(absf(sin(float(pixel) * 12.9898) * 43758.5453), 1.0)
 		return Color.from_hsv(h, 0.7, 1.0)

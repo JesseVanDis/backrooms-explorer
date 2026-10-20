@@ -18,6 +18,7 @@ void vertex() {
 	float s = sin(uv_rotation);
 	mat2 rotation = mat2(vec2(c, -s), vec2(s,  c));
 	rotated_uv = rotation * (UV - vec2(0.5)) + vec2(0.5);
+	
 }
 
 //float hash21(vec2 p) {
@@ -65,4 +66,5 @@ void fragment() {
 	//ALBEDO = vec3(0.0, 0.0, top_cutoff);
 	ALPHA = cell_total_height;
 	ALPHA_SCISSOR_THRESHOLD = alpha;
+	NORMAL = normalize(mat3(VIEW_MATRIX) * vec3(0,1,0));
 }
