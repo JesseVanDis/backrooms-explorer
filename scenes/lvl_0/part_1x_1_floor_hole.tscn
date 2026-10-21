@@ -2,10 +2,20 @@
 
 [ext_resource type="PackedScene" uid="uid://d1blfyihmt6u3" path="res://scenes/lvl_0/saves/part_1x1_floor_hole.blend" id="1_rwreu"]
 [ext_resource type="Material" uid="uid://dpkyn41qpdxao" path="res://scenes/lvl_0/carpet.tres" id="2_i1rrd"]
+[ext_resource type="Shader" uid="uid://drfee6oak3ss4" path="res://scenes/lvl_0/carpet_walls.gdshader" id="3_dg8h7"]
 [ext_resource type="Material" uid="uid://cou46wwobdsl4" path="res://scenes/lvl_0/carpet_fur.tres" id="3_vswqv"]
+[ext_resource type="Texture2D" uid="uid://csj66kw2o3p1l" path="res://assets/textures/generic_noise.png" id="4_kqmo8"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_i1rrd"]
 size = Vector3(1, 0.001, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_q8swi"]
+render_priority = 0
+shader = ExtResource("3_dg8h7")
+shader_parameter/base_color = Color(0.417269, 0.36765257, 0.21354204, 1)
+shader_parameter/noise_texture = ExtResource("4_kqmo8")
+shader_parameter/noise_strength = 0.152
+shader_parameter/noise_scale = 14.0
 
 [node name="part_1x1_floor_hole" unique_id=2104077698 instance=ExtResource("1_rwreu")]
 
@@ -13,8 +23,9 @@ size = Vector3(1, 0.001, 1)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5e-06, 0)
 shape = SubResource("BoxShape3D_i1rrd")
 
-[node name="base" parent="." index="1" unique_id=583343295]
+[node name="base" parent="." index="1" unique_id=332781857]
 surface_material_override/0 = ExtResource("2_i1rrd")
+surface_material_override/1 = SubResource("ShaderMaterial_q8swi")
 
-[node name="_fur" parent="base" index="0" unique_id=1687035328]
+[node name="_fur" parent="base" index="0" unique_id=1759399457]
 surface_material_override/0 = ExtResource("3_vswqv")
