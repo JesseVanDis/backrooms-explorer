@@ -638,7 +638,9 @@ static func with_flag(pixel: Pixel, flag: Pixel) -> Pixel:
 	return (pixel as int | flag as int) as Pixel
 
 static func has_flag(pixel: Pixel, flag: Pixel) -> bool:
-	return pixel & flag != 0
+	if pixel != Pixel.INVALID:
+		return pixel & flag != 0
+	return false
 
 static func is_wall_arch(pixel: Pixel) -> bool:
 	var tile: Pixel = pixel & TILE_MASK as Pixel

@@ -205,28 +205,6 @@ func _place_wall(wall_model_x: Model, _wall_model_i: Model, _wall_model_e: Model
 	var pe: MapGenerator.Pixel = _get_pixel_at(tile_index.x + 1, tile_index.y)
 	var pw: MapGenerator.Pixel = _get_pixel_at(tile_index.x - 1, tile_index.y)
 	
-	# var c: MapGenerator.Pixel = pc & MapGenerator.TILE_MASK as MapGenerator.Pixel
-	# var n: MapGenerator.Pixel = pn & MapGenerator.TILE_MASK as MapGenerator.Pixel
-	# var s: MapGenerator.Pixel = ps & MapGenerator.TILE_MASK as MapGenerator.Pixel
-	# var e: MapGenerator.Pixel = pe & MapGenerator.TILE_MASK as MapGenerator.Pixel
-	# var w: MapGenerator.Pixel = pw & MapGenerator.TILE_MASK as MapGenerator.Pixel
-	#var wall_n: bool = MapGenerator.is_wall(pn)
-	#var wall_s: bool = MapGenerator.is_wall(ps)
-	#var wall_e: bool = MapGenerator.is_wall(pe)
-	#var wall_w: bool = MapGenerator.is_wall(pw)
-	#
-	#var special: bool = MapGenerator.has_flag(pc, MapGenerator.Pixel.FLAG_WALL_TOP_GAP)
-	
-	##if  ( !special && wall_n &&  wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_x, tile_index, 0.0)
-	#if !special && wall_model_i: # just straight
-		#if( wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_i, tile_index, 0.0)
-		#elif(!wall_n && !wall_s &&  wall_e &&  wall_w): _place_wall_specific(wall_model_i, tile_index, PI/2)
-	#if !special && wall_model_e: # wall endings
-		#if( wall_n && !wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, 0.0)
-		#elif(!wall_n &&  wall_s && !wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, PI)
-		#elif(!wall_n && !wall_s &&  wall_e && !wall_w): _place_wall_specific(wall_model_e, tile_index, -PI/2)
-		#elif(!wall_n && !wall_s && !wall_e &&  wall_w): _place_wall_specific(wall_model_e, tile_index, PI/2)
-	#else:
 	var angle: float = 0
 	var model_modefier: ModelModefier = null
 	
@@ -244,6 +222,7 @@ func _place_wall(wall_model_x: Model, _wall_model_i: Model, _wall_model_e: Model
 			model_modefier.yoffset_w = top_gap_offset
 			model_modefier.yoffset_e = top_gap_offset
 			model_modefier.yoffset_c = top_gap_offset
+			
 		if MapGenerator.has_flag(pn, MapGenerator.Pixel.FLAG_WALL_TOP_GAP): model_modefier.yoffset_n = top_gap_offset
 		if MapGenerator.has_flag(ps, MapGenerator.Pixel.FLAG_WALL_TOP_GAP): model_modefier.yoffset_s = top_gap_offset
 		if MapGenerator.has_flag(pe, MapGenerator.Pixel.FLAG_WALL_TOP_GAP): model_modefier.yoffset_e = top_gap_offset
