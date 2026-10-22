@@ -107,9 +107,19 @@ func _gen_biomes(pass_index: int, ctx: Context) -> Pixel:
 			if Vector2(ctx.x_flt, ctx.y_flt).length_squared() < (50*50):
 				return Pixel.BIOME_ROOMS
 			var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
-			if noise < 0.25:
-				return Pixel.BIOME_HOLES
 			if noise < 0.4:
+				var grid_x := floori(ctx.x_flt / BIOME_HOLES_CELL_SIZE)
+				var grid_y := floori(ctx.y_flt / BIOME_HOLES_CELL_SIZE)
+				var grid_x_neg1 := floori((ctx.x_flt-1.0) / BIOME_HOLES_CELL_SIZE)
+				var grid_y_neg1 := floori((ctx.y_flt-1.0) / BIOME_HOLES_CELL_SIZE)
+				if _random_with_seed(hash(Vector2i(grid_x, grid_y))) < 0.04:
+					return Pixel.BIOME_HOLES
+				if _random_with_seed(hash(Vector2i(grid_x_neg1, grid_y))) < 0.04:
+					return Pixel.BIOME_HOLES
+				if _random_with_seed(hash(Vector2i(grid_x, grid_y_neg1))) < 0.04:
+					return Pixel.BIOME_HOLES
+				if _random_with_seed(hash(Vector2i(grid_x_neg1, grid_y_neg1))) < 0.04:
+					return Pixel.BIOME_HOLES
 				return Pixel.BIOME_ROOMS
 			if noise < 0.44:
 				return Pixel.BIOME_ARCHES
@@ -235,56 +245,55 @@ func _gen_biome_mess(pass_index: int, ctx: Context) -> Pixel:
 			if ctx.random() > 0.9:
 				return pp.with_tile(Pixel.TILE_WALL)
 			if _ceiling_light(ctx, 0.7, 5, 2):
+				# make some lights blinking
+				if ctx.random() < CHANCE_BLINKING_LIGHT:
+					return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
 				return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
 			return pp.with_tile(Pixel.TILE_EMPTY)
-	
-		1: # make some lights blinking
-			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
-				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
-			return pp.no_change()
 		
-		2:
+		1:
 			if num_neighbour_walls > 0 && !pp.wall_c:
 				if ctx.random() > 0.75:
 					return pp.with_tile(Pixel.TILE_WALL)
 			return pp.no_change()
 			
-		3:
+		2:
 			if _is_isolated_wall_dot(ctx):
 				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 		
-		4,5,6,7,8,9,10:
+		3,4,5,6,7,8,9:
 			if ctx.random() > 0.1:
 				if _extend_walls(ctx):
 					return pp.with_tile(Pixel.TILE_WALL)
+			return pp.no_change()
+		
+		10:
+			if ctx.random() > 0.1:
+				if _extend_walls(ctx):
+					return pp.with_tile(Pixel.TILE_WALL)
+			if _is_isolated_wall_dot(ctx):
+				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 		
 		11:
-			if ctx.random() > 0.1:
-				if _extend_walls(ctx):
-					return pp.with_tile(Pixel.TILE_WALL)
-			if _is_isolated_wall_dot(ctx):
-				return pp.with_tile(Pixel.TILE_EMPTY)
-			return pp.no_change()
-		
-		12:
 			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
 		
-		13: # props, must stay the last pass so every wall it looks at is final
+		12: # props, must stay the last pass so every wall it looks at is final
 			var prop_chances := PropChances.new()
 			prop_chances.total_spawn_chance *= 0.3
 			return _gen_props(ctx, prop_chances)
 		
-		#12:
+		#11:
 			#if pp.wall_c && _find_distance_to_deadend(pp, ctx, 5) < 3:
 				#return pp.with_tile(Pixel.TILE_WALL_TOP_GAP)
 			#return pp.no_change()
 		
 	return Pixel.INVALID
 
-const NUM_PASSES_BIOME_ROOMS = 13
+#const NUM_PASSES_BIOME_ROOMS = 13
 const BIOME_ROOMS_CELL_SIZE = 7
+const BIOME_HOLES_CELL_SIZE = 14
 func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	
@@ -297,44 +306,35 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 	
 	match pass_index:
 		0: # grid
-			if grid_local_x == 0:
-				return pp.with_tile(Pixel.TILE_WALL)
-			if grid_local_y == 0:
+			var should_be_wall: bool = grid_local_x == 0 || grid_local_y == 0 # cell borders
+			if should_be_wall: # openings
+				var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
+				if noise > 0.55:
+					should_be_wall = false
+			if should_be_wall:
 				return pp.with_tile(Pixel.TILE_WALL)
 			return pp.with_tile(Pixel.TILE_EMPTY)
 
-		1: # openings
-			if pp.tile_c == Pixel.TILE_WALL:
-				var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
-				if noise > 0.55:
-					return pp.with_tile(Pixel.TILE_EMPTY)
-			return pp.no_change()
-		
-		2: # coridors
-			return pp.no_change()
-
-		3: # close open corners
+		1: # close open corners
 			if _is_open_corner(ctx):
 				return pp.with_tile(Pixel.TILE_WALL)
 			return pp.no_change()
 
-		4: # filter small walls
+		2: # filter small walls
 			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 4):
 				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 
-		5: # lights
+		3: # lights
 			if !pp.wall_c:
 				if _ceiling_light(ctx, 0.1, 4, 2):
+					# make some lights blinking
+					if ctx.random() < CHANCE_BLINKING_LIGHT:
+						return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
 					return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
 			return pp.no_change()
 		
-		6: # make some lights blinking
-			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
-				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
-			return pp.no_change()
-		
-		7:
+		4: # half-walls
 			if pp.wall_c && _is_wall_deadend(ctx) && ctx.random() > 0.70:
 				var distance_to_deadend: int = _find_distance_to_deadend(pp, ctx, 5)
 				var distance_to_junction: int = _find_distance_to_junction(pp, ctx, 5)
@@ -344,7 +344,7 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 						return with_flag(pp.with_tile(Pixel.TILE_WALL), Pixel.FLAG_WALL_TOP_GAP)
 			return pp.no_change()
 			
-		8, 9, 10:
+		5, 6, 7: # expand half-walls
 			if pp.wall_c && !_is_junction(ctx):
 				if has_flag(pp.pixel_n, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
 				if has_flag(pp.pixel_s, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
@@ -352,15 +352,12 @@ func _gen_biome_rooms(pass_index: int, ctx: Context) -> Pixel:
 				if has_flag(pp.pixel_e, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
 			return pp.no_change()
 		
-		11:
+		8:
 			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
 		
-		12: # props, must stay the last pass so every wall it looks at is final
+		9: # props, must stay the last pass so every wall it looks at is final
 			var prop_chances := PropChances.new()
 			return _gen_props(ctx, prop_chances)
-			
-		13: 
-			assert(pass_index == NUM_PASSES_BIOME_ROOMS) # please update 'NUM_PASSES_BIOME_ROOMS'
 	
 	return Pixel.INVALID
 
@@ -400,25 +397,23 @@ func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
 		4: # lights
 			if !pp.wall_c:
 				if _ceiling_light(ctx, 0.1, 4, 2):
+					# make some lights blinking
+					if ctx.random() < CHANCE_BLINKING_LIGHT:
+						return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
 					return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
 			return pp.no_change()
 		
-		5: # make some lights blinking
-			if pp.tile_c == Pixel.TILE_CEILING_LIGHT && ctx.random() < CHANCE_BLINKING_LIGHT:
-				return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
-			return pp.no_change()
-		
-		6:
+		5:
 			if pp.wall_c && _is_corner(ctx):
 				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 		
-		7:
+		6:
 			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 5, 0, 0, false): 
 				return pp.with_tile(Pixel.TILE_EMPTY)
 			return pp.no_change()
 	
-		8: # close open corners
+		7: # close open corners
 			if _is_open_corner(ctx):
 				return pp.with_tile(Pixel.TILE_WALL)
 			var n: bool = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
@@ -429,7 +424,7 @@ func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
 				return pp.with_tile(Pixel.TILE_ARCH)
 			return pp.no_change()
 	
-		9: # alighn
+		8: # alighn
 			if pp.tile_c == Pixel.TILE_ARCH:# && ((ctx.x & 1) == 1 || (ctx.y & 1) == 1): 
 				var n: bool = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
 				var s: bool = (ctx.get_at_offset(pp.data,  0,  1) & TILE_MASK as Pixel) == Pixel.TILE_ARCH
@@ -445,7 +440,7 @@ func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
 				return pixel
 			return pp.no_change()
 		
-		10: # fix mis-alighned
+		9: # fix mis-alighned
 			if !is_wall_arch(pp.tile_c):
 				return pp.no_change() 
 			var n: Pixel = (ctx.get_at_offset(pp.data,  0, -1) & TILE_MASK as Pixel)
@@ -477,10 +472,10 @@ func _gen_biome_arches(pass_index: int, ctx: Context) -> Pixel:
 			
 			return pp.no_change()
 	
-		11:
+		10:
 			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
 		
-		12: # props, must stay the last pass so every wall it looks at is final
+		11: # props, must stay the last pass so every wall it looks at is final
 			var prop_chances := PropChances.new()
 			prop_chances.total_spawn_chance *= 0.7
 			return _gen_props(ctx, prop_chances)
@@ -535,35 +530,182 @@ func _gen_biome_pillars(pass_index: int, ctx: Context) -> Pixel:
 func _gen_biome_holes(pass_index: int, ctx: Context) -> Pixel:
 	var pp: PreviousPass = ctx.previous_pass
 	
-	var local_pass: int = (pass_index - NUM_PASSES_BIOME_ROOMS)
-	if local_pass < 0:
-		return _gen_biome_rooms(pass_index, ctx)
+	#var local_pass: int = pass_index
+	#var local_pass: int = (pass_index - NUM_PASSES_BIOME_ROOMS)
+	#if local_pass < 0:
+	#	return _gen_biome_rooms(pass_index, ctx)
 	
-	match local_pass:
-		0:
+	var grid_x := floori(ctx.x_flt / BIOME_HOLES_CELL_SIZE)
+	var grid_y := floori(ctx.y_flt / BIOME_HOLES_CELL_SIZE)
+	var grid_local_x := (ctx.x - (grid_x * BIOME_HOLES_CELL_SIZE))
+	var grid_local_y := (ctx.y - (grid_y * BIOME_HOLES_CELL_SIZE))
+
+	var noise_upscale: float = 0.4
+	
+	match pass_index:
+		0: # grid
+			var should_be_wall: bool = grid_local_x == 0 || grid_local_y == 0 # cell borders
+			if should_be_wall: # openings
+				var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
+				if noise > 0.65:
+					should_be_wall = false
+			if should_be_wall:
+				return pp.with_tile(Pixel.TILE_WALL)
+			return pp.with_tile(Pixel.TILE_EMPTY)
+
+		1: # close open corners
+			if _is_open_corner(ctx):
+				return pp.with_tile(Pixel.TILE_WALL)
+			return pp.no_change()
+
+		2: # filter small walls
+			if pp.wall_c && _is_wall_length_lesser_then(pp, ctx, 4):
+				return pp.with_tile(Pixel.TILE_EMPTY)
+			return pp.no_change()
+
+		3: # lights
+			if !pp.wall_c:
+				if _ceiling_light(ctx, 0.1, 4, 2):
+					# make some lights blinking
+					if ctx.random() < CHANCE_BLINKING_LIGHT:
+						return pp.with_tile(Pixel.TILE_CEILING_LIGHT_BLINKING)
+					return pp.with_tile(Pixel.TILE_CEILING_LIGHT)
+			return pp.no_change()
+		
+		4: # half-walls
+			if pp.wall_c && _is_wall_deadend(ctx) && ctx.random() > 0.70:
+				var distance_to_deadend: int = _find_distance_to_deadend(pp, ctx, 5)
+				var distance_to_junction: int = _find_distance_to_junction(pp, ctx, 5)
+				if distance_to_deadend >= 0 && distance_to_junction >= 0:
+					var total: int = distance_to_deadend + distance_to_junction
+					if total <= 3:
+						return with_flag(pp.with_tile(Pixel.TILE_WALL), Pixel.FLAG_WALL_TOP_GAP)
+			return pp.no_change()
+			
+		5, 6, 7: # expand half-walls
+			if pp.wall_c && !_is_junction(ctx):
+				if has_flag(pp.pixel_n, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
+				if has_flag(pp.pixel_s, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
+				if has_flag(pp.pixel_w, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
+				if has_flag(pp.pixel_e, Pixel.FLAG_WALL_TOP_GAP): return with_flag(pp.pixel_c, Pixel.FLAG_WALL_TOP_GAP)
+			return pp.no_change()
+		
+		8:
+			return _handle_walltypes(ctx, _connect_lobes(ctx, pp.pixel_c))
+		
+		9: # props, must stay the last pass so every wall it looks at is final
 			if !is_empty_floor(pp.pixel_c):
 				return pp.no_change()
-			else:
-				var has_4_free_tiles: bool = false
-				var px00: Pixel = ctx.get_at_offset(pp.data, -(ctx.x & 1), -(ctx.y & 1))
-				var px01: Pixel = ctx.get_at_offset(pp.data, -(ctx.x & 1), (-(ctx.y & 1))+1)
-				var px10: Pixel = ctx.get_at_offset(pp.data, (-(ctx.x & 1))+1, -(ctx.y & 1))
-				var px11: Pixel = ctx.get_at_offset(pp.data, (-(ctx.x & 1))+1, (-(ctx.y & 1))+1)
-				if px00 & BIOME_MASK == Pixel.BIOME_HOLES && px01 & BIOME_MASK == Pixel.BIOME_HOLES && px10 & BIOME_MASK == Pixel.BIOME_HOLES && px11 & BIOME_MASK == Pixel.BIOME_HOLES:
-					has_4_free_tiles = is_empty_floor(px00) && is_empty_floor(px01) && is_empty_floor(px10) && is_empty_floor(px11)
 				
-				if has_4_free_tiles:
-					if (ctx.x & 1) == 0 && (ctx.y & 1) == 0:
-						return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE)
-					elif (ctx.x & 1) == 1 && (ctx.y & 1) == 0:
-						return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_ROT_90)
-					elif (ctx.x & 1) == 0 && (ctx.y & 1) == 1:
-						return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR)
-					elif (ctx.x & 1) == 1 && (ctx.y & 1) == 1:
-						return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR | Pixel.FLAG_FLOOR_ROT_90)
+			var num_hole_biome_pixels_in_cell: int = 0
+			var start_x: int = (-grid_local_x) + 1
+			var start_y: int = (-grid_local_y) + 1
+			for y in range(start_y, start_y + (BIOME_HOLES_CELL_SIZE-2)):
+				for x in range(start_x, start_x + (BIOME_HOLES_CELL_SIZE-2)):
+					var pixel_biome: Pixel = ctx.get_at_offset(pp.data, x, y)  & BIOME_MASK
+					if pixel_biome == Pixel.BIOME_HOLES:
+						num_hole_biome_pixels_in_cell = num_hole_biome_pixels_in_cell + 1
+			
+			if num_hole_biome_pixels_in_cell != (BIOME_HOLES_CELL_SIZE-2) * (BIOME_HOLES_CELL_SIZE-2):
+				# cell it cut off from another biome. ignore holes as it wont be a square grid anymore.
 				return pp.no_change()
-
+				
+			#var has_4_free_tiles: bool = false
+			#var px00: Pixel = ctx.get_at_offset(pp.data, -(ctx.x & 1), -(ctx.y & 1))
+			#var px01: Pixel = ctx.get_at_offset(pp.data, -(ctx.x & 1), (-(ctx.y & 1))+1)
+			#var px10: Pixel = ctx.get_at_offset(pp.data, (-(ctx.x & 1))+1, -(ctx.y & 1))
+			#var px11: Pixel = ctx.get_at_offset(pp.data, (-(ctx.x & 1))+1, (-(ctx.y & 1))+1)
+			#if px00 & BIOME_MASK == Pixel.BIOME_HOLES && px01 & BIOME_MASK == Pixel.BIOME_HOLES && px10 & BIOME_MASK == Pixel.BIOME_HOLES && px11 & BIOME_MASK == Pixel.BIOME_HOLES:
+				#has_4_free_tiles = is_empty_floor(px00) && is_empty_floor(px01) && is_empty_floor(px10) && is_empty_floor(px11)
+				#
+			if grid_local_x > 1 && grid_local_y > 1 && grid_local_x != BIOME_HOLES_CELL_SIZE && grid_local_y != BIOME_HOLES_CELL_SIZE:
+				if (ctx.x & 1) == 0 && (ctx.y & 1) == 0:
+					return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE)
+				elif (ctx.x & 1) == 1 && (ctx.y & 1) == 0:
+					return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_ROT_90)
+				elif (ctx.x & 1) == 0 && (ctx.y & 1) == 1:
+					return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR)
+				elif (ctx.x & 1) == 1 && (ctx.y & 1) == 1:
+					return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR | Pixel.FLAG_FLOOR_ROT_90)
+			
+			return pp.no_change()
+			
+			
 	return Pixel.INVALID
+#
+	#match local_pass:
+		##0:
+			##if !is_empty_floor(pp.pixel_c):
+				##return pp.no_change()
+			##else:
+				##var has_4_free_tiles: bool = false
+				##var px00: Pixel = ctx.get_at_offset(pp.data, -(ctx.x & 1), -(ctx.y & 1))
+				##var px01: Pixel = ctx.get_at_offset(pp.data, -(ctx.x & 1), (-(ctx.y & 1))+1)
+				##var px10: Pixel = ctx.get_at_offset(pp.data, (-(ctx.x & 1))+1, -(ctx.y & 1))
+				##var px11: Pixel = ctx.get_at_offset(pp.data, (-(ctx.x & 1))+1, (-(ctx.y & 1))+1)
+				##if px00 & BIOME_MASK == Pixel.BIOME_HOLES && px01 & BIOME_MASK == Pixel.BIOME_HOLES && px10 & BIOME_MASK == Pixel.BIOME_HOLES && px11 & BIOME_MASK == Pixel.BIOME_HOLES:
+					##has_4_free_tiles = is_empty_floor(px00) && is_empty_floor(px01) && is_empty_floor(px10) && is_empty_floor(px11)
+				##
+				##if has_4_free_tiles:
+					##if (ctx.x & 1) == 0 && (ctx.y & 1) == 0:
+						##return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE)
+					##elif (ctx.x & 1) == 1 && (ctx.y & 1) == 0:
+						##return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_ROT_90)
+					##elif (ctx.x & 1) == 0 && (ctx.y & 1) == 1:
+						##return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR)
+					##elif (ctx.x & 1) == 1 && (ctx.y & 1) == 1:
+						##return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR | Pixel.FLAG_FLOOR_ROT_90)
+				##return pp.no_change()
+		#
+		#0: # grid
+			#if grid_local_x == 0:
+				#return pp.with_tile(Pixel.TILE_WALL)
+			#if grid_local_y == 0:
+				#return pp.with_tile(Pixel.TILE_WALL)
+			#return pp.with_tile(Pixel.TILE_EMPTY)
+#
+		#1: # openings
+			#if pp.tile_c == Pixel.TILE_WALL:
+				#var noise_upscale: float = 0.4
+				#var noise := UtilsMath.fractal_noise_2d(ctx.x_flt * noise_upscale, ctx.y_flt * noise_upscale)
+				#if noise > 0.6:
+					#return pp.with_tile(Pixel.TILE_EMPTY)
+			#return pp.no_change()
+				#
+		#2:
+			## return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE)
+			#
+			#return pp.no_change()
+			#if !is_empty_floor(pp.pixel_c):
+				#return pp.no_change()
+				#
+			#var num_hole_biome_pixels_in_cell: int = 0
+			#var start_x: int = (-grid_local_x) + 1
+			#var start_y: int = (-grid_local_y) + 1
+			#for y in range(start_y, start_y + (BIOME_HOLES_CELL_SIZE-2)):
+				#for x in range(start_x, start_x + (BIOME_HOLES_CELL_SIZE-2)):
+					#var pixel_biome: Pixel = ctx.get_at_offset(pp.data, x, y)  & BIOME_MASK
+					#if pixel_biome == Pixel.BIOME_HOLES:
+						#num_hole_biome_pixels_in_cell = num_hole_biome_pixels_in_cell + 1
+			#
+			#if num_hole_biome_pixels_in_cell != (BIOME_HOLES_CELL_SIZE-2) * (BIOME_HOLES_CELL_SIZE-2):
+				## cell it cut off from another biome. ignore holes as it wont be a square grid anymore.
+				#return pp.no_change()
+				#
+			#if grid_local_x != 0 && grid_local_y != 0 && grid_local_x != BIOME_HOLES_CELL_SIZE && grid_local_y != BIOME_HOLES_CELL_SIZE:
+				#if (ctx.x & 1) == 0 && (ctx.y & 1) == 0:
+					#return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE)
+				#elif (ctx.x & 1) == 1 && (ctx.y & 1) == 0:
+					#return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_ROT_90)
+				#elif (ctx.x & 1) == 0 && (ctx.y & 1) == 1:
+					#return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR)
+				#elif (ctx.x & 1) == 1 && (ctx.y & 1) == 1:
+					#return with_flag(pp.pixel_c, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR | Pixel.FLAG_FLOOR_ROT_90)
+			#
+			#return pp.no_change()
+			#
+#
+	#return Pixel.INVALID
 
 func _ceiling_light(ctx: Context, misplacement_chance: float, interval_range: int, offset: int) -> bool:
 	#if(posmod(ctx.x, 5) == 1 && posmod(ctx.y, 5) == 1):
