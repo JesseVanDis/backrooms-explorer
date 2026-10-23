@@ -1,5 +1,4 @@
 ./scenes/lvl_0/voice/voice_anybody_there.flac:1791038396
-./scenes/lvl_0/voice/voice_bad_taste.flac:1791037628
 ./scenes/lvl_0/voice/voice_fell_from_above.flac:1791038267
 ./scenes/lvl_0/voice/voice_find_the_exit_then.flac:1791038468
 ./scenes/lvl_0/voice/voice_scream_hello.flac:1791038448
@@ -18,3 +17,7 @@
 ./scenes/lvl_0/voice/voice_moving_boxes_found.flac:1791056076
 ./scenes/lvl_0/voice/voice_why_stuck.flac:1791056088
 ./scenes/lvl_0/voice/voice_still_intact.flac:1791063726
+./scenes/lvl_0/voice/voice_bad_taste.flac:1791063925
+./scenes/lvl_0/voice/voice_holes_intro_1.flac:1792784578
+./scenes/lvl_0/voice/voice_holes_inspect_1.flac:1792784596
+./scenes/lvl_0/voice/holes_leave_1.flac:1792784606

@@ -5,6 +5,8 @@
 [ext_resource type="Shader" uid="uid://drfee6oak3ss4" path="res://scenes/lvl_0/carpet_walls.gdshader" id="3_dg8h7"]
 [ext_resource type="Material" uid="uid://cou46wwobdsl4" path="res://scenes/lvl_0/carpet_fur.tres" id="3_vswqv"]
 [ext_resource type="Texture2D" uid="uid://csj66kw2o3p1l" path="res://assets/textures/generic_noise.png" id="4_kqmo8"]
+[ext_resource type="Script" uid="uid://tlc6a6hl8tfg" path="res://assets/scripts/trigger.gd" id="6_78gnv"]
+[ext_resource type="AudioStream" uid="uid://bemsqko0ff474" path="res://scenes/lvl_0/voice/gen/voice_holes_intro_1.ogg" id="7_rru5d"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_i1rrd"]
 size = Vector3(1, 0.001, 1)
@@ -16,6 +18,13 @@ shader_parameter/base_color = Color(0.417269, 0.36765257, 0.21354204, 1)
 shader_parameter/noise_texture = ExtResource("4_kqmo8")
 shader_parameter/noise_strength = 0.152
 shader_parameter/noise_scale = 14.0
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_8agbv"]
+radius = 4.227
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_f4hk2"]
+radius = 1.5
+height = 5.0
 
 [node name="part_1x1_floor_hole" unique_id=2104077698 instance=ExtResource("1_rwreu")]
 
@@ -29,3 +38,21 @@ surface_material_override/1 = SubResource("ShaderMaterial_q8swi")
 
 [node name="_fur" parent="base" index="0" unique_id=1759399457]
 surface_material_override/0 = ExtResource("3_vswqv")
+
+[node name="trigger_first_holes" type="Area3D" parent="." index="2" unique_id=1250381872 node_paths=PackedStringArray("condition_arg_node")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.078, 1, -0.143)
+script = ExtResource("6_78gnv")
+mode = 2
+sounds = Array[AudioStream]([ExtResource("7_rru5d")])
+condition = 2
+condition_arg_node = NodePath("../Area3D/CollisionShape3D")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_first_holes" index="0" unique_id=1531522705]
+shape = SubResource("CylinderShape3D_8agbv")
+debug_color = Color(0, 0.6193612, 0.5734779, 0.41960785)
+
+[node name="Area3D" type="Area3D" parent="." index="3" unique_id=1043860952]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" index="0" unique_id=1233713793]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3839701, 0)
+shape = SubResource("CapsuleShape3D_f4hk2")

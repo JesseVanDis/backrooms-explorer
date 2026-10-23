@@ -1,6 +1,6 @@
 
 # Script lvl_0
-
+## First entry
 | Happenings                                | Say                                                                                |
 |-------------------------------------------|------------------------------------------------------------------------------------|
 | Player enters lvl_0 while still falling   |                                                                                    |
@@ -23,6 +23,58 @@
 | Yelling of MC echo's trough the level     |                                                                                    |
 | **Speak: MC**                             | `[After few seconds]` What is this place !                                         |
 
+## When seeing holes for the first time
+| Happenings                     | Say                                                              |
+|--------------------------------|------------------------------------------------------------------|
+| Player is aproaching holes     |                                                                  |
+| **Speak: MC**                  | [surprised] Holes?                                               |
+| **Speak: MC**                  | .....wh....heh?                                                  |
+| Player is approaching up close |                                                                  |
+| **Speak: MC**                  | Pitch black down there...                                        |
+| **Speak: MC**                  | It looks weird. Like the ceiling light is not penetrating at all |
+| **Speak: MC**                  | Easy enough to go around it though.                              |
+
+## Player falls into hole
+| Happenings | Say               |
+|------------|-------------------|
+| Falls      | [scream] AAAAAAH! |
+
+
+
+
+## When seeing holes for the second time
+| Happenings                                | Say                         |
+|-------------------------------------------|-----------------------------|
+| Player is aproaching holes                |                             |
+| **Speak: MC**                             | More of those holes         |
+| Player is approaching up close            |                             |
+| **Speak: MC**                             | What.                       |
+| **Speak: MC**                             | Its... pulling me slightly. |
+| **Speak: Teen from hole**                 | Hello!                      |
+| **Speak: MC**                             | What? hello!!?              |
+| **Speak: Teen from hole**                 | Join!                       |
+| **Speak: MC**                             | join?                       |
+| **Speak: Teen from hole**                 | Come on, join               |
+| **Speak: MC**                             | ....what?                   |
+| **Speak: Teen from hole**                 | Join, jump                  |
+| **Speak: MC**                             | Who are you, Whats down there! |
+| **Speak: Teen from hole**                 | Joooin                      |
+| **Speak: MC**                             | ....                        |
+| **Speak: Teen from hole**                 | Jooooooooooooooin           |
+| **Speak: Teen from hole (heavyer voice)** | Joooooooin                  |
+| **Speak: MC**                             | Not sure if I should trust this... |
+| **Speak: MC**                             | What the hell...            |
+
+
+
+
+| **Speak: MC**                  | Pitch black down there...                                        |
+| **Speak: MC**                  | Pitch black down there...                                        |
+| **Speak: MC**                  | It looks weird. Like the ceiling light is not penetrating at all |
+| **Speak: MC**                  | Easy enough to go around it though.                              |
+
+
+
 ## Manila room - MEG Supplier briefing `[interpretation, draft - no recordings yet]`
 
 Not yet recorded. New content, written to support the Manila room / MEG Supplier design in
@@ -31,18 +83,6 @@ project's nickname for the NPC, a person sent by M.E.G. - not a literal robot, s
 are written as natural speech, not synthetic/machine dialogue. Revise freely before recording -
 nothing below is final.
 
-| Happenings                                  | Say                                                                              |
-|----------------------------------------------|-----------------------------------------------------------------------------------|
-| The MEG Supplier steps forward as the player enters |                                                                             |
-| **Speak: MEG Supplier**                       | `[Calm, professional]` Hey there. You've found a M.E.G. briefing point.          |
-| **Speak: MEG Supplier**                       | You're currently inside Level 0, also known as the Lobby.                       |
-| **Speak: MEG Supplier**                       | This level is considered safe, but don't get complacent.                        |
-| **Speak: MEG Supplier**                       | Avoid any room with red wallpaper. We call those the Red Rooms.                 |
-| **Speak: MEG Supplier**                       | They don't lead anywhere. There's no way out of one but to give up and start over. |
-| **Speak: MEG Supplier**                       | If you find a wall that flickers, throw yourself through it - it may lead you further in, to Level 1. |
-| **Speak: MEG Supplier**                       | M.E.G. maintains a base there. Find it, and you'll find other survivors.        |
-| **Speak: MEG Supplier**                       | That's the briefing. Good luck out there.                                       |
-| The MEG Supplier clips away and vanishes      |                                                                                    |
 
 ## Red Room - first entry `[interpretation, draft - no recording yet]`
 

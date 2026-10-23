@@ -16,6 +16,7 @@ enum Condition {
 	OnEnter,
 	OnLeave,
 	WhileInside_PlayerLookAtNode,
+	WhileInside_PlayerLookAtNode_DirectLineOfSight,
 }
 
 
@@ -46,7 +47,9 @@ func _ready() -> void:
 	_audio_player = AudioStreamPlayer3D.new()
 	add_child(_audio_player)
 	if condition == Condition.WhileInside_PlayerLookAtNode && condition_arg_node == null:
-		push_error("condition Condition.PlayerLookAtNode requires a valid condition_arg_node")
+		push_error("condition Condition.PlayerLookAtNode requires a valid condition_arg_node in trigger '" + str(get_path()) + "'")
+	if condition == Condition.WhileInside_PlayerLookAtNode_DirectLineOfSight && condition_arg_node == null:
+		push_error("condition Condition.WhileInside_PlayerLookAtNode_DirectLineOfSight requires a valid condition_arg_node in trigger '" + str(get_path()) + "'")
 	
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
@@ -89,7 +92,30 @@ func _process(_delta: float) -> void:
 				var dot: float = forward.dot(to_node)
 				if dot > 0.85: # Approximately 30 degrees
 					trigger = true
-	
+		
+		Condition.WhileInside_PlayerLookAtNode_DirectLineOfSight:
+			if _is_target_inside:
+				var camera: Camera3D = UtilsNode.find_camera_recursive(get_player())
+				var to_node: Vector3 = (condition_arg_node.global_position - camera.global_position).normalized()
+				var forward: Vector3 = -camera.global_basis.z
+				var dot: float = forward.dot(to_node)
+				if dot > 0.85: # Approximately 30 degrees
+					# check if there is somethign blocking the view
+					var target_area: Area3D = condition_arg_node as Area3D
+					if target_area == null:
+						target_area = condition_arg_node.get_parent() as Area3D
+					if target_area == null:
+						push_error("WhileInside_PlayerLookAtNode_DirectLineOfSight does not work on a target who is not part of an Area3D")
+					else:
+						var query := PhysicsRayQueryParameters3D.create(camera.global_position, condition_arg_node.global_position)
+						query.exclude = [get_player()]
+						var result := camera.get_world_3d().direct_space_state.intersect_ray(query)
+						var has_line_of_sight: bool = (
+							not result.is_empty()
+							and result["collider"] == target_area
+						)
+						if has_line_of_sight:
+							trigger = true	
 	if trigger:
 		_has_triggered = true
 		print("Triggered '" + str(get_path()) + "'")

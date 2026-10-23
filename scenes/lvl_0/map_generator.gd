@@ -182,10 +182,12 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 			if ctx.x == 11 && ctx.y == 8: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E | Pixel.FLAG_ARCH_MIRROR)
 			if ctx.x == 12 && ctx.y == 8: return with_flag(Pixel.TILE_ARCH, Pixel.FLAG_ARCH_ROT_TO_E)
 			
-			if ctx.x == 16 && ctx.y == 8: return with_flag(Pixel.TILE_EMPTY, Pixel.FLAG_FLOOR_HOLE)
-			if ctx.x == 17 && ctx.y == 8: return with_flag(Pixel.TILE_EMPTY, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_ROT_90)
-			if ctx.x == 16 && ctx.y == 9: return with_flag(Pixel.TILE_EMPTY, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR)
-			if ctx.x == 17 && ctx.y == 9: return with_flag(Pixel.TILE_CEILING_LIGHT, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR | Pixel.FLAG_FLOOR_ROT_90)
+			if ctx.x == 36 && ctx.y == 8: return with_flag(Pixel.TILE_EMPTY, Pixel.FLAG_FLOOR_HOLE)
+			if ctx.x == 37 && ctx.y == 8: return with_flag(Pixel.TILE_EMPTY, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_ROT_90)
+			if ctx.x == 36 && ctx.y == 9: return with_flag(Pixel.TILE_EMPTY, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR)
+			if ctx.x == 37 && ctx.y == 9: return with_flag(Pixel.TILE_CEILING_LIGHT, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR | Pixel.FLAG_FLOOR_ROT_90)
+
+			if ctx.x == -30 && ctx.y == 8: return with_flag(Pixel.TILE_CEILING_LIGHT, Pixel.FLAG_FLOOR_HOLE)
 			
 			# FLAG_FLOOR_HOLE
 			return Pixel.TILE_EMPTY
@@ -202,7 +204,7 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
-	# return _test(pass_index, ctx)
+	return _test(pass_index, ctx)
 	
 	var pp: PreviousPass = ctx.previous_pass
 	var retval: Pixel = Pixel.INVALID
