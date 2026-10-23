@@ -1031,22 +1031,6 @@ func _instantiate_and_remove_collision(graphic: PackedScene) -> Node3D:
 	inst.queue_free()
 	return new_node
 	
-	
-	#
-	#var inst: Node3D = graphic.instantiate()
-	#var new_node: Node3D = Node3D.new()
-#
-	#var script: Script = inst.get_script()
-	#if script != null:
-		#new_node.set_script(script)
-	#
-	#for child: Node in inst.get_children():
-		#if not (child is CollisionShape3D or child is CollisionPolygon3D or child is PhysicsBody3D):
-			#var dup: Node = child.duplicate()
-			#new_node.add_child(dup)
-	#
-	#inst.queue_free()
-	#return new_node
 
 var last_model_id: int = 0
 func _load_model(tile: PackedScene) -> Model:

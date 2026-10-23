@@ -44,6 +44,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.078, 1, -0.143)
 script = ExtResource("6_78gnv")
 mode = 2
 sounds = Array[AudioStream]([ExtResource("7_rru5d")])
+player_flag = "sfx_first_hole"
 condition = 2
 condition_arg_node = NodePath("../Area3D/CollisionShape3D")
 

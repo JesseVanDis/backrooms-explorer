@@ -83,6 +83,8 @@ var active_wieldable: String:
 	get:        return _wield.active_wieldable
 	set(value): _wield.active_wieldable = value
 
+var _flags: Dictionary = {}
+
 # Animations
 var _camera_default_position: Vector3 = Vector3.ZERO
 var _bob_phase: float = 0.0
@@ -108,6 +110,18 @@ var moving_direction_2d: Vector2:
 func add_wieldable(unique_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void:
 	_wield.add_wieldable(unique_name, p_rewind_for_dequip, p_clear_wield_when_finish, p_additional_args)
 	
+# returns false if it already was triggered
+# use for anything really. will be saved in player savegame as well.
+func set_flag(id: String) -> bool:
+	if _flags.has(id):
+		return false
+	_flags[id] = true
+	print("Player flag '" + id + "' set")
+	return true
+
+func is_flag_set(id: String) -> bool:
+	return _flags.has(id)
+
 func _ready() -> void:
 	_ingame_ui = _find_ingame_ui()
 	

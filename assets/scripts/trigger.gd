@@ -26,6 +26,9 @@ enum Condition {
 @export var sounds: Array[AudioStream] = []
 @export var trigger_delay_ms: int = 0
 
+## If set, it will invoke player.set_flag("_[lvl_id]_trigger_[NAME]"), where [NAME] is whatever you put here. It also means if this flag is already set, the trigger will not happen.
+@export var player_flag: String
+
 @export_group("Condition")
 @export var condition: Condition = Condition.OnEnter
 @export var condition_arg_node: Node3D = null
@@ -69,9 +72,22 @@ func _on_body_entered(body: Node3D) -> void:
 		_is_target_inside = true
 		_was_target_ever_inside = true
 
+var player_flag_formatted: String:
+	get():
+		if player_flag:
+			var level_name: String = String(get_path()).split("/")[1]
+			return "_" + level_name + "_trigger_" + player_flag
+		return ""
+
 func _process(_delta: float) -> void:
 	if _has_triggered:
 		return
+	
+	if !player_flag.is_empty():
+		if get_player().is_flag_set(player_flag_formatted):
+			# was triggered elsewhere
+			_has_triggered = true
+			return
 	
 	var trigger: bool = false
 	
@@ -116,9 +132,13 @@ func _process(_delta: float) -> void:
 						)
 						if has_line_of_sight:
 							trigger = true	
+	
+	
 	if trigger:
 		_has_triggered = true
 		print("Triggered '" + str(get_path()) + "'")
+		if !player_flag.is_empty():
+			get_player().set_flag(player_flag_formatted)
 		await _trigger()
 
 
