@@ -34,3 +34,7 @@
    | Voice  | Actor                     | Model     | Stability | Similarity | Starting lines                                                                                                                                                             |
    |--------|---------------------------|-----------|---------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
    | Player | Rob - Tough & Calloused   | Eleven V4 | 0       | 0        | - `[Steps off parked bysicle] [outside in the wind] aaaah.. finally home again after a long day of work`<br> - `[pause][excited] Time to unpack some more moving boxes!`.  |
+
+#### Subtitles
+ - Subtitles can be generated from the following:
+   - https://turboscribe.ai/uw/tools/ai-subtitles-generator?ref=gad

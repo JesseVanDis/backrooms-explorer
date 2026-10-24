@@ -21,3 +21,4 @@
 ./scenes/lvl_0/voice/voice_holes_intro_1.flac:1792784578
 ./scenes/lvl_0/voice/voice_holes_inspect_1.flac:1792784596
 ./scenes/lvl_0/voice/holes_leave_1.flac:1792784606
+./scenes/lvl_0/voice/voice_holes_leave_1.flac:1792784606

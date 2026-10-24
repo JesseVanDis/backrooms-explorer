@@ -12,6 +12,7 @@ const GENERATION_THRESHOLD: float = CHUNK_SIZE
 const REMOVAL_THRESHOLD: float = 200.0
 const VIEW_DISTANCE: int = 60
 const VIEW_DISTANCE_AA: int = 200
+const VIEW_DISTANCE_FOR_COLLISIONS: int = 12
 const MAX_TILES_TO_ADD_PER_FRAME: int = 20
 const VISIBILITY_PATTERN_PATH: String = "res://scenes/lvl_0/tiles_visible_pattern.png"
 const VISIBILITY_THRESHOLD: float = 100.0 / 255.0
@@ -809,7 +810,7 @@ func _handle_static_collision_shapes() -> void:
 					collision_shape.queue_free() # automatically removes it from the scene as well.
 		placed_tile.collision_shapes = {}
 		
-	_handle_tiles_in_radius(2, _collision_tiles_cache, create, remove)
+	_handle_tiles_in_radius(VIEW_DISTANCE_FOR_COLLISIONS, _collision_tiles_cache, create, remove)
 
 var _graphic_tiles_cache: HandleTilesCache = HandleTilesCache.new() # Vector2i, bool   ( bool not used. treat as std::set )
 

@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://csj66kw2o3p1l" path="res://assets/textures/generic_noise.png" id="4_kqmo8"]
 [ext_resource type="Script" uid="uid://tlc6a6hl8tfg" path="res://assets/scripts/trigger.gd" id="6_78gnv"]
 [ext_resource type="AudioStream" uid="uid://bemsqko0ff474" path="res://scenes/lvl_0/voice/gen/voice_holes_intro_1.ogg" id="7_rru5d"]
+[ext_resource type="AudioStream" uid="uid://nektiwqsi5h1" path="res://scenes/lvl_0/voice/gen/voice_holes_inspect_1.ogg" id="8_rru5d"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_i1rrd"]
 size = Vector3(1, 0.001, 1)
@@ -20,11 +21,17 @@ shader_parameter/noise_strength = 0.152
 shader_parameter/noise_scale = 14.0
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_8agbv"]
-radius = 4.227
+radius = 7.045
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_78gnv"]
+radius = 1.342
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_f4hk2"]
 radius = 1.5
 height = 5.0
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_rru5d"]
+radius = 1.0
 
 [node name="part_1x1_floor_hole" unique_id=2104077698 instance=ExtResource("1_rwreu")]
 
@@ -45,15 +52,36 @@ script = ExtResource("6_78gnv")
 mode = 2
 sounds = Array[AudioStream]([ExtResource("7_rru5d")])
 player_flag = "sfx_first_hole"
-condition = 2
-condition_arg_node = NodePath("../Area3D/CollisionShape3D")
+condition = 3
+condition_arg_node = NodePath("../lookat_target_big/lookat_target_big_shape")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_first_holes" index="0" unique_id=1531522705]
 shape = SubResource("CylinderShape3D_8agbv")
 debug_color = Color(0, 0.6193612, 0.5734779, 0.41960785)
 
-[node name="Area3D" type="Area3D" parent="." index="3" unique_id=1043860952]
+[node name="trigger_first_hole_inspect" type="Area3D" parent="." index="3" unique_id=142221120 node_paths=PackedStringArray("condition_arg_node")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.078, 1, -0.143)
+script = ExtResource("6_78gnv")
+mode = 2
+sounds = Array[AudioStream]([ExtResource("8_rru5d")])
+player_flag = "sfx_first_hole_inspect"
+condition = 2
+condition_arg_node = NodePath("../lookat_target_small/lookat_target_small_shape")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" index="0" unique_id=1233713793]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="trigger_first_hole_inspect" index="0" unique_id=1654521372]
+shape = SubResource("CylinderShape3D_78gnv")
+debug_color = Color(0, 0.6193612, 0.5734779, 0.41960785)
+
+[node name="lookat_target_big" type="Area3D" parent="." index="4" unique_id=1043860952]
+
+[node name="lookat_target_big_shape" type="CollisionShape3D" parent="lookat_target_big" index="0" unique_id=1233713793]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3839701, 0)
 shape = SubResource("CapsuleShape3D_f4hk2")
+debug_color = Color(0.9851695, 0, 0.3410145, 0.41960785)
+
+[node name="lookat_target_small" type="Area3D" parent="." index="5" unique_id=1813652081]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.045977116, 0)
+
+[node name="lookat_target_small_shape" type="CollisionShape3D" parent="lookat_target_small" index="0" unique_id=209645829]
+shape = SubResource("CapsuleShape3D_rru5d")
+debug_color = Color(0.9795479, 0, 0.39100894, 0.41960785)

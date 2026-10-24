@@ -39,6 +39,13 @@
 |------------|-------------------|
 | Falls      | [scream] AAAAAAH! |
 
+ideas: while falling, you hear around you your own voice, echoing above: 'Holes?  ....wh... heh?' ect...
+       When you respond, that is the ceue that the 'old player' hears, join!
+        - He slowly forgets who he is 'who.... where am i, who am i..'
+        - his arm suddently drifts around.... , then heart attack, (he sees his heart drift around list second? or maybe not... let player speculate ).
+       Carpet Starts growing from his arms, then heartattack
+        - Dont tell it me was human DNA i tasted..
+
 
 
 

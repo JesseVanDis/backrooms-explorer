@@ -187,6 +187,12 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 			if ctx.x == 36 && ctx.y == 9: return with_flag(Pixel.TILE_EMPTY, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR)
 			if ctx.x == 37 && ctx.y == 9: return with_flag(Pixel.TILE_CEILING_LIGHT, Pixel.FLAG_FLOOR_HOLE | Pixel.FLAG_FLOOR_MIRROR | Pixel.FLAG_FLOOR_ROT_90)
 
+			if ctx.x == -27 && ctx.y == 6: return Pixel.TILE_WALL
+			if ctx.x == -27 && ctx.y == 7: return Pixel.TILE_WALL
+			if ctx.x == -27 && ctx.y == 8: return Pixel.TILE_WALL
+			if ctx.x == -27 && ctx.y == 9: return Pixel.TILE_WALL
+			if ctx.x == -27 && ctx.y == 10: return Pixel.TILE_WALL
+
 			if ctx.x == -30 && ctx.y == 8: return with_flag(Pixel.TILE_CEILING_LIGHT, Pixel.FLAG_FLOOR_HOLE)
 			
 			# FLAG_FLOOR_HOLE

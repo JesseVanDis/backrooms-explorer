@@ -79,7 +79,7 @@ var player_flag_formatted: String:
 			return "_" + level_name + "_trigger_" + player_flag
 		return ""
 
-func _process(_delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if _has_triggered:
 		return
 	
@@ -123,9 +123,19 @@ func _process(_delta: float) -> void:
 					if target_area == null:
 						push_error("WhileInside_PlayerLookAtNode_DirectLineOfSight does not work on a target who is not part of an Area3D")
 					else:
-						var query := PhysicsRayQueryParameters3D.create(camera.global_position, condition_arg_node.global_position)
-						query.exclude = [get_player()]
-						var result := camera.get_world_3d().direct_space_state.intersect_ray(query)
+						var from_pos: Vector3 = camera.global_position
+						var to_pos: Vector3 = condition_arg_node.global_position
+						# var query := PhysicsRayQueryParameters3D.create(camera.global_position, condition_arg_node.global_position)
+						
+						var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+						# use global coordinates, not local to node
+						var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from_pos, to_pos)
+						query.collide_with_areas = true
+						var result: Dictionary = space_state.intersect_ray(query)
+						
+						# query.exclude = [get_player()]
+						#var result := camera.get_world_3d().direct_space_state.intersect_ray(query)
+						#print("cam pos: " + str(from_pos) + ", to pos: " + str(to_pos) + " raytrace empty: " + str(result.is_empty()))
 						var has_line_of_sight: bool = (
 							not result.is_empty()
 							and result["collider"] == target_area
