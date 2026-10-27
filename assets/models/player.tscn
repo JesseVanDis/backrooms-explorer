@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://e0meeo45d2ya" path="res://assets/scripts/player.gd" id="1_l7vax"]
 [ext_resource type="PackedScene" uid="uid://cos6ltyy7wpm1" path="res://assets/models/hands.tscn" id="2_ormyk"]
+[ext_resource type="PackedScene" uid="uid://bfmrem17jm2xg" path="res://assets/models/character_main.tscn" id="3_jffvu"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_khlrb"]
 radius = 0.3
@@ -29,3 +30,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12651366, 0)
 shape = SubResource("CapsuleShape3D_knwgh")
 
 [node name="_Hands" parent="." unique_id=1296432070 instance=ExtResource("2_ormyk")]
+
+[node name="character_main" parent="." unique_id=950156966 instance=ExtResource("3_jffvu")]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0.0007600486, -0.9238607, 0.17824051)
