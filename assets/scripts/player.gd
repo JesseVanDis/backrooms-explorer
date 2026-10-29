@@ -35,11 +35,10 @@ class SpeedScale:
 @export var initial_yaw: float = 0.0
 @export var initial_pitch: float = 0.0
 
-@onready var _audio_player_voice: AudioStreamPlayer3D = $_Hands/_cam/Camera/RaytracedAudioPlayer3D_Voice
-@onready var _audio_player_foot: AudioStreamPlayer3D = $_Hands/_cam/Camera/RaytracedAudioPlayer3D_Foot
-
+@onready var _audio_player_voice: AudioStreamPlayer3D = null
+@onready var _audio_player_foot: AudioStreamPlayer3D = null
 @onready var _node_camera : Camera3D = null
-@onready var _node_hands_yaw : Node3D = null
+#@onready var _node_hands_yaw : Node3D = null
 var _ingame_ui: IngameUI = null
 
 #var active_voice_sequence: Array[AudioStream] = []:
@@ -123,25 +122,39 @@ func is_flag_set(id: String) -> bool:
 	return _flags.has(id)
 
 func _ready() -> void:
+	
+	_audio_player_voice = UtilsNode.find_node_with_name_recursive(self, "RaytracedAudioPlayer3D_Voice")
+	_audio_player_foot = UtilsNode.find_node_with_name_recursive(self, "RaytracedAudioPlayer3D_Foot")
+	_node_camera = UtilsNode.find_camera_recursive(self)
+	#_node_hands_yaw = $_Hands/_hands
+
 	_ingame_ui = _find_ingame_ui()
 	
-	UtilsScreen.fade_out_screen(get_tree())
-	_node_camera = UtilsNode.find_camera_recursive(self)
 	if _node_camera == null:
 		push_error("_node_camera is null")
 		return
-		
-	_node_hands_yaw = $_Hands/_hands
-	if _node_hands_yaw == null:
-		push_error("_node_hands is null")
 
+	if _audio_player_voice == null:
+		push_error("_audio_player_voice is null")
+		return
+
+	if _audio_player_foot == null:
+		push_error("_audio_player_foot is null")
+		return
+		
+	#if _node_hands_yaw == null:
+	#	push_error("_node_hands is null")
+	
+	UtilsScreen.fade_out_screen(get_tree())
+		
+	
 	rotation.y = deg_to_rad(initial_yaw)
 	_node_camera.rotation.x = deg_to_rad(initial_pitch)
 	velocity = initial_velocity
 	_camera_default_position = _node_camera.position
 	
 	add_wieldable("")
-	add_wieldable("wield_push",    true,  false, {"max_movement_speed_to_target": 0.15})
+	add_wieldable("push_standing",    true,  false, {"max_movement_speed_to_target": 0.15})
 
 	_ensure_sound_controller()
 	if _ingame_ui != null:
@@ -491,14 +504,15 @@ func _handle_footsteps(delta: float) -> void:
 		_is_moving = false
 		_footstep_timer = 0.0
 
-func _handle_hands_aim(dt: float) -> void:
-	var target_yaw: float = 0.0
-	if active_wieldable == "wield_push" and wield_target != null:
-		var direction_to_target: Vector3 = (wield_target.global_position - global_position).normalized()
-		var local_direction: Vector3 = (transform.basis.inverse() * direction_to_target).normalized()
-		target_yaw = atan2(-local_direction.x, -local_direction.z)
+func _handle_hands_aim(_dt: float) -> void:
+	pass
+	#var target_yaw: float = 0.0
+	#if active_wieldable == "wield_push" and wield_target != null:
+	#	var direction_to_target: Vector3 = (wield_target.global_position - global_position).normalized()
+	#	var local_direction: Vector3 = (transform.basis.inverse() * direction_to_target).normalized()
+	#	target_yaw = atan2(-local_direction.x, -local_direction.z)
 	
-	_node_hands_yaw.rotation.y = lerp_angle(_node_hands_yaw.rotation.y, target_yaw, minf(1.0, dt * 30.0))
+	#_node_hands_yaw.rotation.y = lerp_angle(_node_hands_yaw.rotation.y, target_yaw, minf(1.0, dt * 30.0))
 
 # Allows development tools, cheats, and testing routines to toggle gravity simulation off or on for free movement and debugging.
 func set_cheat_disable_gravity(enabled: bool) -> void:

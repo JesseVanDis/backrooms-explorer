@@ -17,6 +17,17 @@ static func find_mesh_recursive(root_node: Node) -> MeshInstance3D:
 			
 	return null
 
+static func find_node_with_name_recursive(root_node: Node, node_name: String) -> Node:
+	if root_node.name == node_name:
+		return root_node
+	
+	for child in root_node.get_children():
+		var result = find_node_with_name_recursive(child, node_name)
+		if result:
+			return result
+			
+	return null
+
 static func find_animation_player_recursive(root_node: Node) -> AnimationPlayer:
 	if root_node is AnimationPlayer:
 		return root_node
