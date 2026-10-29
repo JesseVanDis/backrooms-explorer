@@ -523,7 +523,7 @@ func _apply_spine_pitch() -> void:
 			skeleton = skeletons[0] as Skeleton3D
 	
 	if skeleton == null:
-	    push_error("Failed to apply spine pitch. skeleton is null");
+		push_error("Failed to apply spine pitch. skeleton is null");
 		return
 	
 	var pitch_quaternion: Quaternion = Quaternion.from_euler(Vector3(_spine_pitch, 0.0, 0.0))
