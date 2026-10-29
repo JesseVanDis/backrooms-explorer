@@ -22,7 +22,7 @@ static func find_node_with_name_recursive(root_node: Node, node_name: String) ->
 		return root_node
 	
 	for child in root_node.get_children():
-		var result = find_node_with_name_recursive(child, node_name)
+		var result: Node = find_node_with_name_recursive(child, node_name)
 		if result:
 			return result
 			
@@ -78,6 +78,28 @@ static func find_hands_recursive(root_node: Node) -> PlayerHands:
 			return result
 			
 	return null
+
+
+# Finds the first Skeleton3D node under the given root and returns the bone index for the specified name.
+# Returns -1 if the skeleton or bone is not found.
+static func find_skeleton_bone(root_node: Node, bone_name: String) -> int:
+	var skeleton: Skeleton3D = find_node_with_name_recursive(root_node, "Skeleton3D") as Skeleton3D
+	
+	# If find_node_with_name_recursive didn't find it, try finding children for multiple Skeleton3D nodes
+	if skeleton == null:
+		var skeletons: Array[Node] = root_node.find_children("", "Skeleton3D", true, false)
+		if not skeletons.is_empty():
+			skeleton = skeletons[0] as Skeleton3D
+	
+	if skeleton == null:
+		push_error("Skeleton3D not found under node '" + root_node.name + "'")
+		return -1
+	
+	var bone_index: int = skeleton.find_bone(bone_name)
+	if bone_index == -1:
+		push_error("Bone '" + bone_name + "' not found in skeleton under node '" + root_node.name + "'")
+	
+	return bone_index
 
 
 static func set_shader_param(node: Node, path_to_mesh_instance_3d: NodePath, uniform_name: StringName, value: Variant, make_material_unique: bool = true, unique_material_cache: Dictionary = {}) -> void:

@@ -60,3 +60,6 @@ godot --path . --export-release "Windows Desktop" ./build/debug/windows/backgroo
   - changed a level -> update `scenes/<level>/docs/`
   - started or finished a feature -> update `docs/ai/STATUS.md`
 - Never state a gameplay fact that is not on the Backrooms Wiki without tagging it `[interpretation]`.
+- mind error logging. if something is null where you dont expect it to be, do a push_error(...). 
+  - Only do this for new code you generate. do not apply it on code that is not relevant to your task. 
+  - a comment `# no push_error(...) intended` will also indicate that in that place a push_error is not intended.
