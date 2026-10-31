@@ -28,15 +28,13 @@ static func find_node_with_name_recursive(root_node: Node, node_name: String) ->
 			
 	return null
 
-static func find_animation_player_recursive(root_node: Node) -> AnimationPlayer:
-	if root_node is AnimationPlayer:
+static func find_animation_tree_recursive(root_node: Node) -> AnimationTree:
+	if root_node is AnimationTree:
 		return root_node
-	
 	for child in root_node.get_children():
-		var result: AnimationPlayer = find_animation_player_recursive(child)
+		var result: AnimationTree = find_animation_tree_recursive(child)
 		if result:
 			return result
-			
 	return null
 
 static func find_camera_recursive(root_node: Node) -> Camera3D:

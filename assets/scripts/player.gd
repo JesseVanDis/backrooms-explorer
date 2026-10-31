@@ -110,8 +110,8 @@ var forward_2d: Vector2:
 var moving_direction_2d: Vector2:
 	get(): return UtilsMath.xz_normal(global_position - _old_global_pos)
 
-func add_wieldable(unique_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void:
-	_wield.add_wieldable(unique_name, p_rewind_for_dequip, p_clear_wield_when_finish, p_additional_args)
+func add_wieldable(unique_name: String, p_animation_tree_parameter: StringName = "", p_additional_args: Dictionary = {}) -> void:
+	_wield.add_wieldable(unique_name, p_animation_tree_parameter, p_additional_args)
 	
 # returns false if it already was triggered
 # use for anything really. will be saved in player savegame as well.
@@ -157,8 +157,9 @@ func _ready() -> void:
 	velocity = initial_velocity
 	_camera_default_position = _node_camera.position
 	
+	# parameters/push/blend_amount
 	add_wieldable("")
-	add_wieldable("push_standing",    true,  false, {"max_movement_speed_to_target": 0.15})
+	add_wieldable("push", "parameters/push/blend_amount", {"max_movement_speed_to_target": 0.15})
 
 	_ensure_sound_controller()
 	if _ingame_ui != null:
