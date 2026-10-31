@@ -40,7 +40,10 @@ func update(dt: float) -> void:
 				if old_wieldable.animations.animation_tree_parameter != "":
 					old_wieldable.deactivate_animation()
 					_wield_state = WieldState.DEQUIPING
-					
+				else:
+					_wield_state = WieldState.EQUIPING
+					_seconds_since_equiping_start = 0.0
+				
 		WieldState.DEQUIPING:
 			var old_wieldable: WieldableData = _wieldables[_wieldable_old]
 			if !old_wieldable.is_animation_active():
@@ -116,8 +119,9 @@ class WieldableData:
 			return
 		_animation_name = p_animation_name
 		if p_animation_tree_parameter != "":
-			if not animation_tree[p_animation_tree_parameter]:
-				push_error("animation tree '" + str(animation_tree.get_path()) + "' does not contain the parameter '" + p_animation_tree_parameter + "'")
+			animation_tree[p_animation_tree_parameter] = 0 # just checking if the animation exists... if it fails here the animation does not exist and throws an error ( which is good ) 
+			#if not animation_tree[p_animation_tree_parameter]: # this solution doesnt work
+				#push_error("animation tree '" + str(animation_tree.get_path()) + "' does not contain the parameter '" + p_animation_tree_parameter + "'")
 			animations.animation_tree_parameter = p_animation_tree_parameter
 			
 		var actions_list: Array = p_additional_args.get("actions_at_millisecond", [])
@@ -132,11 +136,13 @@ class WieldableData:
 					_actions.append(action)
 	
 	func activate_animation() -> bool:
+		print("Activating animation '" + animations.animation_tree_parameter + "'")
 		animation_tree[animations.animation_tree_parameter] = 1
 		# animation_tree[p_animation_tree_parameter] = AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
 		return false
 
 	func deactivate_animation() -> bool:
+		print("De-activating animation '" + animations.animation_tree_parameter + "'")
 		animation_tree[animations.animation_tree_parameter] = 0
 		return false
 	

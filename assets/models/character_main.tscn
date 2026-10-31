@@ -3,10 +3,11 @@
 [ext_resource type="PackedScene" uid="uid://72p6uajap3b3" path="res://assets/models/character_main.blend" id="1_ewylr"]
 [ext_resource type="Script" uid="uid://dkb8ltjc6067n" path="res://addons/raytraced_audio/raytraced_audio_player_3d.gd" id="2_vxg2p"]
 
-[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_vxg2p"]
-
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_i0bq4"]
 animation = &"idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ufqiw"]
+animation = &"lvl_0_landing"
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_vxg2p"]
 animation = &"pushing"
@@ -14,8 +15,7 @@ animation = &"pushing"
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rbnlq"]
 animation = &"running"
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ufqiw"]
-animation = &"lvl_0_landing"
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_vxg2p"]
 
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_vxg2p"]
 filter_enabled = true
@@ -24,7 +24,7 @@ filters = ["Armature/Skeleton3D:CC_Base_Breast.L", "Armature/Skeleton3D:CC_Base_
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_rbnlq"]
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_vxg2p"]
-graph_offset = Vector2(-286.66193, 253.89569)
+graph_offset = Vector2(-345.3469, 507.4962)
 nodes/output/position = Vector2(1480, 120)
 nodes/anim_run/node = SubResource("AnimationNodeAnimation_rbnlq")
 nodes/anim_run/position = Vector2(320, 440)
@@ -36,11 +36,11 @@ nodes/anim_idle/node = SubResource("AnimationNodeAnimation_i0bq4")
 nodes/anim_idle/position = Vector2(240, 120)
 nodes/run/node = SubResource("AnimationNodeBlend2_rbnlq")
 nodes/run/position = Vector2(480, 120)
-nodes/OneShot/node = SubResource("AnimationNodeOneShot_vxg2p")
-nodes/OneShot/position = Vector2(980, 880)
-nodes/lvl_0_landing/node = SubResource("AnimationNodeAnimation_ufqiw")
-nodes/lvl_0_landing/position = Vector2(200, 960)
-node_connections = [&"output", 0, &"OneShot", &"push", 0, &"run", &"push", 1, &"anim_push", &"run", 0, &"anim_idle", &"run", 1, &"anim_run", &"OneShot", 0, &"push", &"OneShot", 1, &"lvl_0_landing"]
+nodes/lvl_0_landing/node = SubResource("AnimationNodeOneShot_vxg2p")
+nodes/lvl_0_landing/position = Vector2(980, 880)
+nodes/anim_lvl_0_landing/node = SubResource("AnimationNodeAnimation_ufqiw")
+nodes/anim_lvl_0_landing/position = Vector2(200, 960)
+node_connections = [&"output", 0, &"lvl_0_landing", &"push", 0, &"run", &"push", 1, &"anim_push", &"run", 0, &"anim_idle", &"run", 1, &"anim_run", &"lvl_0_landing", 0, &"push", &"lvl_0_landing", 1, &"anim_lvl_0_landing"]
 
 [node name="character_main" unique_id=950156966 instance=ExtResource("1_ewylr")]
 
@@ -223,6 +223,6 @@ tree_root = SubResource("AnimationNodeBlendTree_vxg2p")
 anim_player = NodePath("../AnimationPlayer")
 parameters/push/blend_amount = 0.0
 parameters/run/blend_amount = 0.0
-parameters/OneShot/active = false
-parameters/OneShot/internal_active = false
-parameters/OneShot/request = 0
+parameters/lvl_0_landing/active = false
+parameters/lvl_0_landing/internal_active = false
+parameters/lvl_0_landing/request = 0
