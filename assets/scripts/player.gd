@@ -1,7 +1,7 @@
-## [AI-DOC] First-person CharacterBody3D controller handling walking, jumping, head bob, footstep and voice audio, wieldable/camera limits, and debug freecam
+## [AI-DOC] First-person CharacterBody3D controller handling walking, jumping, head bob, footstep and voice audio, behaviourable/camera limits, and debug freecam
 ## spec: docs/ai/systems/player.md
 ## status: partial
-## notes: delegates wieldable animation state to PlayerWield and subtitles to IngameUI
+## notes: delegates behaviourable animation state to PlayerBehaviour and subtitles to IngameUI
 
 extends CharacterBody3D
 class_name Player
@@ -51,7 +51,7 @@ var _spine_pitch: float = 0.0
 #		_on_active_voice_sequence_changed()
 
 var _remaining_voice_sequence: Array[AudioStream] = []
-var wield_target: Node3D = null
+var behaviour_target: Node3D = null
 
 
 const FOOTSTEP_SOUNDS: Array[AudioStream] = [
@@ -80,11 +80,12 @@ var _old_global_pos: Vector3 = Vector3(0,0,0)
 
 #RaytracedAudioPlayer3D_Footsteps
 
-var _wield: PlayerWield = PlayerWield.new(self)
+var _behaviour: PlayerBehaviour = PlayerBehaviour.new(self)
 var control_enabled: bool = true
-var active_wieldable: String:
-	get:        return _wield.active_wieldable
-	set(value): _wield.active_wieldable = value
+
+#var active_behaviourable: String:
+	#get:        return _behaviour.active_behaviourable
+	#set(value): _behaviour.active_behaviourable = value
 
 var _flags: Dictionary = {}
 
@@ -110,9 +111,16 @@ var forward_2d: Vector2:
 var moving_direction_2d: Vector2:
 	get(): return UtilsMath.xz_normal(global_position - _old_global_pos)
 
-func add_wieldable(unique_name: String, p_animation_tree_parameter: StringName = "", p_additional_args: Dictionary = {}) -> void:
-	_wield.add_wieldable(unique_name, p_animation_tree_parameter, p_additional_args)
+func add_behaviour(unique_name: String, p_animation_tree_parameter: StringName = "", p_additional_settings: Dictionary = {}) -> void:
+	_behaviour.add(unique_name, p_animation_tree_parameter, p_additional_settings)
+
+
+func activate_behaviour(unique_name: String) -> void:
+	_behaviour.activate(unique_name)
 	
+func deactivate_behaviour(unique_name: String) -> void:
+	_behaviour.deactivate(unique_name)
+
 # returns false if it already was triggered
 # use for anything really. will be saved in player savegame as well.
 func set_flag(id: String) -> bool:
@@ -158,8 +166,8 @@ func _ready() -> void:
 	_camera_default_position = _node_camera.position
 	
 	# parameters/push/blend_amount
-	add_wieldable("")
-	add_wieldable("push", "parameters/push/blend_amount", {"max_movement_speed_to_target": 0.15})
+	add_behaviour("")
+	add_behaviour("push", "parameters/push/blend_amount", {"max_movement_speed_to_target": 0.15})
 
 	_ensure_sound_controller()
 	if _ingame_ui != null:
@@ -342,7 +350,7 @@ func _physics_process(real_delta: float) -> void:
 	if was_in_air and is_on_floor():
 		_play_landing_sound()
 	
-	_wield.update(delta)
+	_behaviour.update(delta)
 	_handle_hands_aim(delta)
 	_handle_camera_limits(delta)
 	_apply_spine_pitch()
@@ -383,16 +391,15 @@ func _play_landing_sound() -> void:
 	# _audio_player.volume_db = 10.0;
 	_audio_player_foot.play()
 
-func _handle_camera_limits(dt: float) -> void:
-	var adjustement_speed := 10.0 + _wield.seconds_since_equiping_start * 40.0
-	var adjustement_step := minf(1.0, adjustement_speed * dt)
-	var active_wieldable_data := _wield.active_wieldable_data
+func _handle_camera_limits(_dt: float) -> void:
 	
-	var max_look_freedom_h: float = 360.0
-	var max_look_freedom_v: float = 360.0
-	if active_wieldable_data:
-		max_look_freedom_h = active_wieldable_data.max_look_freedom_degrees_h
-		max_look_freedom_v = active_wieldable_data.max_look_freedom_degrees_v
+	#var adjustement_speed := 10.0 + _behaviour.seconds_since_equiping_start * 40.0
+	#var adjustement_step := minf(1.0, adjustement_speed * dt)
+	var adjustement_step: float = 1.0
+	#var active_behaviourable_data := _behaviour.active_behaviourable_data
+	
+	var max_look_freedom_h: float = _behaviour.active_settings.max_look_freedom_degrees_h
+	var max_look_freedom_v: float = _behaviour.active_settings.max_look_freedom_degrees_v
 	
 	var pitch_limit_deg := 90.0
 	var yaw_limit_deg := 360.0
@@ -443,12 +450,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		var event_mouse_motion: InputEventMouseMotion = event as InputEventMouseMotion
 		if event_mouse_motion:
 			var motion_speed := 0.01
-			var active_wieldable_data := _wield.active_wieldable_data
-			var is_rotating_limited: bool = active_wieldable_data and (active_wieldable_data.max_look_freedom_degrees_h < 360.0 or active_wieldable_data.max_look_freedom_degrees_v < 360.0)
+			# var active_behaviourable_data := _behaviour.active_behaviourable_data
+			var is_rotating_limited: bool = (_behaviour.active_settings.max_look_freedom_degrees_h < 360.0 or _behaviour.active_settings.max_look_freedom_degrees_v < 360.0)
 			if is_rotating_limited:
 				motion_speed = 0.0005
 			if control_enabled:
 				rotate_y(-event_mouse_motion.relative.x * motion_speed)
+				print("rotating limited: " + str(is_rotating_limited) + ", motionspeed: " + str(motion_speed))
 				_spine_pitch += event_mouse_motion.relative.y * motion_speed
 				if not is_rotating_limited:
 					_handle_camera_limits(9999.0)
@@ -457,20 +465,19 @@ func _current_speed(direction: Vector2) -> float:
 	var dir: Vector2 = direction
 	if !dir.is_normalized():
 		dir = UtilsMath.xz_normal(-transform.basis.z) # fallback
-	var speed_target_multiplier: float = 1.0
 	var speed_limit: float = max_speed
-	var active_wieldable_data := _wield.active_wieldable_data
-	if active_wieldable_data:
-		speed_target_multiplier = active_wieldable_data.movement_multiplier
-		speed_limit = min(speed_limit, active_wieldable_data.max_movement_speed)
-		if wield_target && active_wieldable_data.max_movement_speed_to_target < max_speed:
-			var direction_to_target: Vector2 = UtilsMath.xz_normal(wield_target.global_position - global_position)
-			var factor: float = direction_to_target.distance_to(dir)
-			factor = factor * 0.5
-			factor = factor*factor
-			var new_max_speed: float = lerp(active_wieldable_data.max_movement_speed_to_target, max_speed, min(1.0, factor))
-			#print("max speed: " + str(new_max_speed))
-			speed_limit = min(new_max_speed, speed_limit)
+	# var active_behaviourable_data := _behaviour.active_behaviourable_data
+	#if active_behaviourable_data:
+	var speed_target_multiplier: float = _behaviour.active_settings.movement_multiplier
+	speed_limit = min(speed_limit, _behaviour.active_settings.max_movement_speed)
+	if behaviour_target && _behaviour.active_settings.max_movement_speed_to_target < max_speed:
+		var direction_to_target: Vector2 = UtilsMath.xz_normal(behaviour_target.global_position - global_position)
+		var factor: float = direction_to_target.distance_to(dir)
+		factor = factor * 0.5
+		factor = factor*factor
+		var new_max_speed: float = lerp(_behaviour.active_settings.max_movement_speed_to_target, max_speed, min(1.0, factor))
+		#print("max speed: " + str(new_max_speed))
+		speed_limit = min(new_max_speed, speed_limit)
 	speed_target_multiplier = min(speed_target_multiplier, speed_limit / max_speed)
 	return speed_target_multiplier * max_speed
 
@@ -533,8 +540,8 @@ func _apply_spine_pitch() -> void:
 func _handle_hands_aim(_dt: float) -> void:
 	pass
 	#var target_yaw: float = 0.0
-	#if active_wieldable == "wield_push" and wield_target != null:
-	#	var direction_to_target: Vector3 = (wield_target.global_position - global_position).normalized()
+	#if active_behaviourable == "behaviour_push" and behaviour_target != null:
+	#	var direction_to_target: Vector3 = (behaviour_target.global_position - global_position).normalized()
 	#	var local_direction: Vector3 = (transform.basis.inverse() * direction_to_target).normalized()
 	#	target_yaw = atan2(-local_direction.x, -local_direction.z)
 	
