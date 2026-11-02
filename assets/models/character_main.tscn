@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://72p6uajap3b3" path="res://assets/models/character_main.blend" id="1_ewylr"]
 [ext_resource type="Script" uid="uid://dkb8ltjc6067n" path="res://addons/raytraced_audio/raytraced_audio_player_3d.gd" id="2_vxg2p"]
+[ext_resource type="Script" uid="uid://byepjqg4gjj5y" path="res://assets/scripts/skeleton_modifier.gd" id="3_rbnlq"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_i0bq4"]
 animation = &"idle"
@@ -24,7 +25,6 @@ filters = ["Armature/Skeleton3D:CC_Base_Breast.L", "Armature/Skeleton3D:CC_Base_
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_rbnlq"]
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_vxg2p"]
-graph_offset = Vector2(-345.3469, 507.4962)
 nodes/output/position = Vector2(1480, 120)
 nodes/anim_run/node = SubResource("AnimationNodeAnimation_rbnlq")
 nodes/anim_run/position = Vector2(320, 440)
@@ -214,6 +214,26 @@ metadata/_custom_type_script = "uid://dkb8ltjc6067n"
 [node name="Camera3D" type="Camera3D" parent="Armature/Skeleton3D/BoneAttachment3D/_functional" index="2" unique_id=819218918]
 transform = Transform3D(1.0000001, 0, 0, 0, 0.9999994, 0, 0, 0, 1.0000001, -0.001, 0, 0)
 cull_mask = 524287
+
+[node name="SkeletonModifier" type="SkeletonModifier3D" parent="Armature/Skeleton3D" index="9" unique_id=2116876943]
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 1.0
+script = ExtResource("3_rbnlq")
+metadata/_custom_type_script = "uid://byepjqg4gjj5y"
 
 [node name="AnimationPlayer" parent="." index="1" unique_id=426109627]
 autoplay = &"Running"

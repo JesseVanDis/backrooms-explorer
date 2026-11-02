@@ -77,6 +77,17 @@ static func find_hands_recursive(root_node: Node) -> PlayerHands:
 			
 	return null
 
+static func find_skeleton_modifier_recursive(root_node: Node) -> SkeletonModifier:
+	if root_node is SkeletonModifier:
+		return root_node
+	
+	for child in root_node.get_children():
+		var result: SkeletonModifier = find_skeleton_modifier_recursive(child)
+		if result:
+			return result
+			
+	return null
+
 
 # Finds the first Skeleton3D node under the given root and returns the bone index for the specified name.
 # Returns -1 if the skeleton or bone is not found.

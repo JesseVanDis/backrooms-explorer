@@ -150,7 +150,7 @@ func _ready() -> void:
 	_load_visibility_pattern()
 	_update_visibility_transform()
 	
-	_player.add_wieldable("lvl_0_landing", "parameters/lvl_0_landing/request", {
+	_player.add_behaviour("lvl_0_landing", "parameters/lvl_0_landing/request", {
 							"max_look_freedom_degrees_v": 10.0, 
 							"max_look_freedom_degrees_h": 0.0, 
 							"movement_multiplier": 0.0,
@@ -193,7 +193,7 @@ func _process(_delta: float) -> void:
 func _handle_player_landing() -> void:
 	if _player:
 		if !_did_hit_floor && _player.is_on_floor():
-			_player.active_wieldable = "lvl_0_landing"
+			_player.activate_behaviour("lvl_0_landing")
 			_did_hit_floor = true
 
 func _place_wall_specific(model: Model, tile_index: Vector2i, model_modefier: ModelModefier = null) -> void:

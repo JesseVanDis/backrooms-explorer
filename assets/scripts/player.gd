@@ -41,9 +41,8 @@ class SpeedScale:
 #@onready var _node_hands_yaw : Node3D = null
 var _ingame_ui: IngameUI = null
 
-const SPINE_BONE_NAME: String = "CC_Base_Spine01"
-var _spine_bone_index: int = -1
 var _spine_pitch: float = 0.0
+var _player_skeleton_modifier: SkeletonModifier = null
 
 #var active_voice_sequence: Array[AudioStream] = []:
 #	set(value):
@@ -138,6 +137,7 @@ func _ready() -> void:
 	_audio_player_voice = UtilsNode.find_node_with_name_recursive(self, "RaytracedAudioPlayer3D_Voice")
 	_audio_player_foot = UtilsNode.find_node_with_name_recursive(self, "RaytracedAudioPlayer3D_Foot")
 	_node_camera = UtilsNode.find_camera_recursive(self)
+	_player_skeleton_modifier = UtilsNode.find_skeleton_modifier_recursive(self)
 	#_node_hands_yaw = $_Hands/_hands
 
 	_ingame_ui = _find_ingame_ui()
@@ -153,6 +153,11 @@ func _ready() -> void:
 	if _audio_player_foot == null:
 		push_error("_audio_player_foot is null")
 		return
+	
+	if _player_skeleton_modifier == null:
+		push_error("_player_skeleton_modifier is null")
+		return
+		
 		
 	#if _node_hands_yaw == null:
 	#	push_error("_node_hands is null")
@@ -176,7 +181,6 @@ func _ready() -> void:
 		push_error("_ingame_ui is null")
 	_audio_player_voice.finished.connect(_on_voice_finished)
 	_setup_debug_camera()
-	_spine_bone_index = UtilsNode.find_skeleton_bone(self, SPINE_BONE_NAME)
 
 
 func replace_voice(sequence: Array[AudioStream]) -> void:
@@ -456,7 +460,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				motion_speed = 0.0005
 			if control_enabled:
 				rotate_y(-event_mouse_motion.relative.x * motion_speed)
-				print("rotating limited: " + str(is_rotating_limited) + ", motionspeed: " + str(motion_speed))
+				# print("rotating limited: " + str(is_rotating_limited) + ", motionspeed: " + str(motion_speed))
 				_spine_pitch += event_mouse_motion.relative.y * motion_speed
 				if not is_rotating_limited:
 					_handle_camera_limits(9999.0)
@@ -521,21 +525,8 @@ func _handle_footsteps(delta: float) -> void:
 # Applies the accumulated spine pitch rotation to the skeleton bone each physics frame so the head and camera follow.
 # The skeleton is retrieved each frame to avoid storing a reference that might become invalid.
 func _apply_spine_pitch() -> void:
-	if _spine_bone_index == -1:
-		return
-	
-	var skeleton: Skeleton3D = UtilsNode.find_node_with_name_recursive(self, "Skeleton3D") as Skeleton3D
-	if skeleton == null:
-		var skeletons: Array[Node] = self.find_children("", "Skeleton3D", true, false)
-		if not skeletons.is_empty():
-			skeleton = skeletons[0] as Skeleton3D
-	
-	if skeleton == null:
-		push_error("Failed to apply spine pitch. skeleton is null");
-		return
-	
-	var pitch_quaternion: Quaternion = Quaternion.from_euler(Vector3(_spine_pitch, 0.0, 0.0))
-	skeleton.set_bone_pose_rotation(_spine_bone_index, pitch_quaternion)
+	_player_skeleton_modifier.extra_rotation_degrees = Vector3(rad_to_deg(_spine_pitch), 0.0, 0.0)
+
 
 func _handle_hands_aim(_dt: float) -> void:
 	pass
