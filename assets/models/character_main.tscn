@@ -233,6 +233,7 @@ visibility_parent = NodePath("")
 active = true
 influence = 1.0
 script = ExtResource("3_rbnlq")
+bone_names = Array[StringName]([&"CC_Base_Spine01", &"CC_Base_Spine02", &"CC_Base_NeckTwist01", &"CC_Base_NeckTwist02"])
 metadata/_custom_type_script = "uid://byepjqg4gjj5y"
 
 [node name="AnimationPlayer" parent="." index="1" unique_id=426109627]
