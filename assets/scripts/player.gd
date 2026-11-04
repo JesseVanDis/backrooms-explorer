@@ -40,6 +40,7 @@ class SpeedScale:
 @onready var _node_camera : Camera3D = null
 #@onready var _node_hands_yaw : Node3D = null
 var _ingame_ui: IngameUI = null
+var _num_frames_since_ready: int = 0
 
 var _spine_pitch: float = 0.0
 var _player_skeleton_modifier: SkeletonModifier = null
@@ -87,6 +88,9 @@ var control_enabled: bool = true
 	#set(value): _behaviour.active_behaviourable = value
 
 var _flags: Dictionary = {}
+var _started: bool = false
+var started: bool: 
+	get: return _started
 
 # Animations
 var _camera_default_position: Vector3 = Vector3.ZERO
@@ -133,7 +137,7 @@ func is_flag_set(id: String) -> bool:
 	return _flags.has(id)
 
 func _ready() -> void:
-	
+	_num_frames_since_ready = 0
 	_audio_player_voice = UtilsNode.find_node_with_name_recursive(self, "RaytracedAudioPlayer3D_Voice")
 	_audio_player_foot = UtilsNode.find_node_with_name_recursive(self, "RaytracedAudioPlayer3D_Foot")
 	_node_camera = UtilsNode.find_camera_recursive(self)
@@ -162,12 +166,9 @@ func _ready() -> void:
 	#if _node_hands_yaw == null:
 	#	push_error("_node_hands is null")
 	
-	UtilsScreen.fade_out_screen(get_tree())
-		
 
 	rotation.y = deg_to_rad(initial_yaw)
 	_spine_pitch = deg_to_rad(initial_pitch)
-	velocity = initial_velocity
 	_camera_default_position = _node_camera.position
 	
 	# parameters/push/blend_amount
@@ -182,6 +183,10 @@ func _ready() -> void:
 	_audio_player_voice.finished.connect(_on_voice_finished)
 	_setup_debug_camera()
 
+func _start() -> void:
+	UtilsScreen.fade_out_screen(get_tree())
+	velocity = initial_velocity
+	_started = true
 
 func replace_voice(sequence: Array[AudioStream]) -> void:
 	if _audio_player_voice == null:
@@ -289,6 +294,10 @@ func apply_jump_sounds(sounds: Array[AudioStream]) -> void:
 func _process(real_delta: float) -> void:
 	if _is_debug_cam_active:
 		_process_freecam_movement(real_delta)
+		
+	if _num_frames_since_ready == 2:
+		_start() # add some delay to start, as some stuff in the scene still desires 1 or 2 frames for it to be complete
+	_num_frames_since_ready = _num_frames_since_ready + 1
 
 # Drives player movement, physics collisions, gravity simulation, and camera/audio state updates during each physics step.
 func _physics_process(real_delta: float) -> void:
@@ -314,7 +323,7 @@ func _physics_process(real_delta: float) -> void:
 	
 	var was_in_air: bool = not is_on_floor()
 	# Add the gravity.
-	if not is_on_floor() and not is_gravity_disabled:
+	if not is_on_floor() and not is_gravity_disabled and _started:
 		velocity += get_gravity() * delta
 		if max_fall_speed > 0.0:
 			velocity.y = max(velocity.y, -max_fall_speed)

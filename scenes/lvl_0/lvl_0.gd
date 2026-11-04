@@ -146,7 +146,7 @@ func initialized() -> bool:
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	_player = $_viewport_container/_viewport/Player
+	_player = UtilsNode.find_player(get_tree())
 	_load_visibility_pattern()
 	_update_visibility_transform()
 	

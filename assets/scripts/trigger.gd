@@ -80,11 +80,16 @@ var player_flag_formatted: String:
 		return ""
 
 func _physics_process(_delta: float) -> void:
+	var player: Player = get_player()
+	
+	if !player.started:
+		return
+	
 	if _has_triggered:
 		return
 	
 	if !player_flag.is_empty():
-		if get_player().is_flag_set(player_flag_formatted):
+		if player.is_flag_set(player_flag_formatted):
 			# was triggered elsewhere
 			_has_triggered = true
 			return
@@ -148,14 +153,16 @@ func _physics_process(_delta: float) -> void:
 		_has_triggered = true
 		print("Triggered '" + str(get_path()) + "'")
 		if !player_flag.is_empty():
-			get_player().set_flag(player_flag_formatted)
+			player.set_flag(player_flag_formatted)
 		await _trigger()
 
 
 func _trigger() -> void:
 	if trigger_delay_ms > 0:
 		await get_tree().create_timer(trigger_delay_ms / 1000.0).timeout
-
+	
+	var player: Player = get_player()
+	
 	match mode:
 		Mode.None:
 			if sounds.size() == 0:
@@ -168,12 +175,12 @@ func _trigger() -> void:
 				push_error("Non-voice sound sequence not implemented yet.")
 		
 		Mode.PlayerVoice_Replace:
-			get_player().replace_voice(sounds)
+			player.replace_voice(sounds)
 		
 		Mode.PlayerVoice_PushBack:
-			get_player().push_back_voice(sounds)
+			player.push_back_voice(sounds)
 				
 		Mode.PlayerVoice_PushFront:
-			get_player().push_front_voice(sounds)
+			player.push_front_voice(sounds)
 	
 	
