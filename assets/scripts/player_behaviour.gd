@@ -116,30 +116,42 @@ class Action:
 	var action_name: String
 	var action_value: Variant
 
+class AnimationSettings:
+	var additional_settings: Dictionary = {}
+
+	var activation_speed: float:
+		get: return additional_settings.get("anim_activation_speed", 6.0)
+
+	var deactivation_speed: float:
+		get: return additional_settings.get("anim_deactivation_speed", 6.0)
+	
+
 class AdditionalSettings:
 	var additional_settings: Dictionary = {}
 	
-	var max_look_freedom_degrees_h: float:
-		get: return additional_settings.get("max_look_freedom_degrees_h", additional_settings.get("max_look_freedom_degrees", 360.0))
+	var player_max_look_freedom_degrees_h: float:
+		get: return additional_settings.get("player_max_look_freedom_degrees_h", additional_settings.get("player_max_look_freedom_degrees", 360.0))
 		
-	var max_look_freedom_degrees_v: float:
-		get: return additional_settings.get("max_look_freedom_degrees_v", additional_settings.get("max_look_freedom_degrees", 360.0))
+	var player_max_look_freedom_degrees_v: float:
+		get: return additional_settings.get("player_max_look_freedom_degrees_v", additional_settings.get("player_max_look_freedom_degrees", 360.0))
 
-	var movement_multiplier: float:
-		get: return additional_settings.get("movement_multiplier", 1.0)
+	var player_movement_multiplier: float:
+		get: return additional_settings.get("player_movement_multiplier", 1.0)
 
-	var max_movement_speed: float:
-		get: return additional_settings.get("max_movement_speed", 99999.0)
+	var player_max_movement_speed: float:
+		get: return additional_settings.get("player_max_movement_speed", 99999.0)
 
-	var max_movement_speed_to_target: float:
-		get: return additional_settings.get("max_movement_speed_to_target", 99999.0)
+	var player_max_movement_speed_to_target: float:
+		get: return additional_settings.get("player_max_movement_speed_to_target", 99999.0)
 
 
 class Behaviour:
 	var animation_tree_parameter: StringName = ""
+	var _parameter_target: float = 0.0
 	var animation_tree: AnimationTree = null
 	var _animation_name: String = ""
 	var _additional_settings: Dictionary = {}
+	var _animation_settings: AnimationSettings = AnimationSettings.new()
 	var _actions: Array[Action] = [] # TODO: Make this work as well
 	
 	var additional_settings: Dictionary:
@@ -150,6 +162,7 @@ class Behaviour:
 	
 	
 	func _init(_self_node: Node3D, p_animation_name: String, p_animation_tree_parameter: StringName = "", p_additional_settings: Dictionary = {}) -> void:
+		_animation_settings.additional_settings = p_additional_settings
 		_additional_settings = p_additional_settings
 		animation_tree = UtilsNode.find_animation_tree_recursive(_self_node)
 		if animation_tree == null:
@@ -172,18 +185,37 @@ class Behaviour:
 					action.action_value = action_data[action_name]
 					_actions.append(action)
 	
-	func update(_dt: float) -> void:
-		pass
-	
+	func update(dt: float) -> void:
+		if animation_tree_parameter == "":
+			return
+		
+		var parameter_value: float = animation_tree[animation_tree_parameter]
+		if parameter_value != _parameter_target:
+			var speed: float = _animation_settings.activation_speed
+			if _parameter_target == 0.0:
+				speed = _animation_settings.deactivation_speed
+			parameter_value = move_toward(parameter_value, _parameter_target, speed * dt)
+			animation_tree[animation_tree_parameter] = parameter_value
+		
 	func activate() -> bool:
-		print("Activating animation '" + animation_tree_parameter + "'")
-		animation_tree[animation_tree_parameter] = 1
-		# animation_tree[p_animation_tree_parameter] = AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
+		if _parameter_target != 1.0:
+			print("Activating animation '" + animation_tree_parameter + "'")
+			if animation_tree_parameter.ends_with("blend_amount"):
+				_parameter_target = 1.0
+				if _animation_settings.activation_speed < 0.0:
+					animation_tree[animation_tree_parameter] = 1.0
+			else:
+				animation_tree[animation_tree_parameter] = 1
+			return true
 		return false
 
 	func deactivate() -> bool:
-		print("De-activating animation '" + animation_tree_parameter + "'")
-		animation_tree[animation_tree_parameter] = 0
+		if _parameter_target != 0.0:
+			print("De-Activating animation '" + animation_tree_parameter + "'")
+			_parameter_target = 0.0
+			if _animation_settings.deactivation_speed < 0.0:
+				animation_tree[animation_tree_parameter] = 0.0
+			return true
 		return false
 	
 	func is_active() -> bool:

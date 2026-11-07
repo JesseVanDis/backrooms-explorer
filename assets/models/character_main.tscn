@@ -25,6 +25,7 @@ filters = ["Armature/Skeleton3D:CC_Base_Breast.L", "Armature/Skeleton3D:CC_Base_
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_rbnlq"]
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_vxg2p"]
+graph_offset = Vector2(-82.272766, -3.545456)
 nodes/output/position = Vector2(1480, 120)
 nodes/anim_run/node = SubResource("AnimationNodeAnimation_rbnlq")
 nodes/anim_run/position = Vector2(320, 440)

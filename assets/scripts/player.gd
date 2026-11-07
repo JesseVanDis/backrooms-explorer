@@ -173,6 +173,7 @@ func _ready() -> void:
 	
 	# parameters/push/blend_amount
 	add_behaviour("")
+	add_behaviour("run",  "parameters/run/blend_amount")
 	add_behaviour("push", "parameters/push/blend_amount", {"max_movement_speed_to_target": 0.15})
 
 	_ensure_sound_controller()
@@ -337,7 +338,12 @@ func _physics_process(real_delta: float) -> void:
 	# As good practice, you should replace UI actions with custom gameplay actions.
 	var input_dir: Vector2 = Input.get_vector("left", "right", "forward", "backward")
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-
+	
+	if input_dir == Vector2.ZERO:
+		_behaviour.deactivate("run")
+	else:
+		_behaviour.activate("run")
+	
 	if direction:
 		velocity.x = direction.x * _current_speed(Vector2(direction.x, direction.z))
 		velocity.z = direction.z * _current_speed(Vector2(direction.x, direction.z))
@@ -367,7 +373,7 @@ func _physics_process(real_delta: float) -> void:
 	_handle_hands_aim(delta)
 	_handle_camera_limits(delta)
 	_apply_spine_pitch()
-	_handle_head_bob(delta)
+	# _handle_head_bob(delta)
 	_handle_footsteps(delta)
 	_old_global_pos = global_position
 
@@ -411,8 +417,8 @@ func _handle_camera_limits(_dt: float) -> void:
 	var adjustement_step: float = 1.0
 	#var active_behaviourable_data := _behaviour.active_behaviourable_data
 	
-	var max_look_freedom_h: float = _behaviour.active_settings.max_look_freedom_degrees_h
-	var max_look_freedom_v: float = _behaviour.active_settings.max_look_freedom_degrees_v
+	var max_look_freedom_h: float = _behaviour.active_settings.player_max_look_freedom_degrees_h
+	var max_look_freedom_v: float = _behaviour.active_settings.player_max_look_freedom_degrees_v
 	
 	var pitch_limit_deg := 90.0
 	var yaw_limit_deg := 360.0
@@ -464,7 +470,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event_mouse_motion:
 			var motion_speed := 0.01
 			# var active_behaviourable_data := _behaviour.active_behaviourable_data
-			var is_rotating_limited: bool = (_behaviour.active_settings.max_look_freedom_degrees_h < 360.0 or _behaviour.active_settings.max_look_freedom_degrees_v < 360.0)
+			var is_rotating_limited: bool = (_behaviour.active_settings.player_max_look_freedom_degrees_h < 360.0 or _behaviour.active_settings.player_max_look_freedom_degrees_v < 360.0)
 			if is_rotating_limited:
 				motion_speed = 0.0005
 			if control_enabled:
@@ -481,18 +487,21 @@ func _current_speed(direction: Vector2) -> float:
 	var speed_limit: float = max_speed
 	# var active_behaviourable_data := _behaviour.active_behaviourable_data
 	#if active_behaviourable_data:
-	var speed_target_multiplier: float = _behaviour.active_settings.movement_multiplier
-	speed_limit = min(speed_limit, _behaviour.active_settings.max_movement_speed)
-	if behaviour_target && _behaviour.active_settings.max_movement_speed_to_target < max_speed:
+	var speed_target_multiplier: float = _behaviour.active_settings.player_movement_multiplier
+	speed_limit = min(speed_limit, _behaviour.active_settings.player_max_movement_speed)
+	if behaviour_target && _behaviour.active_settings.player_max_movement_speed_to_target < max_speed:
 		var direction_to_target: Vector2 = UtilsMath.xz_normal(behaviour_target.global_position - global_position)
 		var factor: float = direction_to_target.distance_to(dir)
 		factor = factor * 0.5
 		factor = factor*factor
-		var new_max_speed: float = lerp(_behaviour.active_settings.max_movement_speed_to_target, max_speed, min(1.0, factor))
+		var new_max_speed: float = lerp(_behaviour.active_settings.player_max_movement_speed_to_target, max_speed, min(1.0, factor))
 		#print("max speed: " + str(new_max_speed))
 		speed_limit = min(new_max_speed, speed_limit)
 	speed_target_multiplier = min(speed_target_multiplier, speed_limit / max_speed)
 	return speed_target_multiplier * max_speed
+
+#func _handle_standard_animations(delta: float) -> void:
+	#pass
 
 func _handle_head_bob(delta: float) -> void:
 	var vertical_offset: float = 0.0
