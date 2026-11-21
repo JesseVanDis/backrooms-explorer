@@ -1,4 +1,4 @@
-## [AI-DOC] First-person CharacterBody3D controller handling movement, AnimationTree behaviour statuses and gated camera offsets, head bob, push-target hand yaw, asymmetric pivot-based mouse look, audio, and debug freecam
+## [AI-DOC] First-person CharacterBody3D controller handling movement, delayed freefall and other AnimationTree behaviours, gated camera offsets, head bob, push-target hand yaw, asymmetric pivot-based mouse look, audio, and debug freecam
 ## spec: docs/ai/systems/player.md
 ## status: partial
 ## notes: resolves the named head-pitch and perspective-hands modifiers separately; hand yaw follows active push targets without changing other rotation axes
@@ -11,6 +11,7 @@ const JUMP_VELOCITY: float = 3.5
 const FREECAM_FLY_SPEED: float = 10.0
 const FREECAM_FAST_SPEED_MULTIPLIER: float = 3.0
 const FREECAM_MOUSE_SENSITIVITY: float = 0.003
+const FREEFALL_ACTIVATION_DELAY: float = 0.5
 const MAX_LOOK_UP_DEGREES: float = 90.0
 const MAX_LOOK_DOWN_DEGREES: float = 80.0
 var FOOTSTEP_INTERVAL: SpeedScale = SpeedScale.new(0.8, 0.36)
@@ -87,6 +88,7 @@ var _old_global_pos: Vector3 = Vector3(0,0,0)
 
 var _behaviour: PlayerBehaviour = PlayerBehaviour.new(self)
 var control_enabled: bool = true
+var _freefall_air_time: float = 0.0
 
 #var active_behaviourable: String:
 	#get:        return _behaviour.active_behaviourable
@@ -212,7 +214,7 @@ func _ready() -> void:
 		"player_max_movement_speed_to_target": 0.15
 	})
 	
-	add_behaviour("freefall",  "parameters/run/blend_amount", {
+	add_behaviour("freefall",  "parameters/freefall/blend_amount", {
 		"anim_activation_speed": 4.0, 
 		"anim_deactivation_speed": 4.0
 	})
@@ -343,7 +345,7 @@ func _process(real_delta: float) -> void:
 		_start() # add some delay to start, as some stuff in the scene still desires 1 or 2 frames for it to be complete
 	_num_frames_since_ready = _num_frames_since_ready + 1
 
-# Advances behaviour blends before input handling, then applies camera offsets after run activation can change its status.
+# Keeps movement and delayed freefall behavior consistent while controls are enabled or disabled.
 func _physics_process(real_delta: float) -> void:
 	if _is_debug_cam_active:
 		velocity = Vector3.ZERO
@@ -364,6 +366,7 @@ func _physics_process(real_delta: float) -> void:
 		if not is_on_floor() and not is_gravity_disabled:
 			velocity += get_gravity() * delta
 		move_and_slide()
+		_update_freefall_behaviour(real_delta)
 		return
 	
 	#_update_speed_cap(delta)
@@ -405,6 +408,7 @@ func _physics_process(real_delta: float) -> void:
 			velocity.z = move_toward(velocity.z, 0, max_speed)
 	
 	move_and_slide()
+	_update_freefall_behaviour(real_delta)
 	
 	for i in get_slide_collision_count():
 		var collision := get_slide_collision(i)
@@ -421,6 +425,19 @@ func _physics_process(real_delta: float) -> void:
 	_handle_head_bob(delta)
 	_handle_footsteps(delta)
 	_old_global_pos = global_position
+
+# Triggers the freefall animation only after sustained airtime and clears it on every landing.
+func _update_freefall_behaviour(real_delta: float) -> void:
+	var freefall_status: PlayerBehaviour.BehaviourStatus = _behaviour.get_behaviour_status("freefall")
+	if is_on_floor():
+		_freefall_air_time = 0.0
+		if freefall_status == PlayerBehaviour.BehaviourStatus.ENABLING or freefall_status == PlayerBehaviour.BehaviourStatus.ACTIVE:
+			deactivate_behaviour("freefall")
+		return
+
+	_freefall_air_time += real_delta
+	if _freefall_air_time > FREEFALL_ACTIVATION_DELAY and (freefall_status == PlayerBehaviour.BehaviourStatus.IDLE or freefall_status == PlayerBehaviour.BehaviourStatus.DISABLING):
+		activate_behaviour("freefall")
 
 func _play_footstep() -> void:
 	if _footstep_sounds.is_empty():

@@ -22,7 +22,7 @@ What it explicitly does NOT own:
 
 - Footstep sound *content*: the level decides, by calling `apply_footsteps()`, `apply_footstep_start_sound()` and `apply_jump_sounds()`. The player only ships defaults (`FOOTSTEP_SOUNDS`, `FOOTSTEP_START_SOUND`, `JUMP_SOUNDS`, `LANDING_SOUNDS`).
 - Voice *content* and when it plays: the level pushes `AudioStream` sequences into the queue.
-- Which behaviour to activate: a level registers and activates named behaviours through `add_behaviour()` and `activate_behaviour()`.
+- Which level-specific behaviour to activate: a level registers and activates named behaviours through `add_behaviour()` and `activate_behaviour()`. The player independently activates its built-in `freefall` blend after sustained airtime.
 - Subtitle rendering: handed off to `IngameUI` -> `PlayerSubtitles`.
 - Level geometry, streaming, transitions, fog.
 - Health, inventory, interaction/use of objects - none of that exists in the player code.
@@ -121,6 +121,7 @@ Declared at the top of `player.gd`. Note that only `JUMP_VELOCITY` (and the soun
 | constant | value | effect |
 |---|---|---|
 | `JUMP_VELOCITY` | `3.5` | Upward velocity set on jump. |
+| `FREEFALL_ACTIVATION_DELAY` | `0.5` s | Continuous time off the floor before the built-in freefall animation activates. |
 | `PUSH_FORCE` | `0.5` | Magnitude of the central impulse applied to any `RigidBody3D` the player slides into, along `-collision.get_normal()`. |
 | `HANDS_APPEAR_DURATION` | `0.1` | Declared but never read; hand opacity is driven by the `_setting_hands_opacity` animation track through `PositionToShaderParam`. |
 | `FOOTSTEP_INTERVAL` | `SpeedScale.new(0.8, 0.36)` | Seconds between footsteps: `0.8` s at speed 1, `0.36` s at speed 3. Also sets the head-bob frequency. |
@@ -138,6 +139,7 @@ Other hard-coded values worth knowing: camera position lerp uses `delta * 15.0`;
 - When `behaviour_target` is set and the active behaviour's `player_max_movement_speed_to_target < max_speed`, the cap is interpolated between `player_max_movement_speed_to_target` and `max_speed` based on how far the movement direction deviates from the direction to the target (`factor = (distance_between_directions * 0.5)^2`, clamped to 1). Moving straight at the target is the slowest.
 - With no input, `velocity.x/z` decay with `move_toward(..., 0, max_speed)` - i.e. one `max_speed` step per physics frame, which is effectively an instant stop.
 - Gravity: `velocity += get_gravity() * delta` whenever not on the floor (also while `control_enabled == false`).
+- Freefall animation: post-movement floor checks accumulate `real_delta`; the `freefall` blend activates only after more than `0.5` seconds continuously off the floor. Every landing resets the timer and deactivates the blend. This tracking also runs while controls are disabled; debug freecam suspends it along with player physics.
 - `max_fall_speed`: if `> 0.0`, `velocity.y` is clamped to `>= -max_fall_speed`. Default `0.0` means unlimited fall speed.
 - Jump: `velocity.y = JUMP_VELOCITY` (3.5) plus a random jump sound; a landing sound plays on the frame the player goes from airborne to on-floor.
 - Head bob runs only when `is_on_floor()` and `velocity.length() > 0.1`. `_bob_phase` advances by `delta * (PI / FOOTSTEP_INTERVAL.at(speed))` and wraps at `2*PI`; vertical offset is `BOB_VERTICAL_AMPLITUDE.at(speed) * abs(sin(phase))`, horizontal offset is `BOB_HORIZONTAL_AMPLITUDE.at(speed) * sin(phase)`.
@@ -148,6 +150,8 @@ Other hard-coded values worth knowing: camera position lerp uses `delta * 15.0`;
 ## 7. AnimationTree behaviours
 
 `PlayerBehaviour` (`assets/scripts/player_behaviour.gd`) tracks named player behaviours while the existing `AnimationTree` continues to select and blend animations. Each behaviour reports one of `PlayerBehaviour.BehaviourStatus.IDLE`, `ENABLING`, `ACTIVE`, or `DISABLING`; `player.gd` advances blend values during `_physics_process()` and refreshes the active settings before movement and mouse input consume them.
+
+The player registers `freefall` against `parameters/freefall/blend_amount`. It automatically blends in after more than `0.5` seconds off the floor and blends out on landing, independently of the `run` blend; this also works while `control_enabled` is false.
 
 In `character_main.tscn`, the player resolves `_skeleton_modifier_headpitch` separately from `_skeleton_modifier_perspective_hands`. While the registered `push` behaviour is active and `behaviour_target` is set, `_handle_hands_aim()` smoothly turns only the perspective-hands modifier's `extra_rotation_degrees.y` toward the target in player-local space. It eases that yaw back to neutral when the target clears or the push blend finishes, including while controls are disabled; the head-pitch modifier and the hands modifier's X/Z rotations remain unchanged.
 
