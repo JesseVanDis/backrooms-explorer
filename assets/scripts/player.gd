@@ -212,6 +212,11 @@ func _ready() -> void:
 		"player_max_movement_speed_to_target": 0.15
 	})
 	
+	add_behaviour("freefall",  "parameters/run/blend_amount", {
+		"anim_activation_speed": 4.0, 
+		"anim_deactivation_speed": 4.0
+	})
+	
 	_handle_camera_limits(0.0)
 
 	_ensure_sound_controller()

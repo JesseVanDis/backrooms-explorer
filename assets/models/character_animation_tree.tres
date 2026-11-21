@@ -1,5 +1,8 @@
 [gd_resource type="AnimationNodeBlendTree" format=3 uid="uid://b76j5yrxbk8uf"]
 
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_5n3hs"]
+animation = &"freefall"
+
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_507o8"]
 animation = &"idle"
 
@@ -12,6 +15,8 @@ animation = &"pushing"
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_laxb3"]
 animation = &"running"
 
+[sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_0ux7u"]
+
 [sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_5kj2q"]
 
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_m2cx2"]
@@ -21,8 +26,8 @@ filters = ["", "_body_armature/Skeleton3D:CC_Base_Forearm.L", "_body_armature/Sk
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_laxb3"]
 
 [resource]
-graph_offset = Vector2(-587.7326, 52.807526)
-nodes/output/position = Vector2(600, 200)
+graph_offset = Vector2(-487.4488, -60.968735)
+nodes/output/position = Vector2(1180, 220)
 nodes/anim_idle/node = SubResource("AnimationNodeAnimation_507o8")
 nodes/anim_idle/position = Vector2(-340, 120)
 nodes/anim_lvl_0_landing/node = SubResource("AnimationNodeAnimation_5kj2q")
@@ -36,5 +41,9 @@ nodes/run/position = Vector2(-180, 100)
 nodes/push/node = SubResource("AnimationNodeBlend2_m2cx2")
 nodes/push/position = Vector2(160, 100)
 nodes/lvl_0_landing/node = SubResource("AnimationNodeOneShot_5kj2q")
-nodes/lvl_0_landing/position = Vector2(340, 580)
-node_connections = [&"output", 0, &"lvl_0_landing", &"run", 0, &"anim_idle", &"run", 1, &"anim_run", &"push", 0, &"run", &"push", 1, &"anim_push", &"lvl_0_landing", 0, &"push", &"lvl_0_landing", 1, &"anim_lvl_0_landing"]
+nodes/lvl_0_landing/position = Vector2(920, 600)
+nodes/freefall/node = SubResource("AnimationNodeBlend2_0ux7u")
+nodes/freefall/position = Vector2(500, 100)
+nodes/anim_freefall/node = SubResource("AnimationNodeAnimation_5n3hs")
+nodes/anim_freefall/position = Vector2(340, 320)
+node_connections = [&"output", 0, &"lvl_0_landing", &"run", 0, &"anim_idle", &"run", 1, &"anim_run", &"push", 0, &"run", &"push", 1, &"anim_push", &"lvl_0_landing", 0, &"freefall", &"lvl_0_landing", 1, &"anim_lvl_0_landing", &"freefall", 0, &"push", &"freefall", 1, &"anim_freefall"]
