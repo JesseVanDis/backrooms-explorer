@@ -1,4 +1,4 @@
-## [AI-DOC] Frontroom intro scene that shows the intro overlay, lets the player push nearby boxes, thickens black fog while falling and transitions to level 0
+## [AI-DOC] Frontroom intro scene that shows the intro overlay, activates the player's push behaviour near boxes, thickens black fog while falling and transitions to level 0
 ## spec: scenes/frontroom_0/docs/SPEC.md
 ## status: partial
 
@@ -84,7 +84,12 @@ func _update_environment_effects() -> void:
 	_node_world_environment.environment.fog_sky_affect = lerpf(SKY_AFFECT_START, SKY_AFFECT_END, t)
 
 
+# Keeps box pushing connected to the current player behaviour system while preserving target-relative movement near each box.
 func _update_player_speed() -> void:
+	if _player == null:
+		push_error("Player is null")
+		return
+
 	const DETECTION_DISTANCE: float = 1.0
 	
 	var push_node: Node3D = null
@@ -99,11 +104,11 @@ func _update_player_speed() -> void:
 		push_node = _node_moving_box_4
 
 	if push_node != null:
-		_player.active_wieldable = "wield_push"
-		_player.wield_target = push_node
+		_player.behaviour_target = push_node
+		_player.activate_behaviour("push")
 	else:
-		_player.active_wieldable = ""
-		_player.wield_target = null
+		_player.behaviour_target = null
+		_player.deactivate_behaviour("push")
 
 
 func _handle_level_transition() -> void:

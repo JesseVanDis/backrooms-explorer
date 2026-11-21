@@ -75,6 +75,5 @@ static func _smooth_fraction(x: float) -> float:
 static func _cell_hash(x: float, h1: float = 12.9989, h2: float = 43758.54) -> float:
 	return pseudo_random(floorf(x), h1, h2)
 
-
 static func _cell_hash_2d(x: float, y: float, h1x: float = 12.9989, h1y: float = 13.1536, h2: float = 43758.54) -> float:
 	return pseudo_random_2d(floorf(x), floorf(y), h1x, h1y, h2)

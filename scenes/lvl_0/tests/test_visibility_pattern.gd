@@ -1,8 +1,10 @@
-## [AI-DOC] Integration test verifying tile visibility toggling and rotation tracking without removing tile nodes in lvl_0
+## [AI-DOC] Integration test verifying tile visibility from a fixed player tile while turning in lvl_0 without removing tile nodes
 ## spec: scenes/lvl_0/docs/SPEC.md
 ## status: complete
 
 extends SceneTree
+
+const TEST_PLAYER_TILE_INDEX: Vector2i = Vector2i(0, 0)
 
 var _lvl: Lvl_0 = null
 var _player: Player = null
@@ -37,7 +39,7 @@ func _initialize() -> void:
 
 	_step = 1
 
-# Advances test state machine across multiple frames to verify tile visibility toggling upon player rotation
+# Spreads visibility checks across frames so the level can update its cached facing direction after the player turns.
 func _process(_delta: float) -> bool:
 	_frames += 1
 	
@@ -68,7 +70,7 @@ func _process(_delta: float) -> bool:
 				quit(1)
 				return false
 			for added_tile: Vector2i in test_added_tiles:
-				if not _lvl._is_tile_visible(added_tile):
+				if not _lvl._is_tile_visible(added_tile, TEST_PLAYER_TILE_INDEX):
 					push_error("Tile prioritized was not visible: " + str(added_tile))
 					quit(1)
 					return false
@@ -87,8 +89,8 @@ func _process(_delta: float) -> bool:
 		if _frames < 5:
 			return false
 			
-		var north_tile_visible: bool = _lvl._is_tile_visible(north_tile_index)
-		var south_tile_visible: bool = _lvl._is_tile_visible(south_tile_index)
+		var north_tile_visible: bool = _lvl._is_tile_visible(north_tile_index, TEST_PLAYER_TILE_INDEX)
+		var south_tile_visible: bool = _lvl._is_tile_visible(south_tile_index, TEST_PLAYER_TILE_INDEX)
 		print("Facing North -> North tile (0, -20) visible: ", north_tile_visible, ", South tile (0, 20) visible: ", south_tile_visible)
 		if not north_tile_visible or south_tile_visible:
 			push_error("Visibility calculation check failed when facing North")
@@ -141,8 +143,8 @@ func _process(_delta: float) -> bool:
 		if _frames > 5:
 			var north_tile_index: Vector2i = Vector2i(0, -20)
 			var south_tile_index: Vector2i = Vector2i(0, 20)
-			var north_tile_visible: bool = _lvl._is_tile_visible(north_tile_index)
-			var south_tile_visible: bool = _lvl._is_tile_visible(south_tile_index)
+			var north_tile_visible: bool = _lvl._is_tile_visible(north_tile_index, TEST_PLAYER_TILE_INDEX)
+			var south_tile_visible: bool = _lvl._is_tile_visible(south_tile_index, TEST_PLAYER_TILE_INDEX)
 			print("Facing South -> North tile (0, -20) visible: ", north_tile_visible, ", South tile (0, 20) visible: ", south_tile_visible)
 			if north_tile_visible or not south_tile_visible:
 				push_error("Visibility check failed when facing South")

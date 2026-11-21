@@ -4,7 +4,7 @@
 in [README.md](../../README.md) says what is planned and in which version. This page says what an
 AI can rely on right now.
 
-> Last reviewed: 2026-10-11. If you change behaviour, update this page in the same change.
+> Last reviewed: 2026-11-20. If you change behaviour, update this page in the same change.
 
 Legend: `done` · `partial` · `stub` · `missing`
 
@@ -14,16 +14,17 @@ Legend: `done` · `partial` · `stub` · `missing`
 
 | System                                      | State   | Reality check                                                       |
 |---------------------------------------------|---------|----------------------------------------------------------------------|
-| [Player movement](systems/player.md)        | done    | Walk, run, gravity, head bob, footsteps                               |
+| [Player movement](systems/player.md)        | done    | Walk, run, gravity, head bob, footsteps, AnimationTree behaviour restrictions |
 | Jumping                                     | partial | Works via the built-in `ui_accept`; no rebindable `jump` action       |
-| [Wieldables](systems/player.md#7-wieldables)| partial | Only `wield_push` is used, only in the frontrooms                     |
+| [Player behaviours](systems/player.md#7-animationtree-behaviours) | partial | Blend and one-shot behaviours expose lifecycle statuses; camera offsets apply only while enabling or active, and timed actions are deferred |
+| [Position-driven shader parameters](systems/player.md#positiontoshaderparam-configuration) | done | Reusable position-to-uniform driver; hand opacity follows the animated bone position |
 | [Voice + subtitles](systems/ui_subtitles.md)| done    | Queue, `.srt` parsing, synced playback                                |
 | [Audio reverb](systems/audio.md)            | partial | `SoundController` drives one reverb bus; no mixer, no settings        |
 | [Physics sounds](systems/audio.md)          | done    | Slide and impact sounds on rigid bodies                               |
 | [Triggers](systems/interaction.md)          | done    | Enter / leave / look-at conditions with delays                        |
 | [Doors](systems/interaction.md)             | done    | Proximity opening with side detection                                 |
 | [Level transitions](systems/level_flow.md)  | partial | Works, but the transition scene path is hardcoded                     |
-| [Map generation](systems/map_generation.md) | partial | Infinite chunks work; most biomes are not implemented                 |
+| [Map generation](systems/map_generation.md) | partial | Initial chunks preload under the authored Map node; angle-bucketed visibility candidates build once on a shared worker; most biomes are not implemented |
 | [Utils](systems/utils.md)                   | done    | Math, node lookup, screen fades. `NodePool` exists but is unused      |
 | [Tooling](systems/tooling.md)               | done    | Static check and asset parsing both work                              |
 
@@ -31,7 +32,7 @@ Legend: `done` · `partial` · `stub` · `missing`
 
 | Scene                | State   | Reality check                                                    |
 |----------------------|---------|-------------------------------------------------------------------|
-| `frontroom_0`        | partial | Walkable, boxes pushable, voice recorded, fall to `lvl_0` works   |
+| `frontroom_0`        | partial | Walkable, nearby boxes activate the push behaviour, voice recorded, fall to `lvl_0` works |
 | `lvl_0`              | partial | Infinite walkable lobby with static chair/trash-bin clutter; **no exit, no biomes, no events** |
 | `menu_intro`         | stub    | Black screen + title label                                        |
 | `menu_loading`       | stub    | Near-identical copy of `menu_intro`                               |

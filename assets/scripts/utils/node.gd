@@ -17,15 +17,24 @@ static func find_mesh_recursive(root_node: Node) -> MeshInstance3D:
 			
 	return null
 
-static func find_animation_player_recursive(root_node: Node) -> AnimationPlayer:
-	if root_node is AnimationPlayer:
+static func find_node_with_name_recursive(root_node: Node, node_name: String) -> Node:
+	if root_node.name == node_name:
 		return root_node
 	
 	for child in root_node.get_children():
-		var result: AnimationPlayer = find_animation_player_recursive(child)
+		var result: Node = find_node_with_name_recursive(child, node_name)
 		if result:
 			return result
 			
+	return null
+
+static func find_animation_tree_recursive(root_node: Node) -> AnimationTree:
+	if root_node is AnimationTree:
+		return root_node
+	for child in root_node.get_children():
+		var result: AnimationTree = find_animation_tree_recursive(child)
+		if result:
+			return result
 	return null
 
 static func find_camera_recursive(root_node: Node) -> Camera3D:
@@ -57,16 +66,38 @@ static func find_player(tree: SceneTree) -> Player:
 			
 	return null
 
-static func find_hands_recursive(root_node: Node) -> PlayerHands:
-	if root_node is PlayerHands:
+static func find_skeleton_modifier_recursive(root_node: Node) -> SkeletonModifier:
+	if root_node is SkeletonModifier:
 		return root_node
 	
 	for child in root_node.get_children():
-		var result: PlayerHands = find_hands_recursive(child)
+		var result: SkeletonModifier = find_skeleton_modifier_recursive(child)
 		if result:
 			return result
 			
 	return null
+
+
+# Finds the first Skeleton3D node under the given root and returns the bone index for the specified name.
+# Returns -1 if the skeleton or bone is not found.
+static func find_skeleton_bone(root_node: Node, bone_name: String) -> int:
+	var skeleton: Skeleton3D = find_node_with_name_recursive(root_node, "Skeleton3D") as Skeleton3D
+	
+	# If find_node_with_name_recursive didn't find it, try finding children for multiple Skeleton3D nodes
+	if skeleton == null:
+		var skeletons: Array[Node] = root_node.find_children("", "Skeleton3D", true, false)
+		if not skeletons.is_empty():
+			skeleton = skeletons[0] as Skeleton3D
+	
+	if skeleton == null:
+		push_error("Skeleton3D not found under node '" + root_node.name + "'")
+		return -1
+	
+	var bone_index: int = skeleton.find_bone(bone_name)
+	if bone_index == -1:
+		push_error("Bone '" + bone_name + "' not found in skeleton under node '" + root_node.name + "'")
+	
+	return bone_index
 
 
 static func set_shader_param(node: Node, path_to_mesh_instance_3d: NodePath, uniform_name: StringName, value: Variant, make_material_unique: bool = true, unique_material_cache: Dictionary = {}) -> void:

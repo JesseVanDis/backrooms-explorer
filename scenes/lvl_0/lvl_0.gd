@@ -1,7 +1,7 @@
-## [AI-DOC] Level 0 root that streams generated map chunks around the player, placing and removing tile graphics and collision shapes while prioritizing visible tiles and toggling tile visibility based on a player-centered mask
+## [AI-DOC] Level 0 root that resolves its authored map before streaming chunks, precomputes shared visibility offsets asynchronously, and places/removes graphics and collision shapes around the player
 ## spec: scenes/lvl_0/docs/SPEC.md
 ## status: partial
-## notes: also plays the landing wieldable animation when the falling player first hits the floor
+## notes: also activates the landing AnimationTree behaviour when the falling player first hits the floor; resolves the Map child before preload-time chunk attachment
 
 class_name Lvl_0
 extends Node
@@ -14,8 +14,15 @@ const VIEW_DISTANCE: int = 60
 const VIEW_DISTANCE_AA: int = 200
 const VIEW_DISTANCE_FOR_COLLISIONS: int = 12
 const MAX_TILES_TO_ADD_PER_FRAME: int = 20
+const RADIUS_OFFSETS_ANGLE_STEP_DEGREES: int = 15
+const TILE_VISIBILITY_FORWARD_WIDTH: float = 5.0
+const TILE_VISIBILITY_ANGLE_DOT: float = 0.6
+const TILE_VISIBILITY_CLOSE_RADIUS: int = 10
+const TILE_VISIBILITY_FOV_RADIUS: float = 60.0
+const TILE_VISIBILITY_FOV_TILE_OFFSET: float = -10.0
 const VISIBILITY_PATTERN_PATH: String = "res://scenes/lvl_0/tiles_visible_pattern.png"
 const VISIBILITY_THRESHOLD: float = 100.0 / 255.0
+const MAP_NODE_PATH: NodePath = NodePath("_viewport_container/_viewport/Map")
 
 var _visibility_pattern_data: PackedByteArray = PackedByteArray()
 var _visibility_pattern_width: int = 0
@@ -43,7 +50,8 @@ var model_prop_chair_3:           Model = _load_model(preload("res://assets/mode
 var model_prop_stool_1:           Model = _load_model(preload("res://assets/models/stool_1.tscn"))
 var model_prop_bin_1:             Model = _load_model(preload("res://assets/models/bin_1.tscn"))
 
-@onready var _node_map: Node3D = $_viewport_container/_viewport/Map
+var _node_map: Node3D = null
+var _map_node_lookup_failed: bool = false
 var _player: Player = null
 
 var _did_hit_floor: bool = false
@@ -134,26 +142,58 @@ var chunks: Dictionary = {}        # Vector2i(chunk index) -> Chunk
 var placed_tiles: Dictionary = {}  # Vector2i(tile index)  -> PlacedTile
 #var rendered_chunks: Dictionary = {} # Vector2i -> Node3D
 
+# Resolves the scene-authored map node even when LevelTransition initializes this level before tree entry.
+func _resolve_map_node() -> Node3D:
+	if is_instance_valid(_node_map):
+		return _node_map
+	if _map_node_lookup_failed:
+		return null
+
+	var map_node: Node = get_node_or_null(MAP_NODE_PATH)
+	if map_node == null:
+		_map_node_lookup_failed = true
+		push_error("Lvl_0 is missing its Map node at '" + str(MAP_NODE_PATH) + "'")
+		return null
+
+	var map_node_3d: Node3D = map_node as Node3D
+	if map_node_3d == null:
+		_map_node_lookup_failed = true
+		push_error("Lvl_0 Map node is not a Node3D")
+		return null
+
+	_node_map = map_node_3d
+	return _node_map
+
+
+# Starts the same initial-chunk path used by direct scene startup.
 func initialize_async() -> void:
 	initialized()
 
+# Keeps preload polling pending until all initial chunks exist, but reports a missing map as not initialized.
 func initialized() -> bool:
+	if _resolve_map_node() == null:
+		return false
 	var chunk1: Chunk = _get_or_create_chunk(Vector2i(0, 0), true)
 	var chunk2: Chunk = _get_or_create_chunk(Vector2i(-1, -1), true)
 	var chunk3: Chunk = _get_or_create_chunk(Vector2i(-1, 0), true)
 	var chunk4: Chunk = _get_or_create_chunk(Vector2i(0, -1), true)
-	return chunk1 && chunk2 && chunk3 && chunk4
+	
+	var radius_offsets_loaded: bool = _preload_radius_offsets_table(true)
+	
+	return chunk1 && chunk2 && chunk3 && chunk4 && radius_offsets_loaded
 
-# Called when the node enters the scene tree for the first time.
+# Resolves the map before direct-start chunk loading so an invalid scene tree cannot leave startup retrying forever.
 func _ready() -> void:
-	_player = $_viewport_container/_viewport/Player
+	if _resolve_map_node() == null:
+		return
+	_player = UtilsNode.find_player(get_tree())
 	_load_visibility_pattern()
 	_update_visibility_transform()
 	
-	_player.add_wieldable("lvl_0_landing", false, true,  {
-							"max_look_freedom_degrees_v": 10.0, 
-							"max_look_freedom_degrees_h": 0.0, 
-							"movement_multiplier": 0.0,
+	_player.add_behaviour("lvl_0_landing", "parameters/lvl_0_landing/request", {
+							"player_max_look_freedom_degrees_v": 10.0,
+							"player_max_look_freedom_degrees_h": 0.0,
+							"player_movement_multiplier": 0.0,
 							"actions_at_millisecond": [
 								{600:  {"set_animation_speed": 0.13}},
 								{1000: {"set_animation_speed": 0.3}},
@@ -164,6 +204,8 @@ func _ready() -> void:
 	# Initial generation
 	print("Loading initial chunks...")
 	while true:
+		if _resolve_map_node() == null:
+			return
 		var chunk1: Chunk = _get_or_create_chunk(Vector2i(0, 0), true)
 		var chunk2: Chunk = _get_or_create_chunk(Vector2i(-1, -1), true)
 		var chunk3: Chunk = _get_or_create_chunk(Vector2i(-1, 0), true)
@@ -173,13 +215,7 @@ func _ready() -> void:
 		OS.delay_msec(50)
 	print("Loading initial chunks... done")
 	
-	print("generating precalculation tables...")
-	_preload_radius_offsets_table()
-	print("generating precalculation tables... done")
-
-func _preload_radius_offsets_table() -> void:
-	for v in range(0, 360):
-		_get_radius_offsets(VIEW_DISTANCE_AA, get_rounded_angle(deg_to_rad(v)), true)
+	_preload_radius_offsets_table(false)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
@@ -193,7 +229,7 @@ func _process(_delta: float) -> void:
 func _handle_player_landing() -> void:
 	if _player:
 		if !_did_hit_floor && _player.is_on_floor():
-			_player.active_wieldable = "lvl_0_landing"
+			_player.activate_behaviour("lvl_0_landing")
 			_did_hit_floor = true
 
 func _place_wall_specific(model: Model, tile_index: Vector2i, model_modefier: ModelModefier = null) -> void:
@@ -336,19 +372,18 @@ func _exit_tree() -> void:
 			thread.wait_to_finish()
 	chunk_threads.clear()
 
-# Retrieves an existing chunk or initiates asynchronous/synchronous chunk generation, cleaning up
-# background thread tracking upon generation completion so that unloaded chunks can be regenerated
-# when the player returns.
+# Resolves the map before creating or reattaching chunks so preloaded scenes never cache detached chunk nodes.
 func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
+	var map_node: Node3D = _resolve_map_node()
+	if map_node == null:
+		return null
+
 	if chunks.has(chunk_index):
 		var cached_chunk: Chunk = chunks[chunk_index]
-		if _node_map != null:
-			if cached_chunk.static_body_3d.get_parent() != _node_map:
-				_node_map.add_child(cached_chunk.static_body_3d)
-			if cached_chunk.tiles.get_parent() != _node_map:
-				_node_map.add_child(cached_chunk.tiles)
-		else:
-			push_error("_get_or_create_chunk: _node_map is null")
+		if cached_chunk.static_body_3d.get_parent() != map_node:
+			map_node.add_child(cached_chunk.static_body_3d)
+		if cached_chunk.tiles.get_parent() != map_node:
+			map_node.add_child(cached_chunk.tiles)
 		return cached_chunk
 		
 	var x0: int = chunk_index.x * CHUNK_SIZE
@@ -406,11 +441,8 @@ func _get_or_create_chunk(chunk_index: Vector2i, async: bool) -> Chunk:
 	chunk.global_pos = Vector2(x0, y0)
 	chunk.static_body_3d = StaticBody3D.new()
 	chunk.tiles = Node3D.new()
-	if _node_map != null:
-		_node_map.add_child(chunk.static_body_3d)
-		_node_map.add_child(chunk.tiles)
-	else:
-		push_error("_get_or_create_chunk: _node_map is null")
+	map_node.add_child(chunk.static_body_3d)
+	map_node.add_child(chunk.tiles)
 	chunk.static_body_3d.name = "Chunk_static_body_%d_%d" % [chunk_index.x, chunk_index.y]
 	chunk.tiles.name = "Chunk_%d_%d" % [chunk_index.x, chunk_index.y]
 	chunks[chunk_index] = chunk
@@ -711,8 +743,9 @@ func _load_visibility_pattern() -> void:
 			var is_visible_byte: int = 1 if (pixel_color.r > VISIBILITY_THRESHOLD) else 0
 			_visibility_pattern_data[y * _visibility_pattern_width + x] = is_visible_byte
 
+# Keeps live heading quantization aligned with the angle buckets built by the shared preload worker.
 func get_rounded_angle(angle_radians: float) -> int:
-	var precision: int = 15
+	var precision: int = RADIUS_OFFSETS_ANGLE_STEP_DEGREES
 	var angle: int = int(fposmod(rad_to_deg(angle_radians), 360.0))
 	angle = int(float(angle) / float(precision))
 	return angle * precision
@@ -737,17 +770,11 @@ func _update_visibility_transform() -> void:
 		_cached_forward_direction_rounded = Vector2(cos(deg_to_rad(float(_cached_forward_angle_rounded))), sin(deg_to_rad(float(_cached_forward_angle_rounded))))
 
 
-# Determines whether a tile is visible by projecting its world position into the player's local reference frame, rotating and centering it on the visibility mask image, and querying the cached PackedByteArray to cull unseen tiles outside the player's field of view with minimal lookup overhead and memory footprint.
+# Shares the visibility thresholds with candidate precomputation so cached offsets remain conservative while this live player-direction check stays authoritative.
 func _is_tile_visible(tile_index: Vector2i, tile_index_of_player: Vector2i) -> bool:
-	var forward_width: float = 5
-	var angle_dot: float = 0.6
-	var close_radius: int = 10
-	var fov_radius: float = 60
-	var fov_tile_offset: float = -10
-
 	var distance_x: int = tile_index.x - tile_index_of_player.x
 	var distance_y: int = tile_index.y - tile_index_of_player.y
-	var within_radius: bool = (distance_x * distance_x + distance_y * distance_y) < (close_radius*close_radius)
+	var within_radius: bool = (distance_x * distance_x + distance_y * distance_y) < (TILE_VISIBILITY_CLOSE_RADIUS * TILE_VISIBILITY_CLOSE_RADIUS)
 	if within_radius:
 		return true
 	
@@ -759,12 +786,12 @@ func _is_tile_visible(tile_index: Vector2i, tile_index_of_player: Vector2i) -> b
 		return false
 		
 	# closest axis aligned distance
-	var tile_index_offsetted: Vector2 = tile_indexf - _cached_forward_direction * fov_tile_offset
+	var tile_index_offsetted: Vector2 = tile_indexf - _cached_forward_direction * TILE_VISIBILITY_FOV_TILE_OFFSET
 	var tile_diff_offsetted: Vector2 = (tile_index_offsetted - tile_index_of_playerf)
 	var tile_diff_dir: Vector2 = tile_diff_offsetted.normalized()
 	#var tile_dir: Vector2 = tile_diff.normalized()	
 	var tile_dist_sq: float = tile_diff.length_squared()
-	if tile_diff_dir.dot(_cached_forward_direction) > angle_dot && tile_dist_sq < (fov_radius*fov_radius):
+	if tile_diff_dir.dot(_cached_forward_direction) > TILE_VISIBILITY_ANGLE_DOT && tile_dist_sq < (TILE_VISIBILITY_FOV_RADIUS * TILE_VISIBILITY_FOV_RADIUS):
 		return true
 	
 	var dir_aligned_x: Vector2 = Vector2(0.0, signf(_cached_forward_direction.y))
@@ -778,7 +805,7 @@ func _is_tile_visible(tile_index: Vector2i, tile_index_of_player: Vector2i) -> b
 	
 	var dx: float = cx.distance_squared_to(tile_indexf)
 	var dy: float = cy.distance_squared_to(tile_indexf)
-	if dx < (forward_width * forward_width) || dy < (forward_width * forward_width):
+	if dx < (TILE_VISIBILITY_FORWARD_WIDTH * TILE_VISIBILITY_FORWARD_WIDTH) || dy < (TILE_VISIBILITY_FORWARD_WIDTH * TILE_VISIBILITY_FORWARD_WIDTH):
 		return true
 	
 	return false
@@ -870,41 +897,124 @@ func _handle_tile_visibility() -> void:
 					graphic_node.visible = is_visible
 
 static var _radius_offsets_cache: Dictionary = {}
+static var _radius_offsets_cache_mutex: Mutex = Mutex.new()
+static var _radius_offsets_preload_mutex: Mutex = Mutex.new()
+static var _radius_offsets_preload_thread: Thread = Thread.new()
+static var _radius_offsets_preload_started: bool = false
+static var _radius_offsets_preload_complete: bool = false
 
-# Caches and returns concentric grid offsets sorted by ascending distance from center, eliminating per-frame trigonometric calculations and array sorting.
-func _get_radius_offsets(radius: int, player_yaw_rounded: int = 0, visible_tiles_only: bool = false) -> Array[Vector2i]:
-	var key: Vector2i = Vector2i(radius, player_yaw_rounded)
-	if _radius_offsets_cache.has(key):
-		var cached_offsets: Array[Vector2i] = _radius_offsets_cache[key]
-		return cached_offsets
-	
-	var player_pos_3d: Vector3 = _player.transform.origin
-	var tile_index_of_player: Vector2i = Vector2i(int(player_pos_3d.x), int(player_pos_3d.z))
+# Keeps concurrent preload callers on one worker and lets synchronous startup wait for that same table build.
+func _preload_radius_offsets_table(async: bool) -> bool:
+	_radius_offsets_preload_mutex.lock()
+	if _radius_offsets_preload_complete:
+		_radius_offsets_preload_mutex.unlock()
+		return true
 
+	if not _radius_offsets_preload_started:
+		var thread_start_error: Error = _radius_offsets_preload_thread.start(Callable(Lvl_0, "_build_radius_offsets_preload_table"))
+		if thread_start_error != OK:
+			push_error("_preload_radius_offsets_table: failed to start worker thread with error " + str(thread_start_error))
+			_radius_offsets_preload_thread = Thread.new()
+			_radius_offsets_preload_mutex.unlock()
+			return false
+		_radius_offsets_preload_started = true
+
+	if async and _radius_offsets_preload_thread.is_alive():
+		_radius_offsets_preload_mutex.unlock()
+		return false
+
+	var preload_result: Variant = _radius_offsets_preload_thread.wait_to_finish()
+	_radius_offsets_preload_started = false
+	if preload_result == true:
+		_radius_offsets_preload_complete = true
+	else:
+		push_error("_preload_radius_offsets_table: worker did not complete successfully")
+		_radius_offsets_preload_thread = Thread.new()
+
+	var table_loaded: bool = _radius_offsets_preload_complete
+	_radius_offsets_preload_mutex.unlock()
+	return table_loaded
+
+
+# Builds all angle buckets from pure offset data so the worker never depends on a level instance or scene tree.
+static func _build_radius_offsets_preload_table() -> bool:
+	print("generating precalculation tables...")
+	var generated_offsets: Dictionary = {}
+	for player_yaw_rounded: int in range(0, 360, RADIUS_OFFSETS_ANGLE_STEP_DEGREES):
+		var key: Vector3i = Vector3i(VIEW_DISTANCE_AA, player_yaw_rounded, 1)
+		_radius_offsets_cache_mutex.lock()
+		var already_cached: bool = _radius_offsets_cache.has(key)
+		_radius_offsets_cache_mutex.unlock()
+		if not already_cached:
+			generated_offsets[key] = _create_radius_offsets(VIEW_DISTANCE_AA, player_yaw_rounded, true)
+
+	_radius_offsets_cache_mutex.lock()
+	for key: Vector3i in generated_offsets:
+		if not _radius_offsets_cache.has(key):
+			_radius_offsets_cache[key] = generated_offsets[key]
+	_radius_offsets_cache_mutex.unlock()
+	print("generating precalculation tables... done")
+	return true
+
+
+# Produces distance-sorted candidate offsets without player state, including the full near field, bucket-expanded forward area, and matching axis corridors.
+static func _create_radius_offsets(radius: int, player_yaw_rounded: int, visible_tiles_only: bool) -> Array[Vector2i]:
 	var offsets: Array[Vector2i] = []
 	var radius_squared: int = radius * radius
-	for dy: int in range(-radius, radius + 1):
-		for dx: int in range(-radius, radius + 1):
-			var distance_squared: int = dx * dx + dy * dy
-			var add: bool = true
+	var angle_degrees: float = fposmod(float(player_yaw_rounded), 360.0) + float(RADIUS_OFFSETS_ANGLE_STEP_DEGREES) * 0.5
+	var angle_radians: float = deg_to_rad(angle_degrees)
+	var forward_direction: Vector2 = Vector2(cos(angle_radians), sin(angle_radians))
+	var angle_bucket_slop: float = sin(deg_to_rad(float(RADIUS_OFFSETS_ANGLE_STEP_DEGREES) * 0.5))
+	var forward_x_sign: int = 1 if forward_direction.x > 0.0 else -1
+	var forward_y_sign: int = 1 if forward_direction.y > 0.0 else -1
+	var yaw_has_cardinal_y_boundary: bool = posmod(player_yaw_rounded, 180) == 0
+	var yaw_has_cardinal_x_boundary: bool = posmod(player_yaw_rounded, 180) == 90
+	var close_radius_squared: int = TILE_VISIBILITY_CLOSE_RADIUS * TILE_VISIBILITY_CLOSE_RADIUS
+	var fov_radius_squared: float = TILE_VISIBILITY_FOV_RADIUS * TILE_VISIBILITY_FOV_RADIUS
+	var forward_width_squared: float = TILE_VISIBILITY_FORWARD_WIDTH * TILE_VISIBILITY_FORWARD_WIDTH
+
+	for offset_y: int in range(-radius, radius + 1):
+		for offset_x: int in range(-radius, radius + 1):
+			var distance_squared: int = offset_x * offset_x + offset_y * offset_y
 			if distance_squared >= radius_squared:
-				add = false
+				continue
+
 			if visible_tiles_only:
-				var tile_index: Vector2i = tile_index_of_player + Vector2i(dx, dy)
-				if !_is_tile_visible(tile_index, tile_index_of_player):
-					add = false
-			#if (abs(dx) > 20 && abs(dy) > 20):
-				#add = false
-			# exclude tiles that are not commoonly seen anyway, such as far away diagonal tiles
-	
-			if add:
-				offsets.append(Vector2i(dx, dy))
-	
-	var sort_by_distance: Callable = func(a: Vector2i, b: Vector2i) -> bool:
-		return (a.x * a.x + a.y * a.y) < (b.x * b.x + b.y * b.y)
-	offsets.sort_custom(sort_by_distance)
-	
+				var is_near_candidate: bool = distance_squared < close_radius_squared
+				var distance: float = sqrt(float(distance_squared))
+				var forward_projection: float = Vector2(offset_x, offset_y).dot(forward_direction)
+				var is_forward_candidate: bool = distance_squared < fov_radius_squared and forward_projection >= -distance * angle_bucket_slop
+				var is_y_axis_corridor_candidate: bool = (offset_y * forward_y_sign >= 0 or yaw_has_cardinal_y_boundary) and float(offset_x * offset_x) < forward_width_squared
+				var is_x_axis_corridor_candidate: bool = (offset_x * forward_x_sign >= 0 or yaw_has_cardinal_x_boundary) and float(offset_y * offset_y) < forward_width_squared
+				if not is_near_candidate and not is_forward_candidate and not is_y_axis_corridor_candidate and not is_x_axis_corridor_candidate:
+					continue
+
+			offsets.append(Vector2i(offset_x, offset_y))
+
+	offsets.sort_custom(func(first: Vector2i, second: Vector2i) -> bool:
+		return (first.x * first.x + first.y * first.y) < (second.x * second.x + second.y * second.y)
+	)
+	return offsets
+
+
+# Protects shared cached arrays while keeping offset generation outside the lock to avoid blocking cache readers.
+func _get_radius_offsets(radius: int, player_yaw_rounded: int = 0, visible_tiles_only: bool = false) -> Array[Vector2i]:
+	var key: Vector3i = Vector3i(radius, player_yaw_rounded, 1 if visible_tiles_only else 0)
+	_radius_offsets_cache_mutex.lock()
+	if _radius_offsets_cache.has(key):
+		var cached_offsets: Array[Vector2i] = _radius_offsets_cache[key]
+		_radius_offsets_cache_mutex.unlock()
+		return cached_offsets
+	_radius_offsets_cache_mutex.unlock()
+
+	var offsets: Array[Vector2i] = _create_radius_offsets(radius, player_yaw_rounded, visible_tiles_only)
+	_radius_offsets_cache_mutex.lock()
+	if _radius_offsets_cache.has(key):
+		var cached_offsets: Array[Vector2i] = _radius_offsets_cache[key]
+		_radius_offsets_cache_mutex.unlock()
+		return cached_offsets
 	_radius_offsets_cache[key] = offsets
+	_radius_offsets_cache_mutex.unlock()
 	return offsets
 
 # Instantiates and registers a tile's graphics or collision nodes within its parent chunk if the tile definition exists and the chunk is loaded, returning true if the tile was newly placed into cache.

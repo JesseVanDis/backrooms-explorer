@@ -77,6 +77,27 @@ Why the split:
 - `_add_tile` runs for the whole chunk at creation time and only fills the `placed_tiles`
   dictionary; node creation is deferred to the radius handlers.
 
+### Preload-time chunk ownership
+
+`LevelTransition` instantiates `lvl_0` and calls its initialization methods before the level enters
+the SceneTree. The level's authored `Map` node is still available through child lookup in this
+off-tree state, even though `@onready` fields have not run. `Lvl_0` resolves that node before
+creating or reattaching chunks, so each chunk's `StaticBody3D` and tile container are parented under
+`Map` throughout preload and remain there after the scene transition. If the required `Map` node is
+missing or is not a `Node3D`, initialization reports the scene error and does not cache detached
+chunks.
+
+### Radius-offset table preload
+
+`Lvl_0._preload_radius_offsets_table(true)` starts one static worker for all Level 0 instances and
+returns `false` while the shared angle-bucketed visibility candidates are still being built. Later
+polls reuse that worker and return `true` only after all rounded headings have been published.
+Synchronous startup joins the same worker rather than generating a duplicate table. The worker
+uses only radius/angle data, so it remains valid if the instance that initiated preload is freed.
+The cache and worker state use separate mutexes; candidate arrays are generated off-lock and
+published atomically. Candidates conservatively include the close field, the bucket-expanded
+forward region, and heading-aligned axis corridors; `_is_tile_visible` remains the runtime check.
+
 ## 3. Coordinate system and constants
 
 All constants of `scenes/lvl_0/lvl_0.gd`:

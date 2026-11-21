@@ -102,11 +102,14 @@ Rules as implemented:
 - The return value of `initialized()` is read as `Variant` and only honoured when
   `typeof(result) == TYPE_BOOL`; anything else counts as "ready".
 - The node is **not in the scene tree** while these run, so `get_tree()`, `_ready`, `_process` and
-  `@onready` members are not available yet.
+  `@onready` members are not available yet. Child lookup on the instantiated hierarchy still works;
+  `lvl_0.gd` uses it to resolve `Map` before attaching preload-time chunk nodes.
 
 Which level implements them: **`scenes/lvl_0/lvl_0.gd`** - the only one. Its
 `initialize_async()` simply calls `initialized()`, and `initialized()` creates/returns the four
-starting chunks `(0,0)`, `(-1,-1)`, `(-1,0)`, `(0,-1)` and returns whether all four exist.
+starting chunks `(0,0)`, `(-1,-1)`, `(-1,0)`, `(0,-1)` and returns whether all four exist. It resolves
+the authored `Map` node via child lookup before doing so; the chunk nodes are therefore already
+parented correctly while this level is still off-tree.
 
 - unclear: because `initialize_async()` is not itself asynchronous and `initialized()` does the work
   on each poll, the "async" part is really "retry chunk creation each frame until all four exist".

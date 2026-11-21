@@ -45,7 +45,8 @@ godot --path . --export-release "Windows Desktop" ./build/debug/windows/backgroo
 - Whenever you add or change a function, add or update a comment directly above it that explains
   why the function or change is needed, rather than only restating what the code does.
 - do **NOT** change any third party assets / libraries.
-- Always ask for permission when you change something in any .md file.
+- Always ask for permission when you change something in any of the following .md files:
+  - Non-ai .md files. i.e., files that are not inside a folder called ```ai``` or any of its sub folders, or files simply called ```SPEC.md```
 - When changing the parsing tools, only invoke `tools/parse.sh` to verify the changes.
 - Do not abbreviate function and variable names, with the exception of: `dt`
 - Do not do anything with(in) the nodes of any imported objects. Only operate on nodes that are set by Godot itself.
@@ -60,3 +61,6 @@ godot --path . --export-release "Windows Desktop" ./build/debug/windows/backgroo
   - changed a level -> update `scenes/<level>/docs/`
   - started or finished a feature -> update `docs/ai/STATUS.md`
 - Never state a gameplay fact that is not on the Backrooms Wiki without tagging it `[interpretation]`.
+- mind error logging. if something is null where you dont expect it to be, do a push_error(...). 
+  - Only do this for new code you generate. do not apply it on code that is not relevant to your task. 
+  - a comment `# no push_error(...) intended` will also indicate that in that place a push_error is not intended.

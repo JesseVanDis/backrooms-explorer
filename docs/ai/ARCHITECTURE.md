@@ -102,7 +102,7 @@ scenes/frontroom_0/frontroom_0.tscn        (intended entry; see Gotcha above)
         │    └── _show_intro() ................. menu_intro.tscn over the top, then fade out
         │
         │  _physics_process()
-        │    ├── _update_player_speed() ........ proximity to a MovingBox -> wieldable "wield_push"
+        │    ├── _update_player_speed() ........ proximity to a MovingBox -> activate "push" and set behaviour_target
         │    ├── _update_environment_effects() . player.y drives fog_density / fog_sky_affect
         │    ├── _handle_level_transition() .... player.y < -15.0 -> switch_to_level(lvl_0)
         │    └── _level_transition.update() .... drives the async state machine
@@ -147,8 +147,8 @@ Input actions ──► player.gd ──► velocity / CharacterBody3D
                       │
                       ├──► head bob + camera (UtilsMath noise)
                       ├──► footstep sounds (per level, via apply_footsteps())
-                      ├──► PlayerWield ──► wieldable animation (hands)
-                      ├──► PlayerHands ──► hand mesh opacity shader param
+                      ├──► PlayerBehaviour ──► AnimationTree behaviour blends
+                      ├──► character_main bone attachment / PositionToShaderParam ──► hand opacity uniform
                       └──► voice queue ──► AudioStreamPlayer3D ──► PlayerSubtitles (.srt)
 ```
 

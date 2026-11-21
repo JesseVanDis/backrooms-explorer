@@ -1,0 +1,40 @@
+[gd_resource type="AnimationNodeBlendTree" format=3 uid="uid://b76j5yrxbk8uf"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_507o8"]
+animation = &"idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_5kj2q"]
+animation = &"lvl_0_landing"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_m2cx2"]
+animation = &"pushing"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_laxb3"]
+animation = &"running"
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_5kj2q"]
+
+[sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_m2cx2"]
+filter_enabled = true
+filters = ["", "_body_armature/Skeleton3D:CC_Base_Forearm.L", "_body_armature/Skeleton3D:CC_Base_Forearm.R", "_body_armature/Skeleton3D:CC_Base_Hand.L", "_body_armature/Skeleton3D:CC_Base_Hand.R", "_body_armature/Skeleton3D:CC_Base_Index1.L", "_body_armature/Skeleton3D:CC_Base_Index1.R", "_body_armature/Skeleton3D:CC_Base_Index2.L", "_body_armature/Skeleton3D:CC_Base_Index2.R", "_body_armature/Skeleton3D:CC_Base_Index3.L", "_body_armature/Skeleton3D:CC_Base_Index3.R", "_body_armature/Skeleton3D:CC_Base_JawRoot", "_body_armature/Skeleton3D:CC_Base_L_Eye", "_body_armature/Skeleton3D:CC_Base_Mid1.L", "_body_armature/Skeleton3D:CC_Base_Mid1.R", "_body_armature/Skeleton3D:CC_Base_Mid2.L", "_body_armature/Skeleton3D:CC_Base_Mid2.R", "_body_armature/Skeleton3D:CC_Base_Mid3.L", "_body_armature/Skeleton3D:CC_Base_Mid3.R", "_body_armature/Skeleton3D:CC_Base_Pinky1.L", "_body_armature/Skeleton3D:CC_Base_Pinky1.R", "_body_armature/Skeleton3D:CC_Base_Pinky2.L", "_body_armature/Skeleton3D:CC_Base_Pinky2.R", "_body_armature/Skeleton3D:CC_Base_Pinky3.L", "_body_armature/Skeleton3D:CC_Base_Pinky3.R", "_body_armature/Skeleton3D:CC_Base_R_Eye", "_body_armature/Skeleton3D:CC_Base_RibsTwist.L", "_body_armature/Skeleton3D:CC_Base_Ring1.L", "_body_armature/Skeleton3D:CC_Base_Ring1.R", "_body_armature/Skeleton3D:CC_Base_Ring2.L", "_body_armature/Skeleton3D:CC_Base_Ring2.R", "_body_armature/Skeleton3D:CC_Base_Ring3.L", "_body_armature/Skeleton3D:CC_Base_Ring3.R", "_body_armature/Skeleton3D:CC_Base_Spine01", "_body_armature/Skeleton3D:CC_Base_Spine02", "_body_armature/Skeleton3D:CC_Base_Teeth01", "_body_armature/Skeleton3D:CC_Base_Teeth02", "_body_armature/Skeleton3D:CC_Base_Thumb1.L", "_body_armature/Skeleton3D:CC_Base_Thumb1.R", "_body_armature/Skeleton3D:CC_Base_Thumb2.L", "_body_armature/Skeleton3D:CC_Base_Thumb2.R", "_body_armature/Skeleton3D:CC_Base_Thumb3.L", "_body_armature/Skeleton3D:CC_Base_Thumb3.R", "_body_armature/Skeleton3D:CC_Base_Tongue01", "_body_armature/Skeleton3D:CC_Base_Upperarm.L", "_body_armature/Skeleton3D:CC_Base_Upperarm.R", "_body_armature/Skeleton3D:_setting_hands_opacity", "_body_armature/Skeleton3D:hand_center.R", "_body_armature/Skeleton3D:hand_finger_end_1.L", "_body_armature/Skeleton3D:hand_finger_end_1.R", "_body_armature/Skeleton3D:hand_finger_end_2.L", "_body_armature/Skeleton3D:hand_finger_end_2.R", "_body_armature/Skeleton3D:hand_finger_end_3.L", "_body_armature/Skeleton3D:hand_finger_end_3.R", "_body_armature/Skeleton3D:hand_finger_end_4.L", "_body_armature/Skeleton3D:hand_finger_end_4.R", "_body_armature/Skeleton3D:hand_finger_middle_1.L", "_body_armature/Skeleton3D:hand_finger_middle_1.R", "_body_armature/Skeleton3D:hand_finger_middle_2.L", "_body_armature/Skeleton3D:hand_finger_middle_2.R", "_body_armature/Skeleton3D:hand_finger_middle_3.L", "_body_armature/Skeleton3D:hand_finger_middle_3.R", "_body_armature/Skeleton3D:hand_finger_middle_4.L", "_body_armature/Skeleton3D:hand_finger_middle_4.R", "_body_armature/Skeleton3D:hand_finger_root_1.L", "_body_armature/Skeleton3D:hand_finger_root_1.R", "_body_armature/Skeleton3D:hand_finger_root_2.L", "_body_armature/Skeleton3D:hand_finger_root_2.R", "_body_armature/Skeleton3D:hand_finger_root_3.L", "_body_armature/Skeleton3D:hand_finger_root_3.R", "_body_armature/Skeleton3D:hand_finger_root_4.L", "_body_armature/Skeleton3D:hand_finger_root_4.R", "_body_armature/Skeleton3D:hand_knuckle_5.L", "_body_armature/Skeleton3D:hand_knuckle_5.R", "_body_armature/Skeleton3D:hand_root.L", "_body_armature/Skeleton3D:hand_root.R", "_body_armature/Skeleton3D:hand_thumb_end.L", "_body_armature/Skeleton3D:hand_thumb_end.R", "_body_armature/Skeleton3D:hand_thumb_root.L", "_body_armature/Skeleton3D:hand_thumb_root.R"]
+
+[sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_laxb3"]
+
+[resource]
+graph_offset = Vector2(-587.7326, 52.807526)
+nodes/output/position = Vector2(600, 200)
+nodes/anim_idle/node = SubResource("AnimationNodeAnimation_507o8")
+nodes/anim_idle/position = Vector2(-340, 120)
+nodes/anim_lvl_0_landing/node = SubResource("AnimationNodeAnimation_5kj2q")
+nodes/anim_lvl_0_landing/position = Vector2(-380, 660)
+nodes/anim_push/node = SubResource("AnimationNodeAnimation_m2cx2")
+nodes/anim_push/position = Vector2(0, 320)
+nodes/anim_run/node = SubResource("AnimationNodeAnimation_laxb3")
+nodes/anim_run/position = Vector2(-340, 300)
+nodes/run/node = SubResource("AnimationNodeBlend2_laxb3")
+nodes/run/position = Vector2(-180, 100)
+nodes/push/node = SubResource("AnimationNodeBlend2_m2cx2")
+nodes/push/position = Vector2(160, 100)
+nodes/lvl_0_landing/node = SubResource("AnimationNodeOneShot_5kj2q")
+nodes/lvl_0_landing/position = Vector2(340, 580)
+node_connections = [&"output", 0, &"lvl_0_landing", &"run", 0, &"anim_idle", &"run", 1, &"anim_run", &"push", 0, &"run", &"push", 1, &"anim_push", &"lvl_0_landing", 0, &"push", &"lvl_0_landing", 1, &"anim_lvl_0_landing"]

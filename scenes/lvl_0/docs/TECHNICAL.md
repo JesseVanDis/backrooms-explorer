@@ -11,6 +11,13 @@
 [map_generation.md](../../../docs/ai/systems/map_generation.md) for the authoritative, up to date
 description of `map_generator.gd`/`part_wall_x.tscn`.)
 
+## Chunk attachment during preload
+
+`LevelTransition` initializes `lvl_0` before it enters the SceneTree, so `@onready` fields are not
+available yet. `lvl_0.gd` resolves the authored `Map` child through the instantiated scene hierarchy
+before creating chunks; this keeps the chunk body and tile nodes parented under `Map` throughout
+preload and after the level transition.
+
 ## Scattered clutter (chairs, trash bins)
 
  - A reserved byte on the 64-bit `MapGenerator.Pixel` (`PROP_MASK`) marks a `TILE_EMPTY` floor

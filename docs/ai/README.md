@@ -66,7 +66,7 @@ Cross-level code lives in `assets/scripts/`. One spec per system:
 
 | System                                           | Code                                                                 |
 |--------------------------------------------------|----------------------------------------------------------------------|
-| [Player](systems/player.md)                       | `assets/scripts/player.gd`, `player_hands.gd`, `player_wield.gd`      |
+| [Player](systems/player.md)                       | `assets/scripts/player.gd`, `position_to_shader_param.gd`, `player_wield.gd` |
 | [Audio](systems/audio.md)                         | `assets/scripts/sound_controller.gd`, `physics_sounds.gd`             |
 | [Interaction](systems/interaction.md)             | `assets/scripts/trigger.gd`, `door.gd`                                |
 | [Level flow](systems/level_flow.md)               | `assets/scripts/level_transition.gd`, `utils/screen.gd`, `scenes/menu_*` |
@@ -110,6 +110,7 @@ See the [level index](levels/README.md) for every level, its state, and where it
 6. **Verify with `tools/static_check.sh`** before declaring a code change done.
 7. **Ask before editing an existing `.md` file** (hard rule in AGENTS.md). Creating new docs
    under `docs/ai/` as part of documenting your own change is expected and does not need asking.
+8. **Use the Godot MCP when useful.** Assume it is installed; if it is unavailable, continue without it.
 
 ---
 

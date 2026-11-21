@@ -1,15 +1,18 @@
-## [AI-DOC] First-person CharacterBody3D controller handling walking, jumping, head bob, footstep and voice audio, wieldable/camera limits, and debug freecam
+## [AI-DOC] First-person CharacterBody3D controller handling movement, AnimationTree behaviour statuses and gated camera offsets, head bob, push-target hand yaw, asymmetric pivot-based mouse look, audio, and debug freecam
 ## spec: docs/ai/systems/player.md
 ## status: partial
-## notes: delegates wieldable animation state to PlayerWield and subtitles to IngameUI
+## notes: resolves the named head-pitch and perspective-hands modifiers separately; hand yaw follows active push targets without changing other rotation axes
 
 extends CharacterBody3D
+
 class_name Player
 
 const JUMP_VELOCITY: float = 3.5
 const FREECAM_FLY_SPEED: float = 10.0
 const FREECAM_FAST_SPEED_MULTIPLIER: float = 3.0
 const FREECAM_MOUSE_SENSITIVITY: float = 0.003
+const MAX_LOOK_UP_DEGREES: float = 90.0
+const MAX_LOOK_DOWN_DEGREES: float = 80.0
 var FOOTSTEP_INTERVAL: SpeedScale = SpeedScale.new(0.8, 0.36)
 var BOB_VERTICAL_AMPLITUDE: SpeedScale = SpeedScale.new(0.02, 0.08)
 var BOB_HORIZONTAL_AMPLITUDE: SpeedScale = SpeedScale.new(0.005, 0.02)
@@ -35,12 +38,17 @@ class SpeedScale:
 @export var initial_yaw: float = 0.0
 @export var initial_pitch: float = 0.0
 
-@onready var _audio_player_voice: AudioStreamPlayer3D = $_Hands/_cam/Camera/RaytracedAudioPlayer3D_Voice
-@onready var _audio_player_foot: AudioStreamPlayer3D = $_Hands/_cam/Camera/RaytracedAudioPlayer3D_Foot
-
+@onready var _audio_player_voice: AudioStreamPlayer3D = null
+@onready var _audio_player_foot: AudioStreamPlayer3D = null
 @onready var _node_camera : Camera3D = null
-@onready var _node_hands_yaw : Node3D = null
+@onready var _node_camera_pitch_pivot : Node3D = null
+#@onready var _node_hands_yaw : Node3D = null
 var _ingame_ui: IngameUI = null
+var _num_frames_since_ready: int = 0
+
+var _spine_pitch: float = 0.0
+var _skeleton_modifier_headpitch: SkeletonModifier = null
+var _skeleton_modifier_perspective_hands: SkeletonModifier = null
 
 #var active_voice_sequence: Array[AudioStream] = []:
 #	set(value):
@@ -48,7 +56,7 @@ var _ingame_ui: IngameUI = null
 #		_on_active_voice_sequence_changed()
 
 var _remaining_voice_sequence: Array[AudioStream] = []
-var wield_target: Node3D = null
+var behaviour_target: Node3D = null
 
 
 const FOOTSTEP_SOUNDS: Array[AudioStream] = [
@@ -77,16 +85,23 @@ var _old_global_pos: Vector3 = Vector3(0,0,0)
 
 #RaytracedAudioPlayer3D_Footsteps
 
-var _wield: PlayerWield = PlayerWield.new(self)
+var _behaviour: PlayerBehaviour = PlayerBehaviour.new(self)
 var control_enabled: bool = true
-var active_wieldable: String:
-	get:        return _wield.active_wieldable
-	set(value): _wield.active_wieldable = value
+
+#var active_behaviourable: String:
+	#get:        return _behaviour.active_behaviourable
+	#set(value): _behaviour.active_behaviourable = value
 
 var _flags: Dictionary = {}
+var _started: bool = false
+var started: bool: 
+	get: return _started
 
 # Animations
 var _camera_default_position: Vector3 = Vector3.ZERO
+var _camera_offset: Vector3 = Vector3.ZERO
+var _camera_offset_speed: float = 1.0
+var _camera_bob_offset: Vector3 = Vector3.ZERO
 var _bob_phase: float = 0.0
 var _is_moving: bool = false
 
@@ -107,9 +122,24 @@ var forward_2d: Vector2:
 var moving_direction_2d: Vector2:
 	get(): return UtilsMath.xz_normal(global_position - _old_global_pos)
 
-func add_wieldable(unique_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void:
-	_wield.add_wieldable(unique_name, p_rewind_for_dequip, p_clear_wield_when_finish, p_additional_args)
+# Lets levels register an AnimationTree behaviour together with its player restrictions.
+func add_behaviour(unique_name: String, p_animation_tree_parameter: StringName = "", p_additional_settings: Dictionary = {}) -> void:
+	_behaviour.add(unique_name, p_animation_tree_parameter, p_additional_settings)
+
+# Refreshes restrictions now so activation affects input before the next physics update.
+func activate_behaviour(unique_name: String) -> void:
+	_behaviour.activate(unique_name)
+	_behaviour.refresh_active_settings()
 	
+# Rebuilds effective restrictions immediately so they follow the changed animation state.
+func deactivate_behaviour(unique_name: String) -> void:
+	_behaviour.deactivate(unique_name)
+	_behaviour.refresh_active_settings()
+
+# Exposes a behaviour's current AnimationTree lifecycle phase to player callers.
+func get_behaviour_status(unique_name: String) -> PlayerBehaviour.BehaviourStatus:
+	return _behaviour.get_behaviour_status(unique_name)
+
 # returns false if it already was triggered
 # use for anything really. will be saved in player savegame as well.
 func set_flag(id: String) -> bool:
@@ -122,26 +152,67 @@ func set_flag(id: String) -> bool:
 func is_flag_set(id: String) -> bool:
 	return _flags.has(id)
 
+# Initializes camera framing and exported pitch after default behaviours register, before the first physics frame.
 func _ready() -> void:
+	_num_frames_since_ready = 0
+	_audio_player_voice = UtilsNode.find_node_with_name_recursive(self, "RaytracedAudioPlayer3D_Voice")
+	_audio_player_foot = UtilsNode.find_node_with_name_recursive(self, "RaytracedAudioPlayer3D_Foot")
+	_node_camera = UtilsNode.find_camera_recursive(self)
+	_skeleton_modifier_headpitch = UtilsNode.find_node_with_name_recursive(self, "_skeleton_modifier_headpitch") as SkeletonModifier
+	_skeleton_modifier_perspective_hands = UtilsNode.find_node_with_name_recursive(self, "_skeleton_modifier_perspective_hands") as SkeletonModifier
+	_node_camera_pitch_pivot = UtilsNode.find_node_with_name_recursive(self, "_cam_pitch_pivot")
+
 	_ingame_ui = _find_ingame_ui()
 	
-	UtilsScreen.fade_out_screen(get_tree())
-	_node_camera = UtilsNode.find_camera_recursive(self)
 	if _node_camera == null:
 		push_error("_node_camera is null")
 		return
 		
-	_node_hands_yaw = $_Hands/_hands
-	if _node_hands_yaw == null:
-		push_error("_node_hands is null")
+	if _node_camera_pitch_pivot == null:
+		push_error("_node_camera_pitch_pivot is null")
+		return
+
+	if _audio_player_voice == null:
+		push_error("_audio_player_voice is null")
+		return
+
+	if _audio_player_foot == null:
+		push_error("_audio_player_foot is null")
+		return
+	
+	if _skeleton_modifier_headpitch == null:
+		push_error("_skeleton_modifier_headpitch is null")
+		return
+
+	if _skeleton_modifier_perspective_hands == null:
+		push_error("_skeleton_modifier_perspective_hands is null")
+		return
+		
+		
+	#if _node_hands_yaw == null:
+	#	push_error("_node_hands is null")
+	
 
 	rotation.y = deg_to_rad(initial_yaw)
-	_node_camera.rotation.x = deg_to_rad(initial_pitch)
-	velocity = initial_velocity
+	_spine_pitch = deg_to_rad(initial_pitch)
 	_camera_default_position = _node_camera.position
+
+	# Register default behaviours with restrictions keyed by their player property names.
+	add_behaviour("")
+	add_behaviour("run",  "parameters/run/blend_amount", {
+		"anim_activation_speed": 4.0, 
+		"anim_deactivation_speed": 4.0, 
+		"player_camera_offset": Vector3(0.0, 0.0, -0.10),
+		"player_camera_offset_speed": 2.0
+	})
 	
-	add_wieldable("")
-	add_wieldable("wield_push",    true,  false, {"max_movement_speed_to_target": 0.15})
+	add_behaviour("push", "parameters/push/blend_amount", {
+		"anim_activation_speed": 3.0, 
+		"anim_deactivation_speed": 2.0, 
+		"player_max_movement_speed_to_target": 0.15
+	})
+	
+	_handle_camera_limits(0.0)
 
 	_ensure_sound_controller()
 	if _ingame_ui != null:
@@ -151,6 +222,10 @@ func _ready() -> void:
 	_audio_player_voice.finished.connect(_on_voice_finished)
 	_setup_debug_camera()
 
+func _start() -> void:
+	UtilsScreen.fade_out_screen(get_tree())
+	velocity = initial_velocity
+	_started = true
 
 func replace_voice(sequence: Array[AudioStream]) -> void:
 	if _audio_player_voice == null:
@@ -258,8 +333,12 @@ func apply_jump_sounds(sounds: Array[AudioStream]) -> void:
 func _process(real_delta: float) -> void:
 	if _is_debug_cam_active:
 		_process_freecam_movement(real_delta)
+		
+	if _num_frames_since_ready == 2:
+		_start() # add some delay to start, as some stuff in the scene still desires 1 or 2 frames for it to be complete
+	_num_frames_since_ready = _num_frames_since_ready + 1
 
-# Drives player movement, physics collisions, gravity simulation, and camera/audio state updates during each physics step.
+# Advances behaviour blends before input handling, then applies camera offsets after run activation can change its status.
 func _physics_process(real_delta: float) -> void:
 	if _is_debug_cam_active:
 		velocity = Vector3.ZERO
@@ -270,8 +349,11 @@ func _physics_process(real_delta: float) -> void:
 	var delta: float = real_delta
 	if is_fast_mode:
 		delta = 0.1
+	_behaviour.update(delta)
+	_handle_hands_aim(delta)
 		
 	if not control_enabled:
+		_update_camera_behavior_offsets(delta)
 		velocity.x = move_toward(velocity.x, 0, max_speed)
 		velocity.z = move_toward(velocity.z, 0, max_speed)
 		if not is_on_floor() and not is_gravity_disabled:
@@ -283,7 +365,7 @@ func _physics_process(real_delta: float) -> void:
 	
 	var was_in_air: bool = not is_on_floor()
 	# Add the gravity.
-	if not is_on_floor() and not is_gravity_disabled:
+	if not is_on_floor() and not is_gravity_disabled and _started:
 		velocity += get_gravity() * delta
 		if max_fall_speed > 0.0:
 			velocity.y = max(velocity.y, -max_fall_speed)
@@ -297,7 +379,13 @@ func _physics_process(real_delta: float) -> void:
 	# As good practice, you should replace UI actions with custom gameplay actions.
 	var input_dir: Vector2 = Input.get_vector("left", "right", "forward", "backward")
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-
+	
+	if input_dir == Vector2.ZERO:
+		deactivate_behaviour("run")
+	else:
+		activate_behaviour("run")
+	_update_camera_behavior_offsets(delta)
+	
 	if direction:
 		velocity.x = direction.x * _current_speed(Vector2(direction.x, direction.z))
 		velocity.z = direction.z * _current_speed(Vector2(direction.x, direction.z))
@@ -323,9 +411,8 @@ func _physics_process(real_delta: float) -> void:
 	if was_in_air and is_on_floor():
 		_play_landing_sound()
 	
-	_wield.update(delta)
-	_handle_hands_aim(delta)
 	_handle_camera_limits(delta)
+	_apply_spine_pitch()
 	_handle_head_bob(delta)
 	_handle_footsteps(delta)
 	_old_global_pos = global_position
@@ -363,37 +450,65 @@ func _play_landing_sound() -> void:
 	# _audio_player.volume_db = 10.0;
 	_audio_player_foot.play()
 
-func _handle_camera_limits(dt: float) -> void:
-	var adjustement_speed := 10.0 + _wield.seconds_since_equiping_start * 40.0
-	var adjustement_step := minf(1.0, adjustement_speed * dt)
-	var active_wieldable_data := _wield.active_wieldable_data
+# Clamps up/down pitch independently within absolute and behaviour limits, then synchronizes the camera pivot.
+func _handle_camera_limits(_dt: float) -> void:
 	
-	var max_look_freedom_h: float = 360.0
-	var max_look_freedom_v: float = 360.0
-	if active_wieldable_data:
-		max_look_freedom_h = active_wieldable_data.max_look_freedom_degrees_h
-		max_look_freedom_v = active_wieldable_data.max_look_freedom_degrees_v
+	#var adjustement_speed := 10.0 + _behaviour.seconds_since_equiping_start * 40.0
+	#var adjustement_step := minf(1.0, adjustement_speed * dt)
+	var adjustement_step: float = 1.0
+	#var active_behaviourable_data := _behaviour.active_behaviourable_data
 	
-	var pitch_limit_deg := 90.0
+	var max_look_freedom_h: float = _behaviour.active_settings.player_max_look_freedom_degrees_h
+	var max_look_freedom_v: float = _behaviour.active_settings.player_max_look_freedom_degrees_v
+	
+	var maximum_upward_pitch_degrees: float = MAX_LOOK_UP_DEGREES
+	var maximum_downward_pitch_degrees: float = MAX_LOOK_DOWN_DEGREES
 	var yaw_limit_deg := 360.0
 	if max_look_freedom_h < 360.0:
 		yaw_limit_deg = max_look_freedom_h * 0.5
 	if max_look_freedom_v < 360.0:
-		pitch_limit_deg = max_look_freedom_v * 0.5
-	
-	var target_x := clampf(_node_camera.rotation.x, deg_to_rad(-pitch_limit_deg), deg_to_rad(pitch_limit_deg))
-	if target_x != _node_camera.rotation.x:
-		_node_camera.rotation.x = (_node_camera.rotation.x * (1.0 - adjustement_step)) + (target_x * adjustement_step)
+		var behaviour_pitch_limit_degrees: float = max_look_freedom_v * 0.5
+		maximum_upward_pitch_degrees = minf(maximum_upward_pitch_degrees, behaviour_pitch_limit_degrees)
+		maximum_downward_pitch_degrees = minf(maximum_downward_pitch_degrees, behaviour_pitch_limit_degrees)
+
+	var target_pitch := clampf(_spine_pitch, deg_to_rad(-maximum_upward_pitch_degrees), deg_to_rad(maximum_downward_pitch_degrees))
+	if target_pitch != _spine_pitch:
+		_spine_pitch = (_spine_pitch * (1.0 - adjustement_step)) + (target_pitch * adjustement_step)
 	else:
-		_node_camera.rotation.x = target_x
+		_spine_pitch = target_pitch
+	_node_camera_pitch_pivot.rotation.x = -_spine_pitch
 	
 	if yaw_limit_deg < 360.0:
 		var target_y := clampf(self.rotation.y, deg_to_rad(-yaw_limit_deg), deg_to_rad(yaw_limit_deg))
 		if self.rotation.y != target_y:
 			self.rotation.y = (self.rotation.y * (1.0 - adjustement_step)) + (target_y * adjustement_step)
+	_apply_camera_position()
 
 
-# Handles user input for mouse capture, freecam toggling, camera look, and movement controls.
+# Moves toward offsets from behaviours in Enabling or Active, so Disabling starts camera return before animation completion.
+func _update_camera_behavior_offsets(dt: float) -> void:
+	var active_settings: Dictionary = _behaviour.active_settings.additional_settings
+	var target_offset: Vector3 = _behaviour.active_settings.player_camera_offset
+	if active_settings.has("player_camera_offset_speed"):
+		_camera_offset_speed = _behaviour.active_settings.player_camera_offset_speed
+	var offset_step: float = maxf(0.0, _camera_offset_speed) * dt
+	_camera_offset.x = move_toward(_camera_offset.x, target_offset.x, offset_step)
+	_camera_offset.y = move_toward(_camera_offset.y, target_offset.y, offset_step)
+	_camera_offset.z = move_toward(_camera_offset.z, target_offset.z, offset_step)
+	_apply_camera_position()
+
+
+# Combines root-relative behavior displacement with local bob so each camera effect remains independent.
+func _apply_camera_position() -> void:
+	var camera_parent: Node3D = _node_camera.get_parent() as Node3D
+	if camera_parent == null:
+		push_error("Player camera parent is null")
+		return
+	var offset_in_camera_parent_space: Vector3 = camera_parent.global_transform.basis.inverse() * global_transform.basis * _camera_offset
+	_node_camera.position = _camera_default_position + _camera_bob_offset + offset_in_camera_parent_space
+
+
+# Handles player input and applies clamped mouse pitch through the pivot; headless motion remains available for regression tests.
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		var key_event: InputEventKey = event as InputEventKey
@@ -419,41 +534,45 @@ func _unhandled_input(event: InputEvent) -> void:
 			_handle_freecam_look(mouse_motion)
 		return
 
-	if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+	if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED or DisplayServer.get_name() == "headless":
 		var event_mouse_motion: InputEventMouseMotion = event as InputEventMouseMotion
 		if event_mouse_motion:
+			_behaviour.refresh_active_settings()
 			var motion_speed := 0.01
-			var active_wieldable_data := _wield.active_wieldable_data
-			var is_rotating_limited: bool = active_wieldable_data and (active_wieldable_data.max_look_freedom_degrees_h < 360.0 or active_wieldable_data.max_look_freedom_degrees_v < 360.0)
+			# var active_behaviourable_data := _behaviour.active_behaviourable_data
+			var is_rotating_limited: bool = (_behaviour.active_settings.player_max_look_freedom_degrees_h < 360.0 or _behaviour.active_settings.player_max_look_freedom_degrees_v < 360.0)
 			if is_rotating_limited:
 				motion_speed = 0.0005
 			if control_enabled:
 				rotate_y(-event_mouse_motion.relative.x * motion_speed)
-				_node_camera.rotate_x(-event_mouse_motion.relative.y * motion_speed)
-				if not is_rotating_limited:
-					_handle_camera_limits(9999.0)
+				# print("rotating limited: " + str(is_rotating_limited) + ", motionspeed: " + str(motion_speed))
+				_spine_pitch += event_mouse_motion.relative.y * motion_speed
+				_handle_camera_limits(0.0)
 
 func _current_speed(direction: Vector2) -> float:
 	var dir: Vector2 = direction
 	if !dir.is_normalized():
 		dir = UtilsMath.xz_normal(-transform.basis.z) # fallback
-	var speed_target_multiplier: float = 1.0
 	var speed_limit: float = max_speed
-	var active_wieldable_data := _wield.active_wieldable_data
-	if active_wieldable_data:
-		speed_target_multiplier = active_wieldable_data.movement_multiplier
-		speed_limit = min(speed_limit, active_wieldable_data.max_movement_speed)
-		if wield_target && active_wieldable_data.max_movement_speed_to_target < max_speed:
-			var direction_to_target: Vector2 = UtilsMath.xz_normal(wield_target.global_position - global_position)
-			var factor: float = direction_to_target.distance_to(dir)
-			factor = factor * 0.5
-			factor = factor*factor
-			var new_max_speed: float = lerp(active_wieldable_data.max_movement_speed_to_target, max_speed, min(1.0, factor))
-			#print("max speed: " + str(new_max_speed))
-			speed_limit = min(new_max_speed, speed_limit)
+	# var active_behaviourable_data := _behaviour.active_behaviourable_data
+	#if active_behaviourable_data:
+	var speed_target_multiplier: float = _behaviour.active_settings.player_movement_multiplier
+	speed_limit = min(speed_limit, _behaviour.active_settings.player_max_movement_speed)
+	if behaviour_target && _behaviour.active_settings.player_max_movement_speed_to_target < max_speed:
+		var direction_to_target: Vector2 = UtilsMath.xz_normal(behaviour_target.global_position - global_position)
+		var factor: float = direction_to_target.distance_to(dir)
+		factor = factor * 0.5
+		factor = factor*factor
+		var new_max_speed: float = lerp(_behaviour.active_settings.player_max_movement_speed_to_target, max_speed, min(1.0, factor))
+		#print("max speed: " + str(new_max_speed))
+		speed_limit = min(new_max_speed, speed_limit)
 	speed_target_multiplier = min(speed_target_multiplier, speed_limit / max_speed)
 	return speed_target_multiplier * max_speed
 
+#func _handle_standard_animations(delta: float) -> void:
+	#pass
+
+# Keeps smoothed bob and movement lowering separate from behavior offsets applied to the camera.
 func _handle_head_bob(delta: float) -> void:
 	var vertical_offset: float = 0.0
 	var horizontal_offset: float = 0.0
@@ -468,8 +587,9 @@ func _handle_head_bob(delta: float) -> void:
 		horizontal_offset = BOB_HORIZONTAL_AMPLITUDE.at(actual_speed) * sin(_bob_phase)
 		lowering_offset = -MOVEMENT_LOWERING.at(actual_speed)
 	
-	_node_camera.position.y = lerp(_node_camera.position.y, _camera_default_position.y + lowering_offset + vertical_offset, delta * 15.0)
-	_node_camera.position.x = lerp(_node_camera.position.x, _camera_default_position.x + horizontal_offset, delta * 15.0)
+	_camera_bob_offset.y = lerp(_camera_bob_offset.y, lowering_offset + vertical_offset, delta * 15.0)
+	_camera_bob_offset.x = lerp(_camera_bob_offset.x, horizontal_offset, delta * 15.0)
+	_apply_camera_position()
 
 func _handle_footsteps(delta: float) -> void:
 	var actual_speed: float = _current_speed(moving_direction_2d)
@@ -491,14 +611,25 @@ func _handle_footsteps(delta: float) -> void:
 		_is_moving = false
 		_footstep_timer = 0.0
 
+# Applies the accumulated spine pitch rotation to the skeleton bone each physics frame so the head and camera follow.
+# The skeleton is retrieved each frame to avoid storing a reference that might become invalid.
+func _apply_spine_pitch() -> void:
+	_skeleton_modifier_headpitch.extra_rotation_degrees = Vector3(rad_to_deg(_spine_pitch), 0.0, 0.0)
+
+
+# Aims the perspective hands at the push target and eases them back as the push blend fades out.
 func _handle_hands_aim(dt: float) -> void:
 	var target_yaw: float = 0.0
-	if active_wieldable == "wield_push" and wield_target != null:
-		var direction_to_target: Vector3 = (wield_target.global_position - global_position).normalized()
-		var local_direction: Vector3 = (transform.basis.inverse() * direction_to_target).normalized()
-		target_yaw = atan2(-local_direction.x, -local_direction.z)
-	
-	_node_hands_yaw.rotation.y = lerp_angle(_node_hands_yaw.rotation.y, target_yaw, minf(1.0, dt * 30.0))
+	if _behaviour.is_behaviour_active("push") and behaviour_target != null:
+		var direction_to_target: Vector3 = behaviour_target.global_position - global_position
+		direction_to_target.y = 0.0
+		if direction_to_target.length_squared() > 0.0:
+			var local_direction: Vector3 = (global_transform.basis.inverse() * direction_to_target).normalized()
+			target_yaw = atan2(-local_direction.x, -local_direction.z)
+
+	var current_yaw: float = deg_to_rad(_skeleton_modifier_perspective_hands.extra_rotation_degrees.y)
+	var next_yaw: float = lerp_angle(current_yaw, target_yaw, minf(1.0, dt * 30.0))
+	_skeleton_modifier_perspective_hands.extra_rotation_degrees.y = rad_to_deg(next_yaw)
 
 # Allows development tools, cheats, and testing routines to toggle gravity simulation off or on for free movement and debugging.
 func set_cheat_disable_gravity(enabled: bool) -> void:

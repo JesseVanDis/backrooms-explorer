@@ -71,9 +71,6 @@ A new material/shader, used only on the NPC's mesh, only while inside the Manila
 
 - Built as its own small shader rather than extended from `wallpaper.gdshader` or
   `carpet.gdshader`, since it dissolves a mesh rather than tinting a surface.
-- Driven by a single `uniform float dissolve_amount` (or similar), animated from `0.0` to `1.0`
-  over the exit sequence, the same "drive a shader uniform from a script" pattern `player_hands.gd`
-  already uses for hand opacity (see [./player.md](./player.md) section 1).
 - `[interpretation]` on the exact visual technique (noise-cutout dissolve vs. a simple vertical
   wipe) - pick whichever is cheapest to author first; the requirement from the design discussion is
   only that it reads as the NPC "clipping away", not a specific algorithm.

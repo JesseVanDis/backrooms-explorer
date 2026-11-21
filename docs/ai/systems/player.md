@@ -1,7 +1,7 @@
 # System: Player
 
 > **Status:** partial
-> **Code:** `assets/scripts/player.gd`, `player_hands.gd`, `player_wield.gd`
+> **Code:** `assets/scripts/player.gd`, `assets/scripts/player_behaviour.gd`, `assets/scripts/position_to_shader_param.gd`
 > **Scene:** `assets/models/player.tscn`
 
 ## 1. Responsibility
@@ -9,20 +9,20 @@
 What the Player system owns:
 
 - First person movement of a `CharacterBody3D` (`class_name Player`): walking, jumping, gravity, optional fall-speed cap.
-- Mouse look, mouse capture/release, and clamping pitch/yaw according to the active wieldable's look-freedom limits.
+- Mouse look, mouse capture/release, and clamping pitch/yaw according to active AnimationTree behaviour look-freedom limits.
 - Head bob, horizontal bob and "movement lowering" of the camera.
-- Footstep / jump / landing sound playback through `_Hands/_cam/Camera/RaytracedAudioPlayer3D_Foot`, including timing (interval) and random pitch.
-- Voice playback through `_Hands/_cam/Camera/RaytracedAudioPlayer3D_Voice` as a queue of `AudioStream`s, plus derivation of the matching `.srt` path.
+- Footstep / jump / landing sound playback through `RaytracedAudioPlayer3D_Foot` under `character_main`'s attached camera, including timing (interval) and random pitch.
+- Voice playback through `RaytracedAudioPlayer3D_Voice` under `character_main`'s attached camera as a queue of `AudioStream`s, plus derivation of the matching `.srt` path.
 - Pushing `RigidBody3D` bodies it slides into (`PUSH_FORCE` impulse).
-- Delegating wieldable equip/dequip animation state to `PlayerWield` (`assets/scripts/player_wield.gd`).
-- Hand mesh opacity fade, via `PlayerHands` (`assets/scripts/player_hands.gd`), which copies an animated helper node's Y position into the hand shader's `opacity` parameter.
+- Applying active behaviours' look and movement restrictions plus camera offsets through `PlayerBehaviour` (`assets/scripts/player_behaviour.gd`), while the player scene's `AnimationTree` continues to drive the animations.
+- Hand mesh opacity fade, via `PositionToShaderParam` (`assets/scripts/position_to_shader_param.gd`), which copies the animated hand-opacity bone's local Y position into the hand shader's `opacity` parameter.
 - Auto-adding a `SoundController` node if the current scene does not already contain one.
 
 What it explicitly does NOT own:
 
 - Footstep sound *content*: the level decides, by calling `apply_footsteps()`, `apply_footstep_start_sound()` and `apply_jump_sounds()`. The player only ships defaults (`FOOTSTEP_SOUNDS`, `FOOTSTEP_START_SOUND`, `JUMP_SOUNDS`, `LANDING_SOUNDS`).
 - Voice *content* and when it plays: the level pushes `AudioStream` sequences into the queue.
-- Which wieldable is active and what `wield_target` is: the level sets those (see `scenes/frontroom_0/frontroom_0.gd`, `scenes/lvl_0/lvl_0.gd`).
+- Which behaviour to activate: a level registers and activates named behaviours through `add_behaviour()` and `activate_behaviour()`.
 - Subtitle rendering: handed off to `IngameUI` -> `PlayerSubtitles`.
 - Level geometry, streaming, transitions, fog.
 - Health, inventory, interaction/use of objects - none of that exists in the player code.
@@ -37,15 +37,14 @@ What it explicitly does NOT own:
 | `max_fall_speed` | `float` | `0.0` | Downward velocity clamp while airborne. Only applied when `> 0.0`; `0.0` means "no clamp". |
 | `initial_velocity` | `Vector3` | `Vector3.ZERO` | Velocity applied in `_ready()`. |
 | `initial_yaw` | `float` | `0.0` | Body yaw in degrees, applied in `_ready()` as `rotation.y`. |
-| `initial_pitch` | `float` | `0.0` | Camera pitch in degrees, applied in `_ready()` as camera `rotation.x`. |
+| `initial_pitch` | `float` | `0.0` | Camera pitch in degrees, applied in `_ready()` to `_cam_pitch_pivot.rotation.x` through the active behaviour's vertical look limit. |
 
 ### Public properties other scripts set / read
 
 | name | type | default | meaning |
 |---|---|---|---|
-| `control_enabled` | `bool` | `true` | When `false`, input is ignored: horizontal velocity decays to 0, gravity still applies, `move_and_slide()` still runs, and all wield/bob/footstep updates are skipped. Mouse look is also suppressed. |
-| `active_wieldable` | `String` | `""` (via `PlayerWield`) | Proxy property: getter/setter forwards to `_wield.active_wieldable`. Setting it to a different name makes `PlayerWield` dequip the old one and equip the new one. Must be a name previously registered with `add_wieldable()`. |
-| `wield_target` | `Node3D` | `null` | The object the player is "working on". Used by `_handle_hands_aim()` (only when `active_wieldable == "wield_push"`) to yaw the hands toward the target, and by `_current_speed()` to apply `max_movement_speed_to_target`. |
+| `control_enabled` | `bool` | `true` | When `false`, input is ignored: horizontal velocity decays to 0, gravity still applies, `move_and_slide()` still runs, and head-bob/footstep updates are skipped. Mouse look is also suppressed. |
+| `behaviour_target` | `Node3D` | `null` | Optional target used by `_handle_hands_aim()` and `_current_speed()` when an active behaviour supplies `player_max_movement_speed_to_target`. |
 | `forward_2d` | `Vector2` (get only) | - | `UtilsMath.xz_normal(-transform.basis.z)`. |
 | `moving_direction_2d` | `Vector2` (get only) | - | `UtilsMath.xz_normal(global_position - _old_global_pos)`, i.e. direction actually moved last physics frame. |
 
@@ -53,7 +52,9 @@ What it explicitly does NOT own:
 
 | signature | what it does |
 |---|---|
-| `add_wieldable(unique_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void` | Registers a wieldable under `unique_name` with `PlayerWield`. See section 7. |
+| `add_behaviour(unique_name: String, p_animation_tree_parameter: StringName = "", p_additional_settings: Dictionary = {}) -> void` | Registers an AnimationTree-driven behaviour and its optional player restrictions. See section 7. |
+| `activate_behaviour(unique_name: String) -> void` | Starts a blend behaviour or fires a one-shot request and applies its restrictions immediately. |
+| `deactivate_behaviour(unique_name: String) -> void` | Ramps down a blend behaviour or aborts a one-shot request. |
 | `replace_voice(sequence: Array[AudioStream]) -> void` | Stops the current voice line and subtitles, replaces the remaining queue with a copy of `sequence`, and starts playing immediately. |
 | `push_back_voice(sequence: Array[AudioStream]) -> void` | Appends `sequence` to the end of the remaining queue. Starts playback if nothing is currently playing and the queue was empty. |
 | `push_front_voice(sequence: Array[AudioStream]) -> void` | If nothing is playing, behaves like `replace_voice()`. Otherwise inserts `sequence` in front of the remaining queue, so it plays after the current line finishes (it does not cut the current line). |
@@ -64,30 +65,39 @@ What it explicitly does NOT own:
 
 No signals. `player.gd` neither declares nor emits any signal; it only *connects* to `_audio_player_voice.finished`.
 
-`PlayerHands` (`player_hands.gd`) has no public API beyond being attached to the hands scene root; it only runs `_ready()` and `_process()`.
+`PositionToShaderParam` (`assets/scripts/position_to_shader_param.gd`) is configured through inspector fields on the `Node3D` whose position should drive the parameter; see section 3.
 
 ## 3. Expected scene tree
 
-Node paths `player.gd` depends on via `$` / `find_child`:
+Relevant player nodes, including the Godot-created hand-opacity attachment:
 
 ```
 Player (CharacterBody3D, player.gd, assets/models/player.tscn)
-└── _Hands                                        (instance of assets/models/hands.tscn, PlayerHands)
-    ├── _cam
-    │   └── Camera                                (Camera3D)
-    │       ├── RaytracedAudioPlayer3D_Voice      ($_Hands/_cam/Camera/RaytracedAudioPlayer3D_Voice)
-    │       └── RaytracedAudioPlayer3D_Foot       ($_Hands/_cam/Camera/RaytracedAudioPlayer3D_Foot)
-    ├── _hands                                    ($_Hands/_hands, yawed by _handle_hands_aim())
-    │   └── ... armature/Skeleton3D/Hand_3D       (found by PlayerHands via find_child("Hand_3D"))
-    └── _setting_opacity                          (found by PlayerHands via find_child, animated helper)
+└── character_main                                (instance of character_main.tscn)
+    └── _body_armature/Skeleton3D
+        ├── shape_perspective_hands                (hand mesh using hand_skin.tres)
+        └── _bone_attachement_hand_opacity        (BoneAttachment3D, PositionToShaderParam)
+            └── _hand_opacity_node
 ```
 
-Names starting with `_` (`_Hands`, `_cam`, `_hands`, `_setting_opacity`, `_ignore_groundreference`) are referenced from code and must not be renamed.
+The attachment follows the imported `_setting_hands_opacity` bone. Its animation changes local Y from `0.0` to `1.0`; `PositionToShaderParam` writes that value, clamped to `0.0..1.0`, to `hand_skin.tres`'s `opacity` uniform. Do not edit the imported skeleton or animation tracks to change this connection.
+
+The `Camera3D` is a child of `_cam_pitch_pivot`, which is under the camera `BoneAttachment3D`. `_handle_camera_limits()` applies vertical look to the pivot, making the camera orbit it while leaving the camera's local rotation unchanged. Pitch is limited to 90° up and 80° down; a behaviour's vertical look-freedom setting may impose a tighter symmetric limit but cannot widen these absolute bounds. Behaviour camera offsets move the camera itself, converting the requested displacement from player-root axes into the camera parent's current basis; the pitch pivot stays in place and the camera's local head-bob offset remains separate. The same path initializes and clamps `initial_pitch` before the first physics frame.
+
+### `PositionToShaderParam` configuration
+
+Attach `PositionToShaderParam` to the `Node3D` whose position should drive a shader uniform, then configure:
+
+- Exactly one target: `target_mesh` selects a mesh and surface (the active `ShaderMaterial` is duplicated and assigned to that mesh only); `target_material` directly selects a shared material resource.
+- `shader_parameter_name` names the uniform. `position_component` chooses a `Vector3` value or the `X`, `Y`, or `Z` scalar component, and `position_space` chooses local or global position.
+- `clamp_scalar_output` and `scalar_clamp_range` optionally clamp float output. The component validates the declared uniform type and disables itself after reporting an invalid configuration.
+
+The hands use `target_material = hand_skin.tres`, `shader_parameter_name = opacity`, `position_component = Y`, local position, and a `0.0..1.0` clamp.
 
 Nodes resolved by type instead of by path (renaming them is safe):
 
 - the `Camera3D` is additionally looked up with `UtilsNode.find_camera_recursive(self)`;
-- the `AnimationPlayer` used by wieldables is looked up with `UtilsNode.find_animation_player_recursive()`;
+- the `AnimationTree` used by behaviours is looked up with `UtilsNode.find_animation_tree_recursive()`;
 - the `IngameUI` is looked up by walking up the tree with `_find_ingame_ui()`.
 
 `player.tscn` itself also contains a hidden `MeshInstance3D` (capsule) and a `CollisionShape3D` (capsule, radius 0.3, height 1.5); `collision_layer` and `collision_mask` are both `9`.
@@ -100,7 +110,7 @@ Nodes resolved by type instead of by path (renaming them is safe):
 | `ui_accept` | `Input.is_action_just_pressed("ui_accept")` in `_physics_process()` | Jump, only when `is_on_floor()`. |
 | `ui_cancel` | `_unhandled_input()` | Releases the mouse (`MOUSE_MODE_VISIBLE`). |
 | any `InputEventMouseButton` | `_unhandled_input()` | Captures the mouse (`MOUSE_MODE_CAPTURED`). |
-| `InputEventMouseMotion` | `_unhandled_input()` | Yaw on the body, pitch on the camera, while the mouse is captured and `control_enabled` is `true`. |
+| `InputEventMouseMotion` | `_unhandled_input()` | Yaw on the body and clamp pitch to a maximum of 90° up and 80° down, further narrowed by the active behaviour's vertical look limit, before rotating `_cam_pitch_pivot`, while the mouse is captured and `control_enabled` is `true`; the child camera's local rotation is unchanged. Camera-limit passes also synchronize the pivot after a limit change. |
 
 Jumping is implemented (`velocity.y = JUMP_VELOCITY` plus a jump sound), but there is **no `jump` action registered in `project.godot`** - only `forward`, `backward`, `left` and `right` are defined there. Jump is therefore bound to Godot's built-in `ui_accept` (space/enter) rather than to a dedicated game action.
 
@@ -112,7 +122,7 @@ Declared at the top of `player.gd`. Note that only `JUMP_VELOCITY` (and the soun
 |---|---|---|
 | `JUMP_VELOCITY` | `3.5` | Upward velocity set on jump. |
 | `PUSH_FORCE` | `0.5` | Magnitude of the central impulse applied to any `RigidBody3D` the player slides into, along `-collision.get_normal()`. |
-| `HANDS_APPEAR_DURATION` | `0.1` | unclear: declared but never read anywhere in `player.gd`, `player_hands.gd` or `player_wield.gd`. Presumably intended as the hand fade-in time, which is currently driven by the `_setting_opacity` animation instead. |
+| `HANDS_APPEAR_DURATION` | `0.1` | Declared but never read; hand opacity is driven by the `_setting_hands_opacity` animation track through `PositionToShaderParam`. |
 | `FOOTSTEP_INTERVAL` | `SpeedScale.new(0.8, 0.36)` | Seconds between footsteps: `0.8` s at speed 1, `0.36` s at speed 3. Also sets the head-bob frequency. |
 | `BOB_VERTICAL_AMPLITUDE` | `SpeedScale.new(0.02, 0.08)` | Vertical camera bob amplitude in metres: `0.02` at speed 1, `0.08` at speed 3. |
 | `BOB_HORIZONTAL_AMPLITUDE` | `SpeedScale.new(0.005, 0.02)` | Horizontal camera sway amplitude in metres: `0.005` at speed 1, `0.02` at speed 3. |
@@ -120,74 +130,49 @@ Declared at the top of `player.gd`. Note that only `JUMP_VELOCITY` (and the soun
 
 `SpeedScale` is a small inner helper class holding two values, `at_speed_1` and `at_speed_3`. `at(speed)` linearly interpolates between them using `(speed - 1.0) / (3.0 - 1.0)` as the factor, i.e. it maps the current movement speed from the 1..3 m/s range onto the two given values. The factor is not clamped, so speeds below 1 or above 3 extrapolate.
 
-Other hard-coded values worth knowing: camera position lerp uses `delta * 15.0`; hands yaw lerp uses `dt * 30.0`; mouse sensitivity is `0.01`, dropping to `0.0005` while a wieldable limits looking; camera-limit adjustment speed is `10.0 + seconds_since_equiping_start * 40.0`; footsteps play at `volume_db = -20.0` with `pitch_scale` randomised `0.9..1.3` (jump `0.9..1.0`, landing `0.8..1.1`).
+Other hard-coded values worth knowing: camera position lerp uses `delta * 15.0`; hands yaw lerp uses `dt * 30.0`; mouse sensitivity is `0.01`, dropping to `0.0005` while a behaviour limits looking; camera-limit changes are applied immediately; footsteps play at `volume_db = -20.0` with `pitch_scale` randomised `0.9..1.3` (jump `0.9..1.0`, landing `0.8..1.1`).
 
 ## 6. Movement model
 
-- Horizontal speed comes from `_current_speed()`: base `max_speed` (default `3.0`), multiplied by the active wieldable's `movement_multiplier` and capped by its `max_movement_speed`.
-- When a `wield_target` is set and the wieldable's `max_movement_speed_to_target < max_speed`, the cap is interpolated between `max_movement_speed_to_target` and `max_speed` based on how far the movement direction deviates from the direction to the target (`factor = (distance_between_directions * 0.5)^2`, clamped to 1). Moving straight at the target is the slowest.
+- Horizontal speed comes from `_current_speed()`: base `max_speed` (default `3.0`), multiplied by the active behaviour's `player_movement_multiplier` and capped by its `player_max_movement_speed`.
+- When `behaviour_target` is set and the active behaviour's `player_max_movement_speed_to_target < max_speed`, the cap is interpolated between `player_max_movement_speed_to_target` and `max_speed` based on how far the movement direction deviates from the direction to the target (`factor = (distance_between_directions * 0.5)^2`, clamped to 1). Moving straight at the target is the slowest.
 - With no input, `velocity.x/z` decay with `move_toward(..., 0, max_speed)` - i.e. one `max_speed` step per physics frame, which is effectively an instant stop.
 - Gravity: `velocity += get_gravity() * delta` whenever not on the floor (also while `control_enabled == false`).
 - `max_fall_speed`: if `> 0.0`, `velocity.y` is clamped to `>= -max_fall_speed`. Default `0.0` means unlimited fall speed.
 - Jump: `velocity.y = JUMP_VELOCITY` (3.5) plus a random jump sound; a landing sound plays on the frame the player goes from airborne to on-floor.
 - Head bob runs only when `is_on_floor()` and `velocity.length() > 0.1`. `_bob_phase` advances by `delta * (PI / FOOTSTEP_INTERVAL.at(speed))` and wraps at `2*PI`; vertical offset is `BOB_VERTICAL_AMPLITUDE.at(speed) * abs(sin(phase))`, horizontal offset is `BOB_HORIZONTAL_AMPLITUDE.at(speed) * sin(phase)`.
-- Movement lowering adds `-MOVEMENT_LOWERING.at(speed)` to the camera Y while moving. All camera offsets are applied as a `lerp(..., delta * 15.0)` toward `_camera_default_position` plus the offsets, so they ease back when the player stops.
+- Movement lowering adds `-MOVEMENT_LOWERING.at(speed)` to the camera Y while moving. Head-bob and movement-lowering offsets ease separate camera-local X/Y offsets with `lerp(..., delta * 15.0)`; behaviour camera offsets move the camera itself in player-root XYZ axes at their configured shared speed, without translating the pitch pivot.
 - Footstep interval scales with speed via `FOOTSTEP_INTERVAL.at(speed)`. The first step after standing still plays `_footstep_start_sound` and resets both the timer and the bob phase; afterwards a random footstep plays every interval and the bob phase is snapped to the nearest multiple of `PI`.
 - Collision push: after `move_and_slide()`, every slide collision against a `RigidBody3D` gets `apply_central_impulse(-collision.get_normal() * PUSH_FORCE)`.
 
-## 7. Wieldables
+## 7. AnimationTree behaviours
 
-`PlayerWield` (`assets/scripts/player_wield.gd`) is created in `player.gd` as `var _wield: PlayerWield = PlayerWield.new(self)` and ticked from `_physics_process()` via `_wield.update(delta)`.
+`PlayerBehaviour` (`assets/scripts/player_behaviour.gd`) tracks named player behaviours while the existing `AnimationTree` continues to select and blend animations. Each behaviour reports one of `PlayerBehaviour.BehaviourStatus.IDLE`, `ENABLING`, `ACTIVE`, or `DISABLING`; `player.gd` advances blend values during `_physics_process()` and refreshes the active settings before movement and mouse input consume them.
 
-### `WieldState` enum
+In `character_main.tscn`, the player resolves `_skeleton_modifier_headpitch` separately from `_skeleton_modifier_perspective_hands`. While the registered `push` behaviour is active and `behaviour_target` is set, `_handle_hands_aim()` smoothly turns only the perspective-hands modifier's `extra_rotation_degrees.y` toward the target in player-local space. It eases that yaw back to neutral when the target clears or the push blend finishes, including while controls are disabled; the head-pitch modifier and the hands modifier's X/Z rotations remain unchanged.
 
-| value | meaning |
-|---|---|
-| `NONE` | Idle. If `_wieldable_old != active_wieldable`, it tries to play the old wieldable's `dequip` range; success -> `DEQUIPING`, failure (empty range / no animation) -> `EQUIPING_START`. |
-| `DEQUIPING` | Waiting for the dequip animation to stop playing, then -> `EQUIPING_START`. |
-| `EQUIPING_START` | Plays the new wieldable's `equip` range; success -> `EQUIPING`, failure -> `NONE`. Records `_wieldable_old = active_wieldable` and resets the action time cursor. |
-| `EQUIPING` | While the animation plays, fires any `Action` whose `trigger_time_millis` falls into the interval advanced this frame. When the animation stops: if `clear_wield_when_finish`, `active_wieldable` is reset to `""`; state -> `NONE`. |
+`Player.get_behaviour_status(unique_name)` returns the `PlayerBehaviour.BehaviourStatus` enum for a registered behaviour and reports an error for an unknown name. Blend behaviours are `ENABLING` while their target is one and their blend is below one, `ACTIVE` at a blend of one, `DISABLING` while targeted to zero with a nonzero blend, and `IDLE` at zero; reversing a fade changes the status back to `ENABLING`. A pending one-shot request is `ENABLING`, playback is `ACTIVE`, playback after an abort request is `DISABLING` until the AnimationTree stops it, and a cancelled-before-playback or completed request is `IDLE`. The empty-parameter behaviour is always `ACTIVE`. `PlayerBehaviour.is_behaviour_active(unique_name)` remains true for all states other than `IDLE`, including while a behaviour is fading out.
 
-`_seconds_since_equiping_start` is reset when entering `EQUIPING_START` and is exposed as `seconds_since_equiping_start`; `player.gd` uses it to speed up the camera-limit adjustment right after equipping.
-
-### `add_wieldable` signature
+Register and control a behaviour through `Player`:
 
 ```gdscript
-add_wieldable(unique_name: String, p_rewind_for_dequip: bool = true, p_clear_wield_when_finish: bool = false, p_additional_args: Dictionary = {}) -> void
+add_behaviour(unique_name: String, p_animation_tree_parameter: StringName = "", p_additional_settings: Dictionary = {}) -> void
+activate_behaviour(unique_name: String) -> void
+deactivate_behaviour(unique_name: String) -> void
+get_behaviour_status(unique_name: String) -> PlayerBehaviour.BehaviourStatus
 ```
 
-| parameter | meaning |
-|---|---|
-| `unique_name` | Key in the wieldable dictionary **and** the name of the animation in the player's `AnimationPlayer`. The empty string `""` is the special "nothing wielded" entry: it has empty equip/dequip ranges and `play_animation()` always returns `false`. `player.gd` registers it in `_ready()`. |
-| `p_rewind_for_dequip` | If `true` and no explicit `dequip` range is given, the dequip range is the equip range played backwards (`last_frame -> 0`). If `false`, dequip is `(0, 0)`, i.e. no dequip animation. |
-| `p_clear_wield_when_finish` | If `true`, `active_wieldable` is set back to `""` once the equip animation finishes (one-shot animation). |
-| `p_additional_args` | Dictionary of optional settings, see below. |
+- An empty animation parameter is an always-active settings entry; `player.gd` registers the empty-name entry with default settings.
+- A parameter ending in `/blend_amount` is ramped toward `1.0` on activation and `0.0` on deactivation. General settings apply while the status is non-idle, including while the blend fades out; `player_camera_offset` applies only during `ENABLING` and `ACTIVE`.
+- A parameter ending in `/request` is treated as an `AnimationNodeOneShot` request. Activation writes `ONE_SHOT_REQUEST_FIRE`; general settings apply while the request is pending and while the corresponding `/active` parameter is true. Deactivation writes `ONE_SHOT_REQUEST_ABORT`; a playing one-shot is `DISABLING` until playback stops, and its camera offset is omitted immediately.
+- Non-idle behaviours' general settings are combined in registration order. Unspecified keys remain intact; when multiple eligible behaviours specify the same setting, the later registered behaviour wins. `player_camera_offset` is eligible only from `ENABLING` and `ACTIVE` behaviours.
+- Restriction setting keys are copied exactly as registered and must use the canonical `player_` prefix: `player_max_look_freedom_degrees` (common fallback), `player_max_look_freedom_degrees_h`, `player_max_look_freedom_degrees_v`, `player_movement_multiplier`, `player_max_movement_speed`, and `player_max_movement_speed_to_target`. Look-freedom values are full angles; the player uses half as the positive and negative limit. Defaults are `360.0` degrees and movement multiplier `1.0`; speed caps default to `99999.0`.
+- Camera framing keys are `player_camera_offset` (a player-root-relative `Vector3` in metres, default `Vector3.ZERO`) and `player_camera_offset_speed` (metres per second, default `1.0`). These are generic setting defaults; the built-in `run` behaviour supplies its own offset and speed. Each vector component moves independently with the shared speed using `move_toward`, so large frame deltas do not overshoot; when offset settings are released, the last active speed is retained for the return to zero. Camera offsets contribute only during `ENABLING` and `ACTIVE`; when a behaviour enters `DISABLING`, a lower-priority active offset takes over immediately or the camera returns to zero, while its other settings (including offset speed) can remain active through the fade. Offsets also update while controls are disabled and are converted into the camera parent's basis so attachment and pitch rotation do not rotate the requested player-relative displacement. Head-bob and movement-lowering remain separately composed with this displacement, and the pitch pivot stays at its original position.
+- `actions_at_millisecond` is accepted in the settings dictionary but is not executed; timed animation actions remain deferred.
 
-`p_additional_args` keys read by `WieldableData`:
+`scenes/lvl_0/lvl_0.gd` registers `lvl_0_landing` with `parameters/lvl_0_landing/request`, horizontal and vertical look limits, and `movement_multiplier: 0.0`. It activates the behaviour on the player's first landing, so those restrictions follow the one-shot animation instead of an old equip/dequip state machine.
 
-| key | default | used by |
-|---|---|---|
-| `max_look_freedom_degrees_h` | falls back to `max_look_freedom_degrees`, then `360.0` | `player.gd` `_handle_camera_limits()` - yaw limit is half this value |
-| `max_look_freedom_degrees_v` | falls back to `max_look_freedom_degrees`, then `360.0` | pitch limit is half this value (default pitch limit is 90 deg) |
-| `movement_multiplier` | `1.0` | `_current_speed()` |
-| `max_movement_speed` | `99999.0` | `_current_speed()` hard cap |
-| `max_movement_speed_to_target` | `99999.0` | `_current_speed()` cap when `wield_target` is set |
-| `equip` | `AnimationRange.new(0, last_frame)` | explicit equip frame range |
-| `dequip` | derived from `p_rewind_for_dequip` | explicit dequip frame range |
-| `actions_at_millisecond` | `[]` | list of `{time_ms: {action_name: value}}` dictionaries |
-
-### Animation ranges and frame-based actions
-
-- `AnimationRange(p_from_frame_index: float, p_to_frame_index: float, p_speed: float = 1.0)` stores `from`, `to`, `speed` as **frame indices**, converted to seconds by `PlayerWield.frame_index_to_time(anim, index) -> index * anim.step`.
-- `last_frame = int(anim.length / anim.step)`.
-- `play_animation()` returns `false` when the animation name is `""` or when `from == to`. If `from <= to` it calls `animation_player.play_section(name, from_time, to_time, -1, speed, false)`; otherwise it plays the section reversed with `-speed` and the reverse flag set.
-- Actions are time-based, not real keyframe callbacks: every frame in `EQUIPING`, the current animation position is converted to milliseconds and any `Action` with `_old_animation_time_ms < trigger_time_millis <= current_time_ms` fires `_on_animation_action()`. The only implemented action name is `set_animation_speed`, which assigns `animation_player.speed_scale`. Any other action name is printed but ignored.
-
-### Registered wieldables in the project
-
-- `player.gd` `_ready()` registers `""` and `"wield_push"` with `{"max_movement_speed_to_target": 0.15}`.
-- `scenes/frontroom_0/frontroom_0.gd` activates `"wield_push"`: when the player is within `1.0` m of one of the four moving boxes it sets `active_wieldable = "wield_push"` and `wield_target = <box>`, otherwise it clears both back to `""` / `null`.
-- `scenes/lvl_0/lvl_0.gd` registers `"lvl_0_landing"` (`p_rewind_for_dequip = false`, `p_clear_wield_when_finish = true`) with look-freedom and `movement_multiplier: 0.0`, plus `set_animation_speed` actions at 600 / 1000 / 2000 ms, and activates it the first time the falling player touches the floor.
+`scenes/frontroom_0/frontroom_0.gd` activates the built-in `push` blend when the player is less than `1.0` m from a moving box and assigns that box to `behaviour_target`. The target-relative cap reaches `0.15` m/s when moving directly toward the box; leaving range clears the target and deactivates the blend.
 
 ## 8. Voice and subtitles
 
@@ -216,55 +201,15 @@ Handoff: in `_ready()` the player finds the nearest `IngameUI` by walking up the
 
 ## 9. How a level uses it
 
-Derived from `scenes/frontroom_0/frontroom_0.gd` and `scenes/lvl_0/lvl_0.gd`:
+`scenes/lvl_0/lvl_0.gd` registers `lvl_0_landing` in `_ready()` with AnimationTree parameter `parameters/lvl_0_landing/request` and these settings:
 
-```gdscript
-extends Node
+| setting | value |
+|---|---:|
+| `player_max_look_freedom_degrees_v` | `10.0` |
+| `player_max_look_freedom_degrees_h` | `0.0` |
+| `player_movement_multiplier` | `0.0` |
 
-@onready var _node_box: RigidBody3D = $_viewport_container/_viewport/MovingBox1
-var _player: Player = null
-var _did_hit_floor: bool = false
-
-func _ready() -> void:
-	_player = UtilsNode.find_player(get_tree())
-	if _player == null:
-		push_error("Player not found in scene tree")
-		return
-
-	# Block input until the intro is done.
-	_player.control_enabled = false
-
-	# Register a level specific wieldable animation (one-shot, no dequip).
-	_player.add_wieldable("lvl_0_landing", false, true, {
-							"max_look_freedom_degrees_v": 10.0,
-							"max_look_freedom_degrees_h": 0.0,
-							"movement_multiplier": 0.0,
-							"actions_at_millisecond": [
-								{600:  {"set_animation_speed": 0.13}},
-								{1000: {"set_animation_speed": 0.3}},
-								{2000: {"set_animation_speed": 1.0}}
-							]
-						})
-
-	_player.control_enabled = true
-
-func _physics_process(_dt: float) -> void:
-	if _player == null:
-		push_error("Player is null")
-		return
-
-	const DETECTION_DISTANCE: float = 1.0
-	if _player.global_position.distance_to(_node_box.global_position) < DETECTION_DISTANCE:
-		_player.active_wieldable = "wield_push"
-		_player.wield_target = _node_box
-	else:
-		_player.active_wieldable = ""
-		_player.wield_target = null
-
-	if !_did_hit_floor && _player.is_on_floor():
-		_player.active_wieldable = "lvl_0_landing"
-		_did_hit_floor = true
-```
+The level activates it once, when `_handle_player_landing()` detects the player on the floor. The request starts the existing OneShot node in the player scene; movement and look restrictions remain active through playback and release when the node becomes inactive. The registration also has `actions_at_millisecond` entries, but the player currently does not execute them.
 
 Voice is normally not driven from level code directly: `assets/scripts/trigger.gd` calls `get_player().replace_voice(sounds)`, `push_back_voice(sounds)` or `push_front_voice(sounds)` depending on its `Mode` (`PlayerVoice_Replace`, `PlayerVoice_PushBack`, `PlayerVoice_PushFront`).
 
@@ -273,18 +218,18 @@ unclear: `apply_footsteps()`, `apply_footstep_start_sound()` and `apply_jump_sou
 ## 10. Known gaps
 
 - No health, damage or death model of any kind.
-- No inventory. `active_wieldable` is a single `String` and is driven entirely by the level, not by the player picking things up.
+- No inventory or pickup system.
+- `actions_at_millisecond` is accepted in behaviour settings but timed animation actions are not implemented.
 - No `jump` input action in `project.godot`; jumping is hard-wired to `ui_accept`. Only `forward`, `backward`, `left`, `right` are registered.
 - `HANDS_APPEAR_DURATION` is declared but never used.
 - Most "constants" (`FOOTSTEP_INTERVAL`, `BOB_*`, `MOVEMENT_LOWERING`, `HANDS_APPEAR_DURATION`, `PUSH_FORCE`) are `var`, not `const`, which contradicts the project convention.
 - Dead/commented-out code remains: the `active_voice_sequence` property and `_on_active_voice_sequence_changed()`, `_update_speed_cap(delta)`, and an empty `_process()`.
 - `apply_jump_sounds()` exists but there is no `apply_landing_sounds()`, so landing sounds cannot be overridden per level.
-- `_play_next_voice()` prints the subtitle path to stdout on every line (`print("Playing subtitle: " + ...)`), and `PlayerWield._on_animation_action()` prints on every action.
+- `_play_next_voice()` prints the subtitle path to stdout on every line (`print("Playing subtitle: " + ...)`).
 - `_ensure_sound_controller()` has a typo in its log message: "Scene foes not contain a sound controller".
-- `PlayerWield.update()` indexes `_wieldables[_wieldable_old]` and `_wieldables[active_wieldable]` directly; assigning an unregistered name to `active_wieldable` will fail at runtime rather than produce a readable error.
 - `SpeedScale.at()` does not clamp, so speeds outside 1..3 m/s extrapolate the bob/footstep values.
 - `_find_ingame_ui()` searches the whole tree every time the player enters a scene; if no `IngameUI` exists, `_ready()` pushes an error and then still dereferences `_ingame_ui`.
-- No TODO/FIXME comments are present in `player.gd`, `player_hands.gd` or `player_wield.gd`.
+- `player.gd` and `player_behaviour.gd` still contain unfinished or commented-out code.
 
 ## 11. Related
 

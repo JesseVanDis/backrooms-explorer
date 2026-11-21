@@ -21,7 +21,7 @@ Backrooms:
 | Job                                   | How                                                        |
 |---------------------------------------|-------------------------------------------------------------|
 | Teach movement                        | A normal, safe house the player walks through freely         |
-| Teach the only interaction verb       | Walking into a moving box pushes it (`wield_push`)           |
+| Teach the only interaction verb       | Walking into a moving box activates the player's `push` AnimationTree behaviour |
 | Establish normality, then break it    | Warm lit house + unanswered calls -> a box no-clips away     |
 
 Everything here exists to make Level 0 land. Do not add mechanics that Level 0 does not use.
@@ -52,8 +52,9 @@ falls. The fall itself is dressed with `transition_frontrooms_lvl_0.tscn` and
 
 There is no way to die, no enemy and no fail state. The only scripted rules are:
 
-- Player within `1.0` m of one of the four `MovingBox*` bodies -> `active_wieldable` becomes
-  `"wield_push"` and `wield_target` becomes that box. Outside that range both are cleared.
+- Player within `1.0` m of one of the four `MovingBox*` bodies -> the `push` behaviour activates
+  and `player.behaviour_target` becomes that box. Outside that range the target is cleared and
+  `push` is deactivated.
 - Player below `y = -5.0` -> fog starts rolling in.
 - Player below `y = -10.0` -> fog is at full density (`0.1`) and fully affects the sky.
 - Player below `y = -15.0` -> transition to `lvl_0` starts.
@@ -67,7 +68,7 @@ These thresholds are the constants `Y_START`, `Y_END`, `FOG_DENSITY_END`, `SKY_A
 |------------------------|-----------------------------------------------------------|--------|
 | Walking, look around   | [player](../../../docs/ai/systems/player.md)               | yes    |
 | Control lock           | `player.control_enabled`                                   | yes    |
-| Pushing rigid bodies   | [player](../../../docs/ai/systems/player.md#7-wieldables)  | yes    |
+| Pushing rigid bodies   | [player](../../../docs/ai/systems/player.md#7-animationtree-behaviours) | yes |
 | Impact / slide sounds  | [audio](../../../docs/ai/systems/audio.md)                 | yes    |
 | Proximity voice lines  | [interaction](../../../docs/ai/systems/interaction.md)     | yes    |
 | Subtitles              | [ui_subtitles](../../../docs/ai/systems/ui_subtitles.md)   | yes    |

@@ -59,7 +59,6 @@ so a chunk looks identical however often it is regenerated. See
 | `static func find_mesh_recursive(root_node: Node) -> MeshInstance3D` | depth-first search, returns the first `MeshInstance3D` at or under `root_node`, else `null` |
 | `static func find_animation_player_recursive(root_node: Node) -> AnimationPlayer` | same, for the first `AnimationPlayer` |
 | `static func find_camera_recursive(root_node: Node) -> Camera3D` | same, for the first `Camera3D` |
-| `static func find_hands_recursive(root_node: Node) -> PlayerHands` | same, for the first `PlayerHands` |
 | `static func find_player(tree: SceneTree) -> Player` | finds the player in the whole tree, see lookup order below |
 
 `find_player` lookup order:

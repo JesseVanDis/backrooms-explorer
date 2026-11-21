@@ -125,7 +125,8 @@ Fully procedural and effectively infinite. `MapGenerator` produces tile data on 
 nearby, using `duplicate()` and `queue_free()` directly (the `NodePool` utility is **not** used
 here). Details in
 [TECHNICAL.md](TECHNICAL.md) and [map_generation](../../../docs/ai/systems/map_generation.md) -
-do not duplicate them here.
+do not duplicate them here. The angle-bucketed visibility-offset candidates are built once on a
+shared worker; async preload reports ready only after the complete table is published.
 
 ## 8. Assets present
 
