@@ -136,6 +136,7 @@ Other hard-coded values worth knowing: camera position lerp uses `delta * 15.0`;
 ## 6. Movement model
 
 - Horizontal speed comes from `_current_speed()`: base `max_speed` (default `3.0`), multiplied by the active behaviour's `player_movement_multiplier` and capped by its `player_max_movement_speed`.
+- After `move_and_slide()`, directional input selects `stumble` when actual horizontal speed is below `STUMBLE_SPEED_THRESHOLD` (`1.0` m/s), otherwise `run`; this uses post-collision speed, so pushing toward a box or pressing into an obstruction selects `stumble`. Releasing movement or disabling controls fades both locomotion blends out. Vertical speed does not affect the selection.
 - When `behaviour_target` is set and the active behaviour's `player_max_movement_speed_to_target < max_speed`, the cap is interpolated between `player_max_movement_speed_to_target` and `max_speed` based on how far the movement direction deviates from the direction to the target (`factor = (distance_between_directions * 0.5)^2`, clamped to 1). Moving straight at the target is the slowest.
 - With no input, `velocity.x/z` decay with `move_toward(..., 0, max_speed)` - i.e. one `max_speed` step per physics frame, which is effectively an instant stop.
 - Gravity: `velocity += get_gravity() * delta` whenever not on the floor (also while `control_enabled == false`).
@@ -151,7 +152,7 @@ Other hard-coded values worth knowing: camera position lerp uses `delta * 15.0`;
 
 `PlayerBehaviour` (`assets/scripts/player_behaviour.gd`) tracks named player behaviours while the existing `AnimationTree` continues to select and blend animations. Each behaviour reports one of `PlayerBehaviour.BehaviourStatus.IDLE`, `ENABLING`, `ACTIVE`, or `DISABLING`; `player.gd` advances blend values during `_physics_process()` and refreshes the active settings before movement and mouse input consume them.
 
-The player registers `freefall` against `parameters/freefall/blend_amount`. It automatically blends in after more than `0.5` seconds off the floor and blends out on landing, independently of the `run` blend; this also works while `control_enabled` is false.
+The player registers `run` and `stumble` against their respective blend amounts. Directional input selects one blend target based on the post-slide horizontal speed threshold described in section 6; the two blend weights may overlap during their cross-fade. Releasing input or disabling controls fades both out. The independently registered `push` and `freefall` blends can remain active alongside either locomotion blend, and freefall timing and landing resets are independent of locomotion selection.
 
 In `character_main.tscn`, the player resolves `_skeleton_modifier_headpitch` separately from `_skeleton_modifier_perspective_hands`. While the registered `push` behaviour is active and `behaviour_target` is set, `_handle_hands_aim()` smoothly turns only the perspective-hands modifier's `extra_rotation_degrees.y` toward the target in player-local space. It eases that yaw back to neutral when the target clears or the push blend finishes, including while controls are disabled; the head-pitch modifier and the hands modifier's X/Z rotations remain unchanged.
 

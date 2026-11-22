@@ -44,7 +44,7 @@ func _initialize() -> void:
 	call_deferred("_run_box_push_tests")
 
 
-# Covers box selection, target-relative movement, push blend lifecycle, and Y-only hand aiming using gameplay nodes.
+# Covers box selection, target-relative movement, locomotion selection, push blending, and hand aiming in the real scene.
 func _run_box_push_tests() -> void:
 	_frontroom.set_physics_process(false)
 	_player.set_physics_process(false)
@@ -202,9 +202,121 @@ func _run_box_push_tests() -> void:
 		return
 	if not _expect_modifier_axes(expected_hands_x, expected_hands_z, expected_head_pitch, "neutral hand pose"):
 		return
+	if not _run_locomotion_tests():
+		return
 
 	print("TEST: PASS")
 	quit(0)
+
+
+# Verifies slow push movement selects stumble and that normal speed, idle, and control locks select the correct blends.
+func _run_locomotion_tests() -> bool:
+	_player.global_position = Vector3(0.0, 1.0, 0.0)
+	_player.global_rotation.y = 0.0
+	_player.velocity = Vector3.ZERO
+	_player.control_enabled = true
+	Input.action_release("forward")
+	Input.action_release("backward")
+	_set_boxes_out_of_range()
+	_frontroom.call("_update_player_speed")
+
+	Input.action_press("forward")
+	_player._physics_process(0.01)
+	_player._behaviour.update(0.05)
+	if not _expect_locomotion_blends(0.2, 0.0, "normal movement starts run"):
+		return false
+	_player._behaviour.update(1.0)
+	if not _expect_locomotion_blends(1.0, 0.0, "normal movement completes run blend"):
+		return false
+
+	var target_box: RigidBody3D = _moving_boxes[3]
+	_set_target_box_local_offset(target_box, Vector3(0.0, 0.0, -0.5))
+	if not _expect_target(target_box, "slow movement test selects the nearby box"):
+		return false
+	if not _expect_setting(0.15, _player._current_speed(Vector2(0.0, -1.0)), "slow movement speed toward the box"):
+		return false
+	_player._physics_process(0.01)
+	var slow_horizontal_speed: float = Vector2(_player.velocity.x, _player.velocity.z).length()
+	if slow_horizontal_speed >= 1.0:
+		push_error("Movement toward a box should be below the stumble threshold: " + str(slow_horizontal_speed))
+		quit(1)
+		return false
+	_player._behaviour.update(0.05)
+	if not _expect_locomotion_blends(0.8, 0.2, "slow box movement cross-fades run into stumble"):
+		return false
+	_player._behaviour.update(1.0)
+	if not _expect_locomotion_blends(0.0, 1.0, "slow box movement completes stumble blend"):
+		return false
+	if _animation_tree["parameters/push/blend_amount"] <= 0.0:
+		push_error("Push behaviour should remain active while stumble is selected")
+		quit(1)
+		return false
+
+	Input.action_release("forward")
+	Input.action_press("backward")
+	_player._physics_process(0.01)
+	var recovery_horizontal_speed: float = Vector2(_player.velocity.x, _player.velocity.z).length()
+	if recovery_horizontal_speed < 1.0:
+		push_error("Movement away from the box should recover to run speed: " + str(recovery_horizontal_speed))
+		quit(1)
+		return false
+	_player._behaviour.update(0.05)
+	if not _expect_locomotion_blends(0.2, 0.8, "movement away from the box cross-fades stumble into run"):
+		return false
+	_player._behaviour.update(1.0)
+	if not _expect_locomotion_blends(1.0, 0.0, "movement away from the box completes run blend"):
+		return false
+
+	Input.action_release("backward")
+	_player._physics_process(0.01)
+	_player._behaviour.update(1.0)
+	if not _expect_locomotion_blends(0.0, 0.0, "releasing movement clears both locomotion blends"):
+		return false
+
+	_player.behaviour_target = null
+	var original_max_speed: float = _player.max_speed
+	_player.max_speed = 0.999
+	Input.action_press("forward")
+	_player._physics_process(0.01)
+	_player._behaviour.update(1.0)
+	if not _expect_locomotion_blends(0.0, 1.0, "speed just below the threshold selects stumble"):
+		return false
+
+	_player.activate_behaviour("run")
+	_player._behaviour.update(1.0)
+	_player.control_enabled = false
+	_player._physics_process(0.01)
+	_player._behaviour.update(1.0)
+	if not _expect_locomotion_blends(0.0, 0.0, "control lock clears run and stumble"):
+		return false
+	if _animation_tree["parameters/push/blend_amount"] <= 0.0:
+		push_error("Control lock should not clear the independent push behaviour")
+		quit(1)
+		return false
+
+	_player.control_enabled = true
+	_player.max_speed = 1.0
+	_player._physics_process(0.01)
+	_player._behaviour.update(1.0)
+	if not _expect_locomotion_blends(1.0, 0.0, "speed exactly at the threshold selects run"):
+		return false
+
+	_player.max_speed = original_max_speed
+	_player.control_enabled = false
+	Input.action_release("forward")
+	Input.action_release("backward")
+	return true
+
+
+# Checks the current run and stumble blend values together so cross-fades cannot leave both targets active.
+func _expect_locomotion_blends(expected_run: float, expected_stumble: float, description: String) -> bool:
+	var run_blend_amount: float = _animation_tree["parameters/run/blend_amount"]
+	var stumble_blend_amount: float = _animation_tree["parameters/stumble/blend_amount"]
+	if not _expect_setting(expected_run, run_blend_amount, description + " run"):
+		return false
+	if not _expect_setting(expected_stumble, stumble_blend_amount, description + " stumble"):
+		return false
+	return true
 
 
 # Moves every frozen box far from the player to isolate each proximity check.

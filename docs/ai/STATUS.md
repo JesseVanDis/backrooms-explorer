@@ -4,7 +4,7 @@
 in [README.md](../../README.md) says what is planned and in which version. This page says what an
 AI can rely on right now.
 
-> Last reviewed: 2026-11-20. If you change behaviour, update this page in the same change.
+> Last reviewed: 2026-11-22. If you change behaviour, update this page in the same change.
 
 Legend: `done` · `partial` · `stub` · `missing`
 
@@ -14,9 +14,9 @@ Legend: `done` · `partial` · `stub` · `missing`
 
 | System                                      | State   | Reality check                                                       |
 |---------------------------------------------|---------|----------------------------------------------------------------------|
-| [Player movement](systems/player.md)        | done    | Walk, run, gravity, delayed freefall animation, head bob, footsteps, AnimationTree behaviour restrictions |
+| [Player movement](systems/player.md)        | done    | Walk, speed-sensitive run/stumble, gravity, delayed freefall animation, head bob, footsteps, AnimationTree behaviour restrictions |
 | Jumping                                     | partial | Works via the built-in `ui_accept`; no rebindable `jump` action       |
-| [Player behaviours](systems/player.md#7-animationtree-behaviours) | partial | Blend and one-shot behaviours expose lifecycle statuses; freefall activates after sustained airtime, camera offsets apply only while enabling or active, and timed actions are deferred |
+| [Player behaviours](systems/player.md#7-animationtree-behaviours) | partial | Blend and one-shot behaviours expose lifecycle statuses; run/stumble follow post-slide speed, freefall activates after sustained airtime, camera offsets apply only while enabling or active, and timed actions are deferred |
 | [Position-driven shader parameters](systems/player.md#positiontoshaderparam-configuration) | done | Reusable position-to-uniform driver; hand opacity follows the animated bone position |
 | [Voice + subtitles](systems/ui_subtitles.md)| done    | Queue, `.srt` parsing, synced playback                                |
 | [Audio reverb](systems/audio.md)            | partial | `SoundController` drives one reverb bus; no mixer, no settings        |

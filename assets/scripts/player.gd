@@ -1,4 +1,4 @@
-## [AI-DOC] First-person CharacterBody3D controller handling movement, delayed freefall and other AnimationTree behaviours, gated camera offsets, head bob, push-target hand yaw, asymmetric pivot-based mouse look, audio, and debug freecam
+## [AI-DOC] First-person CharacterBody3D controller handling movement, speed-sensitive run and stumble animations, delayed freefall, gated camera offsets, head bob, push-target hand yaw, mouse look, audio, and debug freecam
 ## spec: docs/ai/systems/player.md
 ## status: partial
 ## notes: resolves the named head-pitch and perspective-hands modifiers separately; hand yaw follows active push targets without changing other rotation axes
@@ -12,6 +12,7 @@ const FREECAM_FLY_SPEED: float = 10.0
 const FREECAM_FAST_SPEED_MULTIPLIER: float = 3.0
 const FREECAM_MOUSE_SENSITIVITY: float = 0.003
 const FREEFALL_ACTIVATION_DELAY: float = 0.05
+const STUMBLE_SPEED_THRESHOLD: float = 1.0
 const MAX_LOOK_UP_DEGREES: float = 90.0
 const MAX_LOOK_DOWN_DEGREES: float = 80.0
 var FOOTSTEP_INTERVAL: SpeedScale = SpeedScale.new(0.8, 0.36)
@@ -208,6 +209,13 @@ func _ready() -> void:
 		"player_camera_offset_speed": 2.0
 	})
 	
+	add_behaviour("stumble",  "parameters/stumble/blend_amount", {
+		"anim_activation_speed": 4.0, 
+		"anim_deactivation_speed": 4.0, 
+		"player_camera_offset": Vector3(0.0, 0.0, -0.10),
+		"player_camera_offset_speed": 2.0
+	})
+	
 	add_behaviour("push", "parameters/push/blend_amount", {
 		"anim_activation_speed": 3.0, 
 		"anim_deactivation_speed": 2.0, 
@@ -345,7 +353,7 @@ func _process(real_delta: float) -> void:
 		_start() # add some delay to start, as some stuff in the scene still desires 1 or 2 frames for it to be complete
 	_num_frames_since_ready = _num_frames_since_ready + 1
 
-# Keeps movement and delayed freefall behavior consistent while controls are enabled or disabled.
+# Keeps movement and speed-sensitive locomotion selection consistent while controls are enabled or disabled.
 func _physics_process(real_delta: float) -> void:
 	if _is_debug_cam_active:
 		velocity = Vector3.ZERO
@@ -360,6 +368,7 @@ func _physics_process(real_delta: float) -> void:
 	_handle_hands_aim(delta)
 		
 	if not control_enabled:
+		_update_locomotion_behaviours(Vector2.ZERO)
 		_update_camera_behavior_offsets(delta)
 		velocity.x = move_toward(velocity.x, 0, max_speed)
 		velocity.z = move_toward(velocity.z, 0, max_speed)
@@ -388,12 +397,6 @@ func _physics_process(real_delta: float) -> void:
 	var input_dir: Vector2 = Input.get_vector("left", "right", "forward", "backward")
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	
-	if input_dir == Vector2.ZERO:
-		deactivate_behaviour("run")
-	else:
-		activate_behaviour("run")
-	_update_camera_behavior_offsets(delta)
-	
 	if direction:
 		velocity.x = direction.x * _current_speed(Vector2(direction.x, direction.z))
 		velocity.z = direction.z * _current_speed(Vector2(direction.x, direction.z))
@@ -408,6 +411,8 @@ func _physics_process(real_delta: float) -> void:
 			velocity.z = move_toward(velocity.z, 0, max_speed)
 	
 	move_and_slide()
+	_update_locomotion_behaviours(input_dir)
+	_update_camera_behavior_offsets(delta)
 	_update_freefall_behaviour(real_delta)
 	
 	for i in get_slide_collision_count():
@@ -425,6 +430,19 @@ func _physics_process(real_delta: float) -> void:
 	_handle_head_bob(delta)
 	_handle_footsteps(delta)
 	_old_global_pos = global_position
+
+# Selects run or stumble from post-collision horizontal speed so target pushing and obstructions affect the gait.
+func _update_locomotion_behaviours(input_direction: Vector2) -> void:
+	if input_direction == Vector2.ZERO:
+		deactivate_behaviour("run")
+		deactivate_behaviour("stumble")
+		return
+
+	var horizontal_speed: float = Vector2(velocity.x, velocity.z).length()
+	var selected_behaviour: String = "stumble" if horizontal_speed < STUMBLE_SPEED_THRESHOLD else "run"
+	var inactive_behaviour: String = "run" if selected_behaviour == "stumble" else "stumble"
+	deactivate_behaviour(inactive_behaviour)
+	activate_behaviour(selected_behaviour)
 
 # Triggers the freefall animation only after sustained airtime and clears it on every landing.
 func _update_freefall_behaviour(real_delta: float) -> void:
