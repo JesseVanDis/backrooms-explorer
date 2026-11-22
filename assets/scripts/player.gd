@@ -11,7 +11,7 @@ const JUMP_VELOCITY: float = 3.5
 const FREECAM_FLY_SPEED: float = 10.0
 const FREECAM_FAST_SPEED_MULTIPLIER: float = 3.0
 const FREECAM_MOUSE_SENSITIVITY: float = 0.003
-const FREEFALL_ACTIVATION_DELAY: float = 0.5
+const FREEFALL_ACTIVATION_DELAY: float = 0.05
 const MAX_LOOK_UP_DEGREES: float = 90.0
 const MAX_LOOK_DOWN_DEGREES: float = 80.0
 var FOOTSTEP_INTERVAL: SpeedScale = SpeedScale.new(0.8, 0.36)
@@ -215,7 +215,7 @@ func _ready() -> void:
 	})
 	
 	add_behaviour("freefall",  "parameters/freefall/blend_amount", {
-		"anim_activation_speed": 4.0, 
+		"anim_activation_speed": 8.0, 
 		"anim_deactivation_speed": 4.0
 	})
 	
