@@ -1,4 +1,4 @@
-## [AI-DOC] Headless integration regression for smooth movement-facing animation and camera yaw compensation
+## [AI-DOC] Headless integration regression for smooth movement-facing animation, spine compensation, and camera yaw stability
 ## spec: docs/ai/systems/player.md
 ## status: partial
 
@@ -14,6 +14,11 @@ var _player: Player = null
 var _camera: Camera3D = null
 var _facing_pivot: Node3D = null
 var _camera_modifier: SkeletonModifier = null
+var _spine_modifier: SkeletonModifier = null
+var _spine_skeleton: Skeleton3D = null
+var _spine_bone_index: int = -1
+var _neutral_spine_forward: Vector3 = Vector3.ZERO
+var _processed_spine_forward: Vector3 = Vector3.ZERO
 var _test_viewport: SubViewport = null
 
 # Creates the real player scene with the UI and floor required by its initialization and physics.
@@ -69,6 +74,8 @@ func _run_facing_tests() -> void:
 	_camera = UtilsNode.find_camera_recursive(_player)
 	_facing_pivot = _player.find_child("_character_facing_pivot", true, false) as Node3D
 	_camera_modifier = _player.find_child("_skeleton_modifier_cam", true, false) as SkeletonModifier
+	_spine_modifier = _player.find_child("_skeleton_modifier_spine", true, false) as SkeletonModifier
+	_spine_skeleton = _player.find_child("Skeleton3D", true, false) as Skeleton3D
 	if _camera == null:
 		push_error("Player camera is missing")
 		quit(1)
@@ -81,8 +88,25 @@ func _run_facing_tests() -> void:
 		push_error("Player camera skeleton modifier is missing")
 		quit(1)
 		return
+	if _spine_modifier == null:
+		push_error("Player spine skeleton modifier is missing")
+		quit(1)
+		return
+	if _spine_skeleton == null:
+		push_error("Player skeleton is missing")
+		quit(1)
+		return
+	_spine_bone_index = _spine_skeleton.find_bone("CC_Base_Spine01")
+	if _spine_bone_index == -1:
+		push_error("Player spine bone is missing")
+		quit(1)
+		return
+	_spine_modifier.modification_processed.connect(_on_spine_modifier_processed)
 	_player.set_physics_process(false)
 	await _wait_for_physics_frames(2)
+	await process_frame
+	await process_frame
+	_neutral_spine_forward = _processed_spine_forward
 
 	if not await _expect_movement_facing(["forward"], Vector3(0.0, 0.0, -1.0), "forward"):
 		return
@@ -151,7 +175,9 @@ func _expect_movement_facing(actions: Array[String], expected_local_direction: V
 		if actual_forward.dot(expected_world_direction.normalized()) >= FACING_DOT_THRESHOLD:
 			break
 		await _step_player(actions)
-	return _expect_facing(expected_world_direction, description)
+	if not _expect_facing(expected_world_direction, description):
+		return false
+	return _expect_spine_facing(description)
 
 # Checks that a cardinal direction change advances at a bounded rate and keeps the camera orientation fixed.
 func _test_smooth_direction_transition() -> bool:
@@ -175,7 +201,9 @@ func _test_smooth_direction_transition() -> bool:
 		await _step_player(["right"])
 		if not _expect_camera_orientation(camera_basis_before_turn, "camera during the smooth turn"):
 			return false
-	return _expect_facing(Vector3.RIGHT, "completed smooth right turn")
+	if not _expect_facing(Vector3.RIGHT, "completed smooth right turn"):
+		return false
+	return _expect_spine_facing("completed smooth right turn")
 
 # Verifies a turn crossing the yaw wrap boundary takes the short positive arc rather than a full reverse rotation.
 func _test_shortest_path_turn() -> bool:
@@ -237,7 +265,7 @@ func _test_smooth_return_states() -> bool:
 		return false
 	return true
 
-# Advances the real player's physics callback and skeleton processing after changing input actions.
+# Advances the real player's physics callback and verifies both yaw modifiers stay synchronized with model facing.
 func _step_player(actions: Array[String]) -> void:
 	_release_movement_actions()
 	for action_name: String in actions:
@@ -246,6 +274,8 @@ func _step_player(actions: Array[String]) -> void:
 	_player._physics_process(1.0 / float(Engine.physics_ticks_per_second))
 	await process_frame
 	await process_frame
+	_expect(is_equal_approx(_spine_modifier.extra_rotation_degrees.y, -rad_to_deg(_facing_pivot.rotation.y)), "Spine modifier did not counter-rotate the facing pivot yaw")
+	_expect(is_equal_approx(_camera_modifier.extra_rotation_degrees.y, -rad_to_deg(_facing_pivot.rotation.y)), "Camera modifier did not counter-rotate the facing pivot yaw")
 
 # Presses against a nearby wall and confirms the requested direction still controls facing after collision stops motion.
 func _test_blocked_direction_fallback() -> bool:
@@ -271,6 +301,24 @@ func _expect_facing(expected_world_direction: Vector3, description: String) -> b
 	var actual_forward: Vector3 = -_facing_pivot.global_basis.z.normalized()
 	var expected_direction: Vector3 = expected_world_direction.normalized()
 	return _expect(actual_forward.dot(expected_direction) >= FACING_DOT_THRESHOLD, "Character does not face " + description)
+
+# Checks the processed spine bone keeps its world-space facing aligned with its neutral look direction.
+func _expect_spine_facing(description: String) -> bool:
+	var actual_forward: Vector3 = _processed_spine_forward
+	var facing_dot: float = actual_forward.dot(_neutral_spine_forward)
+	return _expect(facing_dot >= FACING_DOT_THRESHOLD, "Upper body does not face the view during " + description + "; facing dot: " + str(facing_dot) + ", actual: " + str(actual_forward) + ", neutral: " + str(_neutral_spine_forward))
+
+# Samples the final spine pose after SkeletonModifier3D has applied its override.
+func _on_spine_modifier_processed() -> void:
+	_processed_spine_forward = _get_spine_world_forward()
+
+# Reads the actual processed spine pose instead of inferring torso orientation from the modifier property.
+func _get_spine_world_forward() -> Vector3:
+	var spine_pose: Transform3D = _spine_skeleton.get_bone_global_pose(_spine_bone_index)
+	var spine_world_basis: Basis = _spine_skeleton.global_basis * spine_pose.basis
+	var spine_forward: Vector3 = -spine_world_basis.z
+	spine_forward.y = 0.0
+	return spine_forward.normalized()
 
 # Confirms yaw compensation preserves the camera's full pitched orientation rather than only its forward vector.
 func _expect_camera_orientation(expected_basis: Basis, description: String) -> bool:

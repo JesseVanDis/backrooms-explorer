@@ -1,7 +1,7 @@
-## [AI-DOC] First-person CharacterBody3D controller handling smooth movement-facing animation with camera yaw compensation, speed-sensitive run and stumble, delayed freefall, gated camera offsets, head bob, push-target hand yaw, mouse look, audio, and debug freecam
+## [AI-DOC] First-person CharacterBody3D controller handling smooth movement-facing animation with view-facing spine and camera compensation, speed-sensitive run and stumble, delayed freefall, gated camera offsets, head bob, push-target hand yaw, mouse look, audio, and debug freecam
 ## spec: docs/ai/systems/player.md
 ## status: partial
-## notes: resolves head-pitch, perspective-hands, and camera modifiers separately; model facing turns gradually toward travel while camera yaw and hand aiming stay view-relative
+## notes: resolves head-pitch, perspective-hands, camera, and spine modifiers separately; model facing turns gradually toward travel while upper body, camera yaw, and hand aiming stay view-relative
 
 extends CharacterBody3D
 
@@ -53,6 +53,7 @@ var _spine_pitch: float = 0.0
 var _skeleton_modifier_headpitch: SkeletonModifier = null
 var _skeleton_modifier_perspective_hands: SkeletonModifier = null
 var _skeleton_modifier_cam: SkeletonModifier = null
+var _skeleton_modifier_spine: SkeletonModifier = null
 var _character_facing_pivot: Node3D = null
 
 #var active_voice_sequence: Array[AudioStream] = []:
@@ -167,6 +168,7 @@ func _ready() -> void:
 	_skeleton_modifier_headpitch = UtilsNode.find_node_with_name_recursive(self, "_skeleton_modifier_headpitch") as SkeletonModifier
 	_skeleton_modifier_perspective_hands = UtilsNode.find_node_with_name_recursive(self, "_skeleton_modifier_perspective_hands") as SkeletonModifier
 	_skeleton_modifier_cam = UtilsNode.find_node_with_name_recursive(self, "_skeleton_modifier_cam") as SkeletonModifier
+	_skeleton_modifier_spine = UtilsNode.find_node_with_name_recursive(self, "_skeleton_modifier_spine") as SkeletonModifier
 	_character_facing_pivot = UtilsNode.find_node_with_name_recursive(self, "_character_facing_pivot") as Node3D
 	_node_camera_pitch_pivot = UtilsNode.find_node_with_name_recursive(self, "_cam_pitch_pivot")
 
@@ -198,6 +200,10 @@ func _ready() -> void:
 
 	if _skeleton_modifier_cam == null:
 		push_error("_skeleton_modifier_cam is null")
+		return
+
+	if _skeleton_modifier_spine == null:
+		push_error("_skeleton_modifier_spine is null")
 		return
 
 	if _character_facing_pivot == null:
@@ -460,7 +466,7 @@ func _update_locomotion_behaviours(input_direction: Vector2) -> void:
 	deactivate_behaviour(inactive_behaviour)
 	activate_behaviour(selected_behaviour)
 
-# Turns the rendered model gradually toward travel or view-facing while preserving camera yaw each frame.
+# Turns the rendered model gradually toward travel while counter-rotating its upper body to keep the view facing.
 func _update_character_facing(input_direction: Vector2, real_delta: float) -> void:
 	var target_yaw: float = 0.0
 	if input_direction != Vector2.ZERO:
@@ -475,6 +481,7 @@ func _update_character_facing(input_direction: Vector2, real_delta: float) -> vo
 	var yaw_difference: float = wrapf(target_yaw - current_yaw, -PI, PI)
 	var maximum_yaw_step: float = deg_to_rad(CHARACTER_TURN_SPEED_DEGREES_PER_SECOND) * maxf(0.0, real_delta)
 	_character_facing_pivot.rotation.y = current_yaw + clampf(yaw_difference, -maximum_yaw_step, maximum_yaw_step)
+	_skeleton_modifier_spine.extra_rotation_degrees.y = -rad_to_deg(_character_facing_pivot.rotation.y)
 	_skeleton_modifier_cam.extra_rotation_degrees.y = -rad_to_deg(_character_facing_pivot.rotation.y)
 
 # Triggers the freefall animation only after sustained airtime and clears it on every landing.
