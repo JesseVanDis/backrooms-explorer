@@ -210,7 +210,7 @@ func _test(pass_index: int, ctx: Context) -> Pixel:
 
 
 func _gen(pass_index: int, ctx: Context) -> Pixel:
-	return _test(pass_index, ctx)
+	# return _test(pass_index, ctx)
 	
 	var pp: PreviousPass = ctx.previous_pass
 	var retval: Pixel = Pixel.INVALID

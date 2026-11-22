@@ -1,7 +1,7 @@
-## [AI-DOC] First-person CharacterBody3D controller handling smooth movement-facing animation with bounded view-facing spine and camera compensation, speed-sensitive run and stumble, delayed freefall, gated camera offsets, head bob, push-target hand yaw, mouse look, audio, and debug freecam
+## [AI-DOC] First-person CharacterBody3D controller handling smooth movement-facing animation with bounded view-facing spine and camera compensation, speed- and direction-sensitive run, reverse-run and stumble, delayed freefall, gated camera offsets, head bob, push-target hand yaw, mouse look, audio, and debug freecam
 ## spec: docs/ai/systems/player.md
 ## status: partial
-## notes: resolves head-pitch, perspective-hands, camera, and spine modifiers separately; model facing turns gradually toward travel while upper body, camera yaw, and hand aiming stay view-relative
+## notes: resolves head-pitch, perspective-hands, camera, and spine modifiers separately; model facing turns gradually toward travel or opposite travel for the reverse-running gait while upper body, camera yaw, and hand aiming stay view-relative
 
 extends CharacterBody3D
 
@@ -14,6 +14,7 @@ const FREECAM_MOUSE_SENSITIVITY: float = 0.003
 const FREEFALL_ACTIVATION_DELAY: float = 0.05
 const STUMBLE_SPEED_THRESHOLD: float = 1.0
 const CHARACTER_TURN_SPEED_DEGREES_PER_SECOND: float = 450.0
+const LOCOMOTION_BEHAVIOURS: Array[String] = ["run", "run_backwards", "stumble"]
 const MAX_LOOK_UP_DEGREES: float = 90.0
 const MAX_LOOK_DOWN_DEGREES: float = 80.0
 var FOOTSTEP_INTERVAL: SpeedScale = SpeedScale.new(0.8, 0.36)
@@ -222,6 +223,13 @@ func _ready() -> void:
 	# Register default behaviours with restrictions keyed by their player property names.
 	add_behaviour("")
 	add_behaviour("run",  "parameters/run/blend_amount", {
+		"anim_activation_speed": 4.0, 
+		"anim_deactivation_speed": 4.0, 
+		"player_camera_offset": Vector3(0.0, 0.0, -0.10),
+		"player_camera_offset_speed": 2.0
+	})
+	
+	add_behaviour("run_backwards",  "parameters/run_backwards/blend_amount", {
 		"anim_activation_speed": 4.0, 
 		"anim_deactivation_speed": 4.0, 
 		"player_camera_offset": Vector3(0.0, 0.0, -0.10),
@@ -453,20 +461,26 @@ func _physics_process(real_delta: float) -> void:
 	_handle_footsteps(delta)
 	_old_global_pos = global_position
 
-# Selects run or stumble from post-collision horizontal speed so target pushing and obstructions affect the gait.
+# Selects the locomotion blend from speed and backward input while keeping slow or blocked movement in stumble.
 func _update_locomotion_behaviours(input_direction: Vector2) -> void:
-	if input_direction == Vector2.ZERO:
-		deactivate_behaviour("run")
-		deactivate_behaviour("stumble")
-		return
+	var selected_behaviour: String = ""
+	if input_direction != Vector2.ZERO:
+		var horizontal_speed: float = Vector2(velocity.x, velocity.z).length()
+		if horizontal_speed < STUMBLE_SPEED_THRESHOLD:
+			selected_behaviour = "stumble"
+		elif input_direction.y > 0.0:
+			selected_behaviour = "run_backwards"
+		else:
+			selected_behaviour = "run"
 
-	var horizontal_speed: float = Vector2(velocity.x, velocity.z).length()
-	var selected_behaviour: String = "stumble" if horizontal_speed < STUMBLE_SPEED_THRESHOLD else "run"
-	var inactive_behaviour: String = "run" if selected_behaviour == "stumble" else "stumble"
-	deactivate_behaviour(inactive_behaviour)
-	activate_behaviour(selected_behaviour)
+	for behaviour_name: String in LOCOMOTION_BEHAVIOURS:
+		if behaviour_name != selected_behaviour:
+			deactivate_behaviour(behaviour_name)
 
-# Turns the rendered model toward travel and wraps spine counter-yaw to prevent accumulated full-turn twisting.
+	if not selected_behaviour.is_empty():
+		activate_behaviour(selected_behaviour)
+
+# Turns the model opposite travel for the reverse-running gait and wraps spine counter-yaw against full-turn twisting.
 func _update_character_facing(input_direction: Vector2, real_delta: float) -> void:
 	var target_yaw: float = 0.0
 	if input_direction != Vector2.ZERO:
@@ -474,6 +488,9 @@ func _update_character_facing(input_direction: Vector2, real_delta: float) -> vo
 		local_direction.y = 0.0
 		if local_direction.length_squared() <= 0.0001:
 			local_direction = Vector3(input_direction.x, 0.0, input_direction.y)
+		var is_running_backwards: bool = input_direction.y > 0.0 and Vector2(velocity.x, velocity.z).length() >= STUMBLE_SPEED_THRESHOLD
+		if is_running_backwards:
+			local_direction = -local_direction
 		local_direction = local_direction.normalized()
 		target_yaw = atan2(-local_direction.x, -local_direction.z)
 

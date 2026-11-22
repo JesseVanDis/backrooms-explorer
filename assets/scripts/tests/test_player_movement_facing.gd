@@ -1,4 +1,4 @@
-## [AI-DOC] Headless integration regression for smooth movement-facing animation, bounded spine compensation, and camera yaw stability
+## [AI-DOC] Headless integration regression for smooth movement-facing animation, backward gait orientation, bounded spine compensation, and camera yaw stability
 ## spec: docs/ai/systems/player.md
 ## status: partial
 
@@ -112,13 +112,17 @@ func _run_facing_tests() -> void:
 		return
 	if not await _expect_movement_facing(["forward"], Vector3(0.0, 0.0, -1.0), "forward"):
 		return
+	if not await _expect_movement_facing(["backward"], Vector3(0.0, 0.0, -1.0), "backward-running model orientation"):
+		return
+	if not await _expect_movement_facing(["backward", "left"], Vector3(1.0, 0.0, -1.0), "backward-left running model orientation", false):
+		return
+	if not await _expect_movement_facing(["backward", "right"], Vector3(-1.0, 0.0, -1.0), "backward-right running model orientation", false):
+		return
 	if not await _expect_movement_facing(["right"], Vector3(1.0, 0.0, 0.0), "right strafe"):
 		return
 	if not await _expect_movement_facing(["left"], Vector3(-1.0, 0.0, 0.0), "left strafe"):
 		return
 	if not await _expect_movement_facing(["forward", "left"], Vector3(-1.0, 0.0, -1.0), "diagonal movement"):
-		return
-	if not await _expect_movement_facing(["backward"], Vector3(0.0, 0.0, 1.0), "backward movement"):
 		return
 	if not await _test_smooth_direction_transition():
 		return
@@ -162,24 +166,33 @@ func _run_facing_tests() -> void:
 	print("TEST: PASS")
 	quit(0)
 
-# Lets the actual character scene complete a smooth turn, then checks its world-space travel direction.
-func _expect_movement_facing(actions: Array[String], expected_local_direction: Vector3, description: String) -> bool:
+# Checks model facing and view stability while keeping diagonal reverse gait tests separate from spine alignment.
+func _expect_movement_facing(actions: Array[String], expected_local_direction: Vector3, description: String, check_spine_facing: bool = true) -> bool:
 	_player.global_position = Vector3.ZERO
 	_player.global_position.y = 1.0
 	_player.rotation.y = 0.0
 	_player.velocity = Vector3.ZERO
 	_facing_pivot.rotation.y = 0.0
 	_camera_modifier.extra_rotation_degrees.y = 0.0
+	await process_frame
+	await process_frame
+	var camera_basis_before_movement: Basis = _camera.global_basis
 	await _step_player(actions)
+	if not _expect_camera_orientation(camera_basis_before_movement, "camera during " + description):
+		return false
 	var expected_world_direction: Vector3 = _player.global_basis * expected_local_direction.normalized()
 	for _frame_index: int in range(25):
 		var actual_forward: Vector3 = -_facing_pivot.global_basis.z.normalized()
 		if actual_forward.dot(expected_world_direction.normalized()) >= FACING_DOT_THRESHOLD:
 			break
 		await _step_player(actions)
+		if not _expect_camera_orientation(camera_basis_before_movement, "camera during " + description):
+			return false
 	if not _expect_facing(expected_world_direction, description):
 		return false
-	return _expect_spine_facing(description)
+	if check_spine_facing:
+		return _expect_spine_facing(description)
+	return true
 
 # Checks that a cardinal direction change advances at a bounded rate and keeps the camera orientation fixed.
 func _test_smooth_direction_transition() -> bool:
@@ -226,8 +239,10 @@ func _test_shortest_path_turn() -> bool:
 	_release_movement_actions()
 	return true
 
-# Keeps spine counter-yaw bounded through repeated clockwise and counterclockwise full turns.
+# Keeps spine counter-yaw bounded through repeated turns while slow speed preserves travel-facing behavior.
 func _test_spine_yaw_bounds() -> bool:
+	var original_max_speed: float = _player.max_speed
+	_player.max_speed = 0.999
 	_player.global_position = Vector3(0.0, 1.0, 0.0)
 	_player.rotation.y = 0.0
 	_player.velocity = Vector3.ZERO
@@ -261,6 +276,7 @@ func _test_spine_yaw_bounds() -> bool:
 			return false
 		if not _expect_spine_facing("completed counterclockwise full turn"):
 			return false
+	_player.max_speed = original_max_speed
 	return true
 
 # Confirms releasing input and locking controls gradually restore view-facing without disturbing the camera.

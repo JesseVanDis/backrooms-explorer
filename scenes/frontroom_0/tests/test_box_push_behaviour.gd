@@ -1,4 +1,4 @@
-## [AI-DOC] Integration test verifying frontroom box proximity drives push movement and perspective-hands yaw
+## [AI-DOC] Integration test verifying frontroom push behaviour, speed- and direction-sensitive locomotion, and perspective-hands yaw
 ## spec: scenes/frontroom_0/docs/SPEC.md
 ## status: complete
 
@@ -209,7 +209,7 @@ func _run_box_push_tests() -> void:
 	quit(0)
 
 
-# Verifies slow push movement selects stumble and that normal speed, idle, and control locks select the correct blends.
+# Verifies push speed selects stumble and forward/backward input selects the matching running blends.
 func _run_locomotion_tests() -> bool:
 	_player.global_position = Vector3(0.0, 1.0, 0.0)
 	_player.global_rotation.y = 0.0
@@ -223,10 +223,10 @@ func _run_locomotion_tests() -> bool:
 	Input.action_press("forward")
 	_player._physics_process(0.01)
 	_player._behaviour.update(0.05)
-	if not _expect_locomotion_blends(0.2, 0.0, "normal movement starts run"):
+	if not _expect_locomotion_blends(0.2, 0.0, 0.0, "normal movement starts run"):
 		return false
 	_player._behaviour.update(1.0)
-	if not _expect_locomotion_blends(1.0, 0.0, "normal movement completes run blend"):
+	if not _expect_locomotion_blends(1.0, 0.0, 0.0, "normal movement completes run blend"):
 		return false
 
 	var target_box: RigidBody3D = _moving_boxes[3]
@@ -242,10 +242,10 @@ func _run_locomotion_tests() -> bool:
 		quit(1)
 		return false
 	_player._behaviour.update(0.05)
-	if not _expect_locomotion_blends(0.8, 0.2, "slow box movement cross-fades run into stumble"):
+	if not _expect_locomotion_blends(0.8, 0.0, 0.2, "slow box movement cross-fades run into stumble"):
 		return false
 	_player._behaviour.update(1.0)
-	if not _expect_locomotion_blends(0.0, 1.0, "slow box movement completes stumble blend"):
+	if not _expect_locomotion_blends(0.0, 0.0, 1.0, "slow box movement completes stumble blend"):
 		return false
 	if _animation_tree["parameters/push/blend_amount"] <= 0.0:
 		push_error("Push behaviour should remain active while stumble is selected")
@@ -261,33 +261,65 @@ func _run_locomotion_tests() -> bool:
 		quit(1)
 		return false
 	_player._behaviour.update(0.05)
-	if not _expect_locomotion_blends(0.2, 0.8, "movement away from the box cross-fades stumble into run"):
+	if not _expect_locomotion_blends(0.0, 0.2, 0.8, "movement away from the box cross-fades stumble into backward run"):
 		return false
 	_player._behaviour.update(1.0)
-	if not _expect_locomotion_blends(1.0, 0.0, "movement away from the box completes run blend"):
+	if not _expect_locomotion_blends(0.0, 1.0, 0.0, "movement away from the box completes backward run blend"):
+		return false
+
+	_set_boxes_out_of_range()
+	_frontroom.call("_update_player_speed")
+	Input.action_press("left")
+	_player._physics_process(0.01)
+	_player._behaviour.update(1.0)
+	if not _expect_locomotion_blends(0.0, 1.0, 0.0, "backward-left diagonal keeps backward run"):
+		return false
+	Input.action_release("left")
+	Input.action_press("right")
+	_player._physics_process(0.01)
+	_player._behaviour.update(1.0)
+	if not _expect_locomotion_blends(0.0, 1.0, 0.0, "backward-right diagonal keeps backward run"):
 		return false
 
 	Input.action_release("backward")
+	Input.action_release("right")
+	Input.action_press("forward")
+	Input.action_press("left")
+	_player._physics_process(0.01)
+	_player._behaviour.update(0.05)
+	if not _expect_locomotion_blends(0.2, 0.8, 0.0, "forward-left diagonal cross-fades backward run into run"):
+		return false
+	_player._behaviour.update(1.0)
+	if not _expect_locomotion_blends(1.0, 0.0, 0.0, "forward-left diagonal completes run blend"):
+		return false
+
+	Input.action_release("forward")
+	Input.action_release("left")
 	_player._physics_process(0.01)
 	_player._behaviour.update(1.0)
-	if not _expect_locomotion_blends(0.0, 0.0, "releasing movement clears both locomotion blends"):
+	if not _expect_locomotion_blends(0.0, 0.0, 0.0, "releasing movement clears all locomotion blends"):
 		return false
 
 	_player.behaviour_target = null
 	var original_max_speed: float = _player.max_speed
 	_player.max_speed = 0.999
-	Input.action_press("forward")
+	Input.action_press("backward")
 	_player._physics_process(0.01)
 	_player._behaviour.update(1.0)
-	if not _expect_locomotion_blends(0.0, 1.0, "speed just below the threshold selects stumble"):
+	if not _expect_locomotion_blends(0.0, 0.0, 1.0, "backward speed just below the threshold selects stumble"):
 		return false
 
-	_player.activate_behaviour("run")
+	_player.max_speed = 1.0
+	_player._physics_process(0.01)
+	_player._behaviour.update(1.0)
+	if not _expect_locomotion_blends(0.0, 1.0, 0.0, "backward speed exactly at the threshold selects backward run"):
+		return false
+	_player.activate_behaviour("push")
 	_player._behaviour.update(1.0)
 	_player.control_enabled = false
 	_player._physics_process(0.01)
 	_player._behaviour.update(1.0)
-	if not _expect_locomotion_blends(0.0, 0.0, "control lock clears run and stumble"):
+	if not _expect_locomotion_blends(0.0, 0.0, 0.0, "control lock clears every locomotion blend"):
 		return false
 	if _animation_tree["parameters/push/blend_amount"] <= 0.0:
 		push_error("Control lock should not clear the independent push behaviour")
@@ -295,24 +327,23 @@ func _run_locomotion_tests() -> bool:
 		return false
 
 	_player.control_enabled = true
-	_player.max_speed = 1.0
-	_player._physics_process(0.01)
-	_player._behaviour.update(1.0)
-	if not _expect_locomotion_blends(1.0, 0.0, "speed exactly at the threshold selects run"):
-		return false
-
 	_player.max_speed = original_max_speed
 	_player.control_enabled = false
 	Input.action_release("forward")
 	Input.action_release("backward")
+	Input.action_release("left")
+	Input.action_release("right")
 	return true
 
 
-# Checks the current run and stumble blend values together so cross-fades cannot leave both targets active.
-func _expect_locomotion_blends(expected_run: float, expected_stumble: float, description: String) -> bool:
+# Checks all locomotion blend values together so cross-fades cannot leave an unintended target active.
+func _expect_locomotion_blends(expected_run: float, expected_run_backwards: float, expected_stumble: float, description: String) -> bool:
 	var run_blend_amount: float = _animation_tree["parameters/run/blend_amount"]
+	var run_backwards_blend_amount: float = _animation_tree["parameters/run_backwards/blend_amount"]
 	var stumble_blend_amount: float = _animation_tree["parameters/stumble/blend_amount"]
 	if not _expect_setting(expected_run, run_blend_amount, description + " run"):
+		return false
+	if not _expect_setting(expected_run_backwards, run_backwards_blend_amount, description + " backward run"):
 		return false
 	if not _expect_setting(expected_stumble, stumble_blend_amount, description + " stumble"):
 		return false
