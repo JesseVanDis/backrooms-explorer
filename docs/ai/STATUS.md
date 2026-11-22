@@ -14,7 +14,7 @@ Legend: `done` · `partial` · `stub` · `missing`
 
 | System                                      | State   | Reality check                                                       |
 |---------------------------------------------|---------|----------------------------------------------------------------------|
-| [Player movement](systems/player.md)        | done    | Walk, speed-sensitive run/stumble, gravity, delayed freefall animation, head bob, footsteps, AnimationTree behaviour restrictions |
+| [Player movement](systems/player.md)        | done    | Walk, travel-facing run/stumble with camera-yaw compensation, gravity, delayed freefall animation, head bob, footsteps, AnimationTree behaviour restrictions |
 | Jumping                                     | partial | Works via the built-in `ui_accept`; no rebindable `jump` action       |
 | [Player behaviours](systems/player.md#7-animationtree-behaviours) | partial | Blend and one-shot behaviours expose lifecycle statuses; run/stumble follow post-slide speed, freefall activates after sustained airtime, camera offsets apply only while enabling or active, and timed actions are deferred |
 | [Position-driven shader parameters](systems/player.md#positiontoshaderparam-configuration) | done | Reusable position-to-uniform driver; hand opacity follows the animated bone position |

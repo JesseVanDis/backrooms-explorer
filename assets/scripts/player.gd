@@ -1,7 +1,7 @@
-## [AI-DOC] First-person CharacterBody3D controller handling movement, speed-sensitive run and stumble animations, delayed freefall, gated camera offsets, head bob, push-target hand yaw, mouse look, audio, and debug freecam
+## [AI-DOC] First-person CharacterBody3D controller handling smooth movement-facing animation with camera yaw compensation, speed-sensitive run and stumble, delayed freefall, gated camera offsets, head bob, push-target hand yaw, mouse look, audio, and debug freecam
 ## spec: docs/ai/systems/player.md
 ## status: partial
-## notes: resolves the named head-pitch and perspective-hands modifiers separately; hand yaw follows active push targets without changing other rotation axes
+## notes: resolves head-pitch, perspective-hands, and camera modifiers separately; model facing turns gradually toward travel while camera yaw and hand aiming stay view-relative
 
 extends CharacterBody3D
 
@@ -13,6 +13,7 @@ const FREECAM_FAST_SPEED_MULTIPLIER: float = 3.0
 const FREECAM_MOUSE_SENSITIVITY: float = 0.003
 const FREEFALL_ACTIVATION_DELAY: float = 0.05
 const STUMBLE_SPEED_THRESHOLD: float = 1.0
+const CHARACTER_TURN_SPEED_DEGREES_PER_SECOND: float = 450.0
 const MAX_LOOK_UP_DEGREES: float = 90.0
 const MAX_LOOK_DOWN_DEGREES: float = 80.0
 var FOOTSTEP_INTERVAL: SpeedScale = SpeedScale.new(0.8, 0.36)
@@ -51,6 +52,8 @@ var _num_frames_since_ready: int = 0
 var _spine_pitch: float = 0.0
 var _skeleton_modifier_headpitch: SkeletonModifier = null
 var _skeleton_modifier_perspective_hands: SkeletonModifier = null
+var _skeleton_modifier_cam: SkeletonModifier = null
+var _character_facing_pivot: Node3D = null
 
 #var active_voice_sequence: Array[AudioStream] = []:
 #	set(value):
@@ -155,7 +158,7 @@ func set_flag(id: String) -> bool:
 func is_flag_set(id: String) -> bool:
 	return _flags.has(id)
 
-# Initializes camera framing and exported pitch after default behaviours register, before the first physics frame.
+# Resolves model-facing and camera-bone dependencies before configuring camera framing and default behaviours.
 func _ready() -> void:
 	_num_frames_since_ready = 0
 	_audio_player_voice = UtilsNode.find_node_with_name_recursive(self, "RaytracedAudioPlayer3D_Voice")
@@ -163,6 +166,8 @@ func _ready() -> void:
 	_node_camera = UtilsNode.find_camera_recursive(self)
 	_skeleton_modifier_headpitch = UtilsNode.find_node_with_name_recursive(self, "_skeleton_modifier_headpitch") as SkeletonModifier
 	_skeleton_modifier_perspective_hands = UtilsNode.find_node_with_name_recursive(self, "_skeleton_modifier_perspective_hands") as SkeletonModifier
+	_skeleton_modifier_cam = UtilsNode.find_node_with_name_recursive(self, "_skeleton_modifier_cam") as SkeletonModifier
+	_character_facing_pivot = UtilsNode.find_node_with_name_recursive(self, "_character_facing_pivot") as Node3D
 	_node_camera_pitch_pivot = UtilsNode.find_node_with_name_recursive(self, "_cam_pitch_pivot")
 
 	_ingame_ui = _find_ingame_ui()
@@ -189,6 +194,14 @@ func _ready() -> void:
 
 	if _skeleton_modifier_perspective_hands == null:
 		push_error("_skeleton_modifier_perspective_hands is null")
+		return
+
+	if _skeleton_modifier_cam == null:
+		push_error("_skeleton_modifier_cam is null")
+		return
+
+	if _character_facing_pivot == null:
+		push_error("_character_facing_pivot is null")
 		return
 		
 		
@@ -353,7 +366,7 @@ func _process(real_delta: float) -> void:
 		_start() # add some delay to start, as some stuff in the scene still desires 1 or 2 frames for it to be complete
 	_num_frames_since_ready = _num_frames_since_ready + 1
 
-# Keeps movement and speed-sensitive locomotion selection consistent while controls are enabled or disabled.
+# Keeps movement, facing, and speed-sensitive locomotion selection consistent while controls are enabled or disabled.
 func _physics_process(real_delta: float) -> void:
 	if _is_debug_cam_active:
 		velocity = Vector3.ZERO
@@ -365,7 +378,6 @@ func _physics_process(real_delta: float) -> void:
 	if is_fast_mode:
 		delta = 0.1
 	_behaviour.update(delta)
-	_handle_hands_aim(delta)
 		
 	if not control_enabled:
 		_update_locomotion_behaviours(Vector2.ZERO)
@@ -375,6 +387,8 @@ func _physics_process(real_delta: float) -> void:
 		if not is_on_floor() and not is_gravity_disabled:
 			velocity += get_gravity() * delta
 		move_and_slide()
+		_update_character_facing(Vector2.ZERO, real_delta)
+		_handle_hands_aim(delta)
 		_update_freefall_behaviour(real_delta)
 		return
 	
@@ -412,6 +426,8 @@ func _physics_process(real_delta: float) -> void:
 	
 	move_and_slide()
 	_update_locomotion_behaviours(input_dir)
+	_update_character_facing(input_dir, real_delta)
+	_handle_hands_aim(delta)
 	_update_camera_behavior_offsets(delta)
 	_update_freefall_behaviour(real_delta)
 	
@@ -443,6 +459,23 @@ func _update_locomotion_behaviours(input_direction: Vector2) -> void:
 	var inactive_behaviour: String = "run" if selected_behaviour == "stumble" else "stumble"
 	deactivate_behaviour(inactive_behaviour)
 	activate_behaviour(selected_behaviour)
+
+# Turns the rendered model gradually toward travel or view-facing while preserving camera yaw each frame.
+func _update_character_facing(input_direction: Vector2, real_delta: float) -> void:
+	var target_yaw: float = 0.0
+	if input_direction != Vector2.ZERO:
+		var local_direction: Vector3 = global_transform.basis.inverse() * Vector3(velocity.x, 0.0, velocity.z)
+		local_direction.y = 0.0
+		if local_direction.length_squared() <= 0.0001:
+			local_direction = Vector3(input_direction.x, 0.0, input_direction.y)
+		local_direction = local_direction.normalized()
+		target_yaw = atan2(-local_direction.x, -local_direction.z)
+
+	var current_yaw: float = _character_facing_pivot.rotation.y
+	var yaw_difference: float = wrapf(target_yaw - current_yaw, -PI, PI)
+	var maximum_yaw_step: float = deg_to_rad(CHARACTER_TURN_SPEED_DEGREES_PER_SECOND) * maxf(0.0, real_delta)
+	_character_facing_pivot.rotation.y = current_yaw + clampf(yaw_difference, -maximum_yaw_step, maximum_yaw_step)
+	_skeleton_modifier_cam.extra_rotation_degrees.y = -rad_to_deg(_character_facing_pivot.rotation.y)
 
 # Triggers the freefall animation only after sustained airtime and clears it on every landing.
 func _update_freefall_behaviour(real_delta: float) -> void:
@@ -657,14 +690,14 @@ func _apply_spine_pitch() -> void:
 	_skeleton_modifier_headpitch.extra_rotation_degrees = Vector3(rad_to_deg(_spine_pitch), 0.0, 0.0)
 
 
-# Aims the perspective hands at the push target and eases them back as the push blend fades out.
+# Aims the perspective hands in model-facing space and eases them back as the push blend fades out.
 func _handle_hands_aim(dt: float) -> void:
 	var target_yaw: float = 0.0
 	if _behaviour.is_behaviour_active("push") and behaviour_target != null:
 		var direction_to_target: Vector3 = behaviour_target.global_position - global_position
 		direction_to_target.y = 0.0
 		if direction_to_target.length_squared() > 0.0:
-			var local_direction: Vector3 = (global_transform.basis.inverse() * direction_to_target).normalized()
+			var local_direction: Vector3 = (_character_facing_pivot.global_transform.basis.inverse() * direction_to_target).normalized()
 			target_yaw = atan2(-local_direction.x, -local_direction.z)
 
 	var current_yaw: float = deg_to_rad(_skeleton_modifier_perspective_hands.extra_rotation_degrees.y)

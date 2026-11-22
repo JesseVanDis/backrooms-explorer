@@ -28,5 +28,7 @@ mesh = SubResource("CapsuleMesh_khlrb")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12651366, 0)
 shape = SubResource("CapsuleShape3D_knwgh")
 
-[node name="character_main" parent="." unique_id=756740688 instance=ExtResource("2_ormyk")]
+[node name="_character_facing_pivot" type="Node3D" parent="." unique_id=2081971445]
+
+[node name="character_main" parent="_character_facing_pivot" unique_id=756740688 instance=ExtResource("2_ormyk")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8805079, 0)
