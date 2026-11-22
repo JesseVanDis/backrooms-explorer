@@ -1,5 +1,7 @@
 [gd_resource type="AnimationNodeBlendTree" format=3 uid="uid://b76j5yrxbk8uf"]
 
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_5kj2q"]
+
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_5n3hs"]
 animation = &"freefall"
 
@@ -15,6 +17,9 @@ animation = &"pushing"
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_laxb3"]
 animation = &"running"
 
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_wntk4"]
+animation = &"running"
+
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_0ux7u"]
 animation = &"stumble"
 
@@ -28,31 +33,39 @@ filters = ["", "_body_armature/Skeleton3D:CC_Base_Forearm.L", "_body_armature/Sk
 
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_laxb3"]
 
+[sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_1pypy"]
+
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_wntk4"]
 
 [resource]
-graph_offset = Vector2(-318.70135, -58.23874)
-nodes/output/position = Vector2(1540, 220)
+graph_offset = Vector2(-505.75787, 42.119537)
+nodes/output/position = Vector2(1900, 220)
 nodes/anim_idle/node = SubResource("AnimationNodeAnimation_507o8")
-nodes/anim_idle/position = Vector2(-340, 120)
+nodes/anim_idle/position = Vector2(-640, 100)
 nodes/anim_lvl_0_landing/node = SubResource("AnimationNodeAnimation_5kj2q")
 nodes/anim_lvl_0_landing/position = Vector2(-380, 660)
 nodes/anim_push/node = SubResource("AnimationNodeAnimation_m2cx2")
-nodes/anim_push/position = Vector2(360, 320)
+nodes/anim_push/position = Vector2(680, 320)
 nodes/anim_run/node = SubResource("AnimationNodeAnimation_laxb3")
-nodes/anim_run/position = Vector2(-340, 300)
+nodes/anim_run/position = Vector2(-480, 300)
 nodes/run/node = SubResource("AnimationNodeBlend2_laxb3")
-nodes/run/position = Vector2(-180, 100)
+nodes/run/position = Vector2(-320, 100)
 nodes/push/node = SubResource("AnimationNodeBlend2_m2cx2")
-nodes/push/position = Vector2(520, 100)
+nodes/push/position = Vector2(840, 100)
 nodes/lvl_0_landing/node = SubResource("AnimationNodeOneShot_5kj2q")
-nodes/lvl_0_landing/position = Vector2(1280, 600)
+nodes/lvl_0_landing/position = Vector2(1640, 600)
 nodes/freefall/node = SubResource("AnimationNodeBlend2_0ux7u")
-nodes/freefall/position = Vector2(860, 100)
+nodes/freefall/position = Vector2(1180, 100)
 nodes/anim_freefall/node = SubResource("AnimationNodeAnimation_5n3hs")
-nodes/anim_freefall/position = Vector2(700, 320)
+nodes/anim_freefall/position = Vector2(1020, 320)
 nodes/stumble/node = SubResource("AnimationNodeBlend2_wntk4")
-nodes/stumble/position = Vector2(140, 100)
+nodes/stumble/position = Vector2(500, 100)
 nodes/anim_stumble/node = SubResource("AnimationNodeAnimation_0ux7u")
-nodes/anim_stumble/position = Vector2(-20, 320)
-node_connections = [&"output", 0, &"lvl_0_landing", &"run", 0, &"anim_idle", &"run", 1, &"anim_run", &"push", 0, &"stumble", &"push", 1, &"anim_push", &"lvl_0_landing", 0, &"freefall", &"lvl_0_landing", 1, &"anim_lvl_0_landing", &"freefall", 0, &"push", &"freefall", 1, &"anim_freefall", &"stumble", 0, &"run", &"stumble", 1, &"anim_stumble"]
+nodes/anim_stumble/position = Vector2(340, 320)
+nodes/run_backwards/node = SubResource("AnimationNodeBlend2_1pypy")
+nodes/run_backwards/position = Vector2(160, 100)
+nodes/TimeScale/node = SubResource("AnimationNodeTimeScale_5kj2q")
+nodes/TimeScale/position = Vector2(0, 320)
+nodes/anim_run2/node = SubResource("AnimationNodeAnimation_wntk4")
+nodes/anim_run2/position = Vector2(-140, 320)
+node_connections = [&"output", 0, &"lvl_0_landing", &"run", 0, &"anim_idle", &"run", 1, &"anim_run", &"push", 0, &"stumble", &"push", 1, &"anim_push", &"lvl_0_landing", 0, &"freefall", &"lvl_0_landing", 1, &"anim_lvl_0_landing", &"freefall", 0, &"push", &"freefall", 1, &"anim_freefall", &"stumble", 0, &"run_backwards", &"stumble", 1, &"anim_stumble", &"run_backwards", 0, &"run", &"run_backwards", 1, &"TimeScale", &"TimeScale", 0, &"anim_run2"]

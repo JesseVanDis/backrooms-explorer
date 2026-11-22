@@ -1,4 +1,4 @@
-## [AI-DOC] First-person CharacterBody3D controller handling smooth movement-facing animation with view-facing spine and camera compensation, speed-sensitive run and stumble, delayed freefall, gated camera offsets, head bob, push-target hand yaw, mouse look, audio, and debug freecam
+## [AI-DOC] First-person CharacterBody3D controller handling smooth movement-facing animation with bounded view-facing spine and camera compensation, speed-sensitive run and stumble, delayed freefall, gated camera offsets, head bob, push-target hand yaw, mouse look, audio, and debug freecam
 ## spec: docs/ai/systems/player.md
 ## status: partial
 ## notes: resolves head-pitch, perspective-hands, camera, and spine modifiers separately; model facing turns gradually toward travel while upper body, camera yaw, and hand aiming stay view-relative
@@ -466,7 +466,7 @@ func _update_locomotion_behaviours(input_direction: Vector2) -> void:
 	deactivate_behaviour(inactive_behaviour)
 	activate_behaviour(selected_behaviour)
 
-# Turns the rendered model gradually toward travel while counter-rotating its upper body to keep the view facing.
+# Turns the rendered model toward travel and wraps spine counter-yaw to prevent accumulated full-turn twisting.
 func _update_character_facing(input_direction: Vector2, real_delta: float) -> void:
 	var target_yaw: float = 0.0
 	if input_direction != Vector2.ZERO:
@@ -481,7 +481,7 @@ func _update_character_facing(input_direction: Vector2, real_delta: float) -> vo
 	var yaw_difference: float = wrapf(target_yaw - current_yaw, -PI, PI)
 	var maximum_yaw_step: float = deg_to_rad(CHARACTER_TURN_SPEED_DEGREES_PER_SECOND) * maxf(0.0, real_delta)
 	_character_facing_pivot.rotation.y = current_yaw + clampf(yaw_difference, -maximum_yaw_step, maximum_yaw_step)
-	_skeleton_modifier_spine.extra_rotation_degrees.y = -rad_to_deg(_character_facing_pivot.rotation.y)
+	_skeleton_modifier_spine.extra_rotation_degrees.y = wrapf(-rad_to_deg(_character_facing_pivot.rotation.y), -180.0, 180.0)
 	_skeleton_modifier_cam.extra_rotation_degrees.y = -rad_to_deg(_character_facing_pivot.rotation.y)
 
 # Triggers the freefall animation only after sustained airtime and clears it on every landing.

@@ -1,4 +1,4 @@
-## [AI-DOC] Headless integration regression for smooth movement-facing animation, spine compensation, and camera yaw stability
+## [AI-DOC] Headless integration regression for smooth movement-facing animation, bounded spine compensation, and camera yaw stability
 ## spec: docs/ai/systems/player.md
 ## status: partial
 
@@ -108,6 +108,8 @@ func _run_facing_tests() -> void:
 	await process_frame
 	_neutral_spine_forward = _processed_spine_forward
 
+	if not await _test_spine_yaw_bounds():
+		return
 	if not await _expect_movement_facing(["forward"], Vector3(0.0, 0.0, -1.0), "forward"):
 		return
 	if not await _expect_movement_facing(["right"], Vector3(1.0, 0.0, 0.0), "right strafe"):
@@ -224,6 +226,43 @@ func _test_shortest_path_turn() -> bool:
 	_release_movement_actions()
 	return true
 
+# Keeps spine counter-yaw bounded through repeated clockwise and counterclockwise full turns.
+func _test_spine_yaw_bounds() -> bool:
+	_player.global_position = Vector3(0.0, 1.0, 0.0)
+	_player.rotation.y = 0.0
+	_player.velocity = Vector3.ZERO
+	_facing_pivot.rotation.y = 0.0
+	_camera_modifier.extra_rotation_degrees.y = 0.0
+	await process_frame
+	await process_frame
+	var camera_basis_before_turn: Basis = _camera.global_basis
+	var clockwise_actions: Array[String] = ["left", "backward", "right", "forward"]
+	var counterclockwise_actions: Array[String] = ["right", "backward", "left", "forward"]
+	var turn_frame_count: int = ceili(90.0 / TURN_SPEED_DEGREES_PER_SECOND * float(Engine.physics_ticks_per_second))
+	for turn_count: int in range(3):
+		for action_name: String in clockwise_actions:
+			for _frame_index: int in range(turn_frame_count):
+				await _step_player([action_name])
+				if not _expect_camera_orientation(camera_basis_before_turn, "camera during repeated clockwise turns"):
+					return false
+		var expected_clockwise_yaw: float = deg_to_rad(360.0 * float(turn_count + 1))
+		if not _expect(absf(_facing_pivot.rotation.y - expected_clockwise_yaw) < deg_to_rad(0.01), "Clockwise movement did not complete a full accumulated turn"):
+			return false
+		if not _expect_spine_facing("completed clockwise full turn"):
+			return false
+	for turn_count: int in range(3):
+		for action_name: String in counterclockwise_actions:
+			for _frame_index: int in range(turn_frame_count):
+				await _step_player([action_name])
+				if not _expect_camera_orientation(camera_basis_before_turn, "camera during repeated counterclockwise turns"):
+					return false
+		var expected_counterclockwise_yaw: float = deg_to_rad(360.0 * float(2 - turn_count))
+		if not _expect(absf(_facing_pivot.rotation.y - expected_counterclockwise_yaw) < deg_to_rad(0.01), "Counterclockwise movement did not complete a full accumulated turn"):
+			return false
+		if not _expect_spine_facing("completed counterclockwise full turn"):
+			return false
+	return true
+
 # Confirms releasing input and locking controls gradually restore view-facing without disturbing the camera.
 func _test_smooth_return_states() -> bool:
 	var camera_basis_before_idle: Basis = _camera.global_basis
@@ -265,7 +304,7 @@ func _test_smooth_return_states() -> bool:
 		return false
 	return true
 
-# Advances the real player's physics callback and verifies both yaw modifiers stay synchronized with model facing.
+# Advances the real player's physics callback and verifies bounded spine yaw and synchronized camera compensation.
 func _step_player(actions: Array[String]) -> void:
 	_release_movement_actions()
 	for action_name: String in actions:
@@ -274,7 +313,9 @@ func _step_player(actions: Array[String]) -> void:
 	_player._physics_process(1.0 / float(Engine.physics_ticks_per_second))
 	await process_frame
 	await process_frame
-	_expect(is_equal_approx(_spine_modifier.extra_rotation_degrees.y, -rad_to_deg(_facing_pivot.rotation.y)), "Spine modifier did not counter-rotate the facing pivot yaw")
+	var spine_yaw_degrees: float = _spine_modifier.extra_rotation_degrees.y
+	_expect(spine_yaw_degrees >= -180.0 and spine_yaw_degrees <= 180.0, "Spine modifier yaw exceeded the -180 to 180 degree range")
+	_expect(is_equal_approx(spine_yaw_degrees, wrapf(-rad_to_deg(_facing_pivot.rotation.y), -180.0, 180.0)), "Spine modifier did not use the bounded counter-yaw for the facing pivot")
 	_expect(is_equal_approx(_camera_modifier.extra_rotation_degrees.y, -rad_to_deg(_facing_pivot.rotation.y)), "Camera modifier did not counter-rotate the facing pivot yaw")
 
 # Presses against a nearby wall and confirms the requested direction still controls facing after collision stops motion.
