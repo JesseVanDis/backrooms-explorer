@@ -4,7 +4,7 @@
 ## notes: also activates the landing AnimationTree behaviour when the falling player first hits the floor; resolves the Map child before preload-time chunk attachment
 
 class_name Lvl_0
-extends Node
+extends LevelRoot
 
 const TILE_SIZE: float = 1.0
 const CHUNK_SIZE: int = 128
@@ -52,7 +52,6 @@ var model_prop_bin_1:             Model = _load_model(preload("res://assets/mode
 
 var _node_map: Node3D = null
 var _map_node_lookup_failed: bool = false
-var _player: Player = null
 
 var _did_hit_floor: bool = false
 
@@ -184,9 +183,10 @@ func initialized() -> bool:
 
 # Resolves the map before direct-start chunk loading so an invalid scene tree cannot leave startup retrying forever.
 func _ready() -> void:
+	super._ready()
+	
 	if _resolve_map_node() == null:
 		return
-	_player = UtilsNode.find_player(get_tree())
 	_load_visibility_pattern()
 	_update_visibility_transform()
 	

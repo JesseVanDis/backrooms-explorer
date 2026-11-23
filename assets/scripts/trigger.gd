@@ -41,14 +41,17 @@ var _was_target_ever_inside: bool = false
 
 func get_player() -> Player:
 	if _player == null:
-		_player = UtilsNode.find_player(get_tree())
-	if _player == null:
-		push_error("Player not found in trigger.gd")
+		var level_root: LevelRoot = get_node("/root/root") as LevelRoot
+		_player = level_root.player
 	return _player
 
-func _ready() -> void:
-	_audio_player = AudioStreamPlayer3D.new()
-	add_child(_audio_player)
+func _try_init() -> void:
+	if _player != null:
+		return # already initialized
+	get_player()
+	if _player == null:
+		return
+
 	if condition == Condition.WhileInside_PlayerLookAtNode && condition_arg_node == null:
 		push_error("condition Condition.PlayerLookAtNode requires a valid condition_arg_node in trigger '" + str(get_path()) + "'")
 	if condition == Condition.WhileInside_PlayerLookAtNode_DirectLineOfSight && condition_arg_node == null:
@@ -56,6 +59,15 @@ func _ready() -> void:
 	
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
+	
+	get_player().notify_added_trigger(self)
+	
+
+func _ready() -> void:
+	_try_init()
+
+func _exit_tree() -> void:
+	get_player().notify_removed_trigger(self)
 
 func _on_body_exited(body: Node3D) -> void:
 	var target_trigger: Node3D = trigger_object
@@ -80,6 +92,8 @@ var player_flag_formatted: String:
 		return ""
 
 func _physics_process(_delta: float) -> void:
+	_try_init()
+	return
 	var player: Player = get_player()
 	
 	if !player.started:
@@ -168,6 +182,9 @@ func _trigger() -> void:
 			if sounds.size() == 0:
 				pass
 			elif sounds.size() == 1:
+				if _audio_player == null:
+					_audio_player = AudioStreamPlayer3D.new()
+					add_child(_audio_player)
 				var target_player: AudioStreamPlayer3D = _audio_player
 				_audio_player.stream = sounds.front()
 				target_player.play()

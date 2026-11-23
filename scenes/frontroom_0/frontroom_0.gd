@@ -2,7 +2,7 @@
 ## spec: scenes/frontroom_0/docs/SPEC.md
 ## status: partial
 
-extends Node
+extends LevelRoot
 
 
 @onready var _node_moving_box_1: RigidBody3D = $_viewport_container/_viewport/MovingBox1
@@ -10,18 +10,15 @@ extends Node
 @onready var _node_moving_box_3: RigidBody3D = $_viewport_container/_viewport/MovingBox_kitchen_big
 @onready var _node_moving_box_4: RigidBody3D = $_viewport_container/_viewport/MovingBox_kitchen_big2
 @onready var _node_world_environment: WorldEnvironment = $_viewport_container/_viewport/WorldEnvironment
-var _player: Player
 var _level_transition: LevelTransition
 const LVL_0_PATH: String = "res://scenes/lvl_0/lvl_0.tscn"
 const MENU_INTRO_PATH: String = "res://scenes/menu_intro/menu_intro.tscn"
 
 
 func _ready() -> void:
-	_player = UtilsNode.find_player(get_tree())
-	if _player == null:
-		push_error("Player not found in scene tree")
-	else:
-		_player.control_enabled = false
+	super._ready()
+	
+	_player.control_enabled = false
 	
 	_level_transition = LevelTransition.new(get_tree())
 	_level_transition.preload_level(LVL_0_PATH)

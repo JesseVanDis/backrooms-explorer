@@ -210,8 +210,9 @@ radius = 1.505
 [sub_resource type="SphereShape3D" id="SphereShape3D_jgr8k"]
 radius = 1.215
 
-[node name="Frontroom0" type="Node" unique_id=60710978]
+[node name="root" type="Node" unique_id=2139756209]
 script = ExtResource("1_gvot5")
+metadata/_custom_type_script = "uid://b1gvbj53qy81o"
 
 [node name="_viewport_container" type="SubViewportContainer" parent="." unique_id=93003097]
 anchors_preset = 15

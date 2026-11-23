@@ -52,6 +52,8 @@ surface_material_override/0 = ExtResource("3_vswqv")
 
 [node name="trigger_first_holes" type="Area3D" parent="." index="2" unique_id=1250381872 node_paths=PackedStringArray("condition_arg_node")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.078, 1, -0.143)
+collision_layer = 0
+collision_mask = 0
 script = ExtResource("6_78gnv")
 mode = 2
 sounds = Array[AudioStream]([ExtResource("7_rru5d")])
@@ -65,6 +67,8 @@ debug_color = Color(0, 0.6193612, 0.5734779, 0.41960785)
 
 [node name="trigger_first_holes_leave" type="Area3D" parent="." index="3" unique_id=25283370]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.078, 1, -0.143)
+collision_layer = 0
+collision_mask = 0
 script = ExtResource("6_78gnv")
 mode = 2
 sounds = Array[AudioStream]([ExtResource("8_8agbv")])
@@ -77,6 +81,8 @@ debug_color = Color(0, 0.6193612, 0.5734779, 0.41960785)
 
 [node name="trigger_first_hole_inspect" type="Area3D" parent="." index="4" unique_id=142221120 node_paths=PackedStringArray("condition_arg_node")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.078, 1, -0.143)
+collision_layer = 0
+collision_mask = 0
 script = ExtResource("6_78gnv")
 mode = 2
 sounds = Array[AudioStream]([ExtResource("8_rru5d")])
@@ -89,6 +95,8 @@ shape = SubResource("CylinderShape3D_78gnv")
 debug_color = Color(0, 0.6193612, 0.5734779, 0.41960785)
 
 [node name="lookat_target_big" type="Area3D" parent="." index="5" unique_id=1043860952]
+collision_layer = 0
+collision_mask = 0
 
 [node name="lookat_target_big_shape" type="CollisionShape3D" parent="lookat_target_big" index="0" unique_id=1233713793]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3839701, 0)
@@ -97,6 +105,8 @@ debug_color = Color(0.9851695, 0, 0.3410145, 0.41960785)
 
 [node name="lookat_target_small" type="Area3D" parent="." index="6" unique_id=1813652081]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.045977116, 0)
+collision_layer = 0
+collision_mask = 0
 
 [node name="lookat_target_small_shape" type="CollisionShape3D" parent="lookat_target_small" index="0" unique_id=209645829]
 shape = SubResource("CapsuleShape3D_rru5d")

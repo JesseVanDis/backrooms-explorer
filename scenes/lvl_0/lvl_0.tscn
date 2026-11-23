@@ -68,8 +68,9 @@ radius = 12.881
 height = 4.222
 radius = 15.738
 
-[node name="lvl_0" type="Node" unique_id=1955532005]
+[node name="root" type="Node" unique_id=1257298056]
 script = ExtResource("1_j6thp")
+metadata/_custom_type_script = "uid://b1gvbj53qy81o"
 
 [node name="_viewport_container" type="SubViewportContainer" parent="." unique_id=903414844]
 material = ExtResource("2_tl4y0")
@@ -140,6 +141,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 13.455553, 0)
 script = ExtResource("11_ns1bo")
 mode = 1
 sounds = Array[AudioStream]([ExtResource("12_n8t5v")])
+trigger_delay_ms = null
+player_flag = null
+condition = null
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="_viewport_container/_viewport/trigger_sfx_fall_voice" unique_id=611511678]
 shape = SubResource("SphereShape3D_khlrb")
@@ -150,6 +154,8 @@ script = ExtResource("11_ns1bo")
 mode = 2
 sounds = Array[AudioStream]([ExtResource("16_spjc5"), ExtResource("13_n8t5v")])
 trigger_delay_ms = 10000
+player_flag = null
+condition = null
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="_viewport_container/_viewport/trigger_sfx_small_walk" unique_id=1080582823]
 shape = SubResource("CylinderShape3D_ns1bo")
@@ -159,6 +165,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2742953, 0.08286917, 0.9780
 script = ExtResource("11_ns1bo")
 mode = 3
 sounds = Array[AudioStream]([ExtResource("14_kftwb"), ExtResource("16_spjc5"), ExtResource("16_spjc5"), ExtResource("16_1blqs"), ExtResource("16_spjc5")])
+trigger_delay_ms = null
+player_flag = null
+condition = null
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="_viewport_container/_viewport/trigger_sfx_found_boxes" unique_id=991467708]
 shape = SubResource("CylinderShape3D_ns1bo")
@@ -168,6 +177,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07821679, 0.08286917, -0.14
 script = ExtResource("11_ns1bo")
 mode = 3
 sounds = Array[AudioStream]([ExtResource("17_spjc5")])
+trigger_delay_ms = null
+player_flag = null
 condition = 2
 condition_arg_node = NodePath("Marker3D")
 
@@ -183,6 +194,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.271, 0, 0.377)
 script = ExtResource("11_ns1bo")
 mode = 2
 sounds = Array[AudioStream]([ExtResource("18_1blqs"), ExtResource("16_spjc5"), ExtResource("20_k0yso"), ExtResource("19_8uaq6"), ExtResource("21_k0yso"), ExtResource("19_8uaq6"), ExtResource("19_8uaq6"), ExtResource("22_vygta")])
+trigger_delay_ms = null
+player_flag = null
 condition = 1
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="_viewport_container/_viewport/trigger_sfx_leave_center" unique_id=789829829]

@@ -105,6 +105,11 @@ var _started: bool = false
 var started: bool: 
 	get: return _started
 
+var _nearest_triggers: Dictionary = {} # [trigger_name, trigger_node]
+var _all_visible_triggers:  Array[Trigger] = [] # [trigger_name, trigger_node]
+var nearest_triggers: Dictionary: 
+	get: return _nearest_triggers
+
 # Animations
 var _camera_default_position: Vector3 = Vector3.ZERO
 var _camera_offset: Vector3 = Vector3.ZERO
@@ -460,6 +465,18 @@ func _physics_process(real_delta: float) -> void:
 	_handle_head_bob(delta)
 	_handle_footsteps(delta)
 	_old_global_pos = global_position
+
+func notify_added_trigger(trigger: Trigger) -> void:
+	_all_visible_triggers.append(trigger)
+
+func notify_removed_trigger(trigger: Trigger) -> void:
+	var index: int = _all_visible_triggers.find(trigger)
+	if index != -1:
+		_all_visible_triggers.remove_at(index)
+
+func _update_nearest_triggers() -> void:
+	pass
+	# _nearest_triggers
 
 # Selects the locomotion blend from speed and backward input while keeping slow or blocked movement in stumble.
 func _update_locomotion_behaviours(input_direction: Vector2) -> void:
