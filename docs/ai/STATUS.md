@@ -18,7 +18,7 @@ Legend: `done` · `partial` · `stub` · `missing`
 | Jumping                                     | partial | Works via the built-in `ui_accept`; no rebindable `jump` action       |
 | [Player behaviours](systems/player.md#7-animationtree-behaviours) | partial | Blend and one-shot behaviours expose lifecycle statuses; run/reverse-run/stumble follow post-slide speed and movement direction, freefall activates after sustained airtime, camera offsets apply only while enabling or active, and timed actions are deferred |
 | [Position-driven shader parameters](systems/player.md#positiontoshaderparam-configuration) | done | Reusable position-to-uniform driver; hand opacity follows the animated bone position |
-| [Voice + subtitles](systems/ui_subtitles.md)| done    | Queue, `.srt` parsing, synced playback                                |
+| [Voice, subtitles + FPS](systems/ui_subtitles.md)| done    | Voice queue, `.srt` parsing, synced subtitles, live in-game FPS label |
 | [Audio reverb](systems/audio.md)            | partial | `SoundController` drives one reverb bus; no mixer, no settings        |
 | [Physics sounds](systems/audio.md)          | done    | Slide and impact sounds on rigid bodies                               |
 | [Triggers](systems/interaction.md)          | done    | Enter / leave / look-at conditions with delays                        |
@@ -36,7 +36,7 @@ Legend: `done` · `partial` · `stub` · `missing`
 | `lvl_0`              | partial | Infinite walkable lobby with static chair/trash-bin clutter; **no exit, no biomes, no events** |
 | `menu_intro`         | stub    | Black screen + title label                                        |
 | `menu_loading`       | stub    | Near-identical copy of `menu_intro`                               |
-| `menu_ui`            | partial | Subtitle label only                                               |
+| `menu_ui`            | partial | Subtitle and FPS labels                                           |
 | `test_0`             | sandbox | Raytraced audio test bed, not part of the game                    |
 
 ## 3. Does not exist at all

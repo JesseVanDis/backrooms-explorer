@@ -1,12 +1,12 @@
 # System: UI and subtitles
 
 > **Status:** partial
-> **Code:** `assets/scripts/player_subtitles.gd`, `scenes/menu_ui/menu_ui.gd`
+> **Code:** `assets/scripts/player_subtitles.gd`, `scenes/menu_ui/menu_ui.gd`, `scenes/menu_ui/fps_label.gd`
 
 ## 1. Responsibility
 
-Everything drawn on top of the 3D world while playing. Today that is exactly one thing: the
-**subtitle line** for the main character's voice-over.
+Everything drawn on top of the 3D world while playing. Today this includes the **subtitle line** for
+the main character's voice-over and an **FPS counter**.
 
 - `IngameUI` (`scenes/menu_ui/menu_ui.gd`) is the UI layer. It is a `CanvasLayer` scene instanced
   inside a level, finds the `SubViewport` it is rendered into, and forwards subtitle calls.
@@ -41,8 +41,9 @@ Scene structure:
 |---|---|---|---|
 | `_UI` | `CanvasLayer` | `menu_ui.gd` (`IngameUI`) | the root node of `menu_ui.tscn` |
 | `_UI/_subtitles` | `Label` | `player_subtitles.gd` (`PlayerSubtitles`) | anchored to the bottom of the screen (`anchor_top = 0.891`, `anchor_right = 1.0`, `anchor_bottom = 1.0`), horizontally and vertically centred, `LabelSettings` with `font_size = 20`, `outline_size = 6`, `outline_color = Color(0, 0, 0, 0.5058824)` |
+| `_UI/_fps` | `Label` | `fps_label.gd` | anchored to the top-right; displays `FPS: <integer>` using `Engine.get_frames_per_second()` each frame |
 
-That is the whole scene - no HUD, no crosshair, no menu nodes.
+Those are the scene's only UI elements; there is no crosshair or menu node.
 
 Public API:
 
@@ -155,14 +156,14 @@ what the character says and when.
 
 ## 5. Known gaps
 
-- **No HUD today, but not a permanent design choice.** No crosshair, interaction prompt, stamina,
-  inventory or objective display - the only UI node in `menu_ui.tscn` is the subtitle `Label`. A
-  Level 0 Game Over screen and a Red Room on-screen prompt are planned on top of this layer - see
-  section 7.
-- **No menus today, but two are now planned for Level 0.** No main menu, no pause menu, and
-  currently no in-game overlay other than the fade screens of [./level_flow.md](./level_flow.md) -
-  but see section 7 for the Holes Game Over screen and the Red Room restart prompt that are
-  planned to live here.
+- **No broader HUD today, but not a permanent design choice.** No crosshair, interaction prompt,
+  stamina, inventory or objective display - `menu_ui.tscn` currently has only the subtitle and FPS
+  labels. A Level 0 Game Over screen and a Red Room on-screen prompt are planned on top of this layer
+  - see section 7.
+- **No menus today, but two are now planned for Level 0.** No main menu, pause menu or interactive
+  gameplay overlay exists yet; apart from the labels above, the only overlays are the fade screens
+  of [./level_flow.md](./level_flow.md). See section 7 for the Holes Game Over screen and the Red
+  Room restart prompt planned for this layer.
 - **No settings.** Subtitles cannot be turned off, resized or repositioned at runtime; the font
   size (20), outline (6) and anchor are baked into `menu_ui.tscn`. There is no audio/graphics/input
   options screen either.

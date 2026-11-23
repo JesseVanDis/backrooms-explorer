@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b2452t0l2y8c4" path="res://scenes/menu_ui/menu_ui.gd" id="1_4omru"]
 [ext_resource type="Script" uid="uid://d3k4hcch35ngc" path="res://assets/scripts/player_subtitles.gd" id="1_hddiw"]
+[ext_resource type="Script" path="res://scenes/menu_ui/fps_label.gd" id="2_fps"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_8uaq6"]
 font_size = 20
@@ -23,3 +24,17 @@ label_settings = SubResource("LabelSettings_8uaq6")
 horizontal_alignment = 1
 vertical_alignment = 1
 script = ExtResource("1_hddiw")
+
+[node name="_fps" type="Label" parent="." unique_id=953936244]
+script = ExtResource("2_fps")
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -111.0
+offset_bottom = 28.0
+grow_horizontal = 0
+size_flags_horizontal = 8
+size_flags_vertical = 0
+text = "FPS: "
+label_settings = SubResource("LabelSettings_8uaq6")
+uppercase = true
