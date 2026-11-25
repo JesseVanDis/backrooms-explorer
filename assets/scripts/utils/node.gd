@@ -48,6 +48,26 @@ static func find_camera_recursive(root_node: Node) -> Camera3D:
 			
 	return null
 
+static func find_player(tree: SceneTree) -> Player:
+	# player should be at 'lvl_0/_viewport_container_Player'
+	
+	# Try to find the player in the scene tree via group
+	var player: Player = tree.get_first_node_in_group("player")
+	if player:
+		return player
+	
+	# Fallback: search by class if group is not set
+	var players: Array[Node] = tree.get_nodes_in_group("player")
+	if not players.is_empty():
+		return players[0] as Player
+		
+	# Last resort: deep search
+	for node in tree.get_root().find_children("*", "CharacterBody3D", true, false):
+		if node is Player:
+			return node as Player
+			
+	return null
+
 static func find_skeleton_modifier_recursive(root_node: Node) -> SkeletonModifier:
 	if root_node is SkeletonModifier:
 		return root_node
